@@ -25,6 +25,8 @@ usuario y datos persistentes.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
 - **Modo claro y oscuro**, y uso desde el móvil.
+- **Alta desde la propia pantalla de acceso** — cada trabajador se crea su cuenta con su correo,
+  su nombre y una contraseña; el perfil se genera solo.
 
 ---
 
@@ -35,7 +37,7 @@ usuario y datos persistentes.
 | Código de la aplicación | Listo. Compila y está en esta rama. |
 | Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): 10 tablas, RLS en todas, realtime y funciones. |
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
-| Altas del equipo | **Pendiente** — hay que crear los usuarios en Supabase. |
+| Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
 | Logo y tipografía de DecaSight | **Pendiente** — ahora hay una marca provisional. |
 
 ---
@@ -57,11 +59,27 @@ y solo lo puede dar su titular.
 > no leer el estado de los despliegues ni cambiar los ajustes del proyecto. Para tocar ajustes
 > (dominio propio, variables de entorno) hace falta entrar como propietario del equipo.
 
-### 2. Dar de alta al equipo  *(1 minuto por persona)*
+### 2. Dar de alta al equipo  *(cada uno se registra solo)*
 
-En Supabase → **Authentication → Users → Add user**, con el correo de cada trabajador y una
-contraseña inicial. Marca *Auto Confirm User* para que puedan entrar sin verificar el correo.
-El perfil se crea solo.
+En la pantalla de acceso hay **«¿Aún no tienes cuenta? Crear una»**: nombre, correo y contraseña,
+y dentro. El perfil (iniciales y color del sello) se crea solo.
+
+Para que funcione, en Supabase → **Authentication → Sign In / Providers → Email** tienen que estar
+así:
+
+- **Allow new users to sign up**: activado (si no, la pantalla avisa de que el registro está
+  cerrado);
+- **Confirm email**: si lo dejas activado, cada alta recibe un correo de confirmación y hasta
+  abrirlo no se puede entrar — y para que ese enlace vuelva a la aplicación hace falta el paso 3.
+  Desactivarlo hace que el alta entre directa.
+
+También puedes seguir dando de alta a mano en **Authentication → Users → Add user** (marcando
+*Auto Confirm User*), que es lo suyo si prefieres controlar tú quién entra.
+
+> **Cuando estéis todos dentro, cierra el registro.** Desactiva *Allow new users to sign up*: la
+> aplicación está en una dirección pública y cualquiera con el enlace podría crearse una cuenta.
+> Si prefieres dejarlo abierto pero limitado a los correos de la empresa, pon los dominios en
+> `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` (p. ej. `21daysagency.com`) y vuelve a publicar.
 
 Para nombrar administradores (pueden borrar clientes y mensajes de otros), en el **SQL Editor**:
 
@@ -74,9 +92,6 @@ Y para ajustar cómo se muestra alguien:
 ```sql
 update public.profiles set full_name = 'Marc Valero', initials = 'MV' where email = 'marc@…';
 ```
-
-> **Cierra el registro público.** En *Authentication → Sign In / Providers → Email*, desactiva
-> **Allow new users to sign up**. Así solo entra quien tú das de alta.
 
 ### 3. Ajustar las URLs de acceso  *(1 minuto, imprescindible para el acceso por correo)*
 

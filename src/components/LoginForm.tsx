@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
+import { initialsOf } from "@/lib/format";
 
 const ALLOWED_DOMAINS = (process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS ?? "")
   .split(",")
@@ -16,21 +17,40 @@ function domainAllowed(email: string) {
   return ALLOWED_DOMAINS.includes(domain);
 }
 
-type Mode = "password" | "link";
+type Mode = "password" | "link" | "signup";
+
+const TITLES: Record<Mode, string> = {
+  password: "Entrar",
+  link: "Entrar",
+  signup: "Crear cuenta",
+};
 
 export default function LoginForm() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("password");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  /** Cambia de pestaña dejando limpios los avisos de la anterior. */
+  function go(next: Mode) {
+    setMode(next);
+    setError(null);
+    setNotice(null);
+  }
+
+  function volverA() {
+    const volver = new URLSearchParams(window.location.search).get("volver") ?? "/bitacora";
+    return volver.startsWith("/") ? volver : "/bitacora";
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSent(false);
+    setNotice(null);
 
     if (!domainAllowed(email)) {
       setError(
@@ -42,46 +62,102 @@ export default function LoginForm() {
     setBusy(true);
     const supabase = createClient();
 
+    // ---------------------------------------------------------------- alta
+    if (mode === "signup") {
+      const fullName = name.trim();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, initials: initialsOf(fullName) },
+          emailRedirectTo: `${window.location.origin}/auth/callback?volver=${encodeURIComponent(
+            volverA(),
+          )}`,
+        },
+      });
+      setBusy(false);
+
+      if (error) {
+        setError(traducir(error.message));
+        return;
+      }
+
+      // Supabase no dice "ese correo ya existe" para no delatar quién tiene
+      // cuenta: devuelve un usuario sin identidades. Lo traducimos nosotros.
+      if (data.user && data.user.identities?.length === 0) {
+        setError("Ese correo ya tiene cuenta. Entra con tu contraseña o pide un enlace por correo.");
+        return;
+      }
+
+      // Con la confirmación por correo desactivada, el alta ya deja sesión.
+      if (data.session) {
+        router.push(volverA());
+        router.refresh();
+        return;
+      }
+
+      setNotice(
+        `Cuenta creada. Te hemos enviado un correo a ${email} para confirmarla: ábrelo y ya podrás entrar.`,
+      );
+      return;
+    }
+
+    // ------------------------------------------------- entrar con un enlace
     if (mode === "link") {
-      const redirectTo = `${window.location.origin}/auth/callback?volver=${encodeURIComponent(
-        new URLSearchParams(window.location.search).get("volver") ?? "/bitacora",
-      )}`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: redirectTo, shouldCreateUser: false },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?volver=${encodeURIComponent(
+            volverA(),
+          )}`,
+          shouldCreateUser: false,
+        },
       });
       setBusy(false);
       if (error) {
         setError(traducir(error.message));
         return;
       }
-      setSent(true);
+      setNotice(
+        `Te hemos enviado un enlace de acceso a ${email}. Ábrelo desde este mismo dispositivo.`,
+      );
       return;
     }
 
+    // --------------------------------------------- entrar con la contraseña
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       setError(traducir(error.message));
       return;
     }
-    const volver = new URLSearchParams(window.location.search).get("volver") ?? "/bitacora";
-    router.push(volver.startsWith("/") ? volver : "/bitacora");
+    router.push(volverA());
     router.refresh();
   }
 
   return (
     <form className="gate__form" onSubmit={onSubmit}>
-      <h1 className="gate__title">Entrar</h1>
+      <h1 className="gate__title">{TITLES[mode]}</h1>
       <p className="gate__sub">
-        Acceso reservado al equipo de {BRAND.company}. Si aún no tienes cuenta, pídesela a un
-        administrador.
+        {mode === "signup"
+          ? `Date de alta con tu correo de trabajo para entrar en la bitácora de ${BRAND.company}.`
+          : `Acceso reservado al equipo de ${BRAND.company}.`}
       </p>
 
       {error && <div className="notice notice--error">{error}</div>}
-      {sent && (
-        <div className="notice notice--ok">
-          Te hemos enviado un enlace de acceso a <b>{email}</b>. Ábrelo desde este mismo dispositivo.
+      {notice && <div className="notice notice--ok">{notice}</div>}
+
+      {mode === "signup" && (
+        <div className="field">
+          <label htmlFor="name">Nombre y apellido</label>
+          <input
+            id="name"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Marc Valero"
+          />
         </div>
       )}
 
@@ -98,41 +174,71 @@ export default function LoginForm() {
         />
       </div>
 
-      {mode === "password" && (
+      {mode !== "link" && (
         <div className="field">
           <label htmlFor="password">Contraseña</label>
           <input
             id="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete={mode === "signup" ? "new-password" : "current-password"}
             required
+            minLength={mode === "signup" ? 8 : undefined}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {mode === "signup" && (
+            <span style={{ fontSize: "0.72rem", color: "var(--ink-faint)" }}>
+              Mínimo 8 caracteres.
+            </span>
+          )}
         </div>
       )}
 
       <button className="btn btn--primary gate__full" type="submit" disabled={busy}>
-        {busy ? "Un momento…" : mode === "password" ? "Entrar" : "Enviarme un enlace"}
+        {busy
+          ? "Un momento…"
+          : mode === "password"
+            ? "Entrar"
+            : mode === "link"
+              ? "Enviarme un enlace"
+              : "Crear cuenta"}
       </button>
 
       <div className="gate__switch">
-        {mode === "password" ? (
+        {mode === "password" && (
           <>
             <span>¿Sin contraseña a mano?</span>
-            <button type="button" onClick={() => { setMode("link"); setError(null); }}>
+            <button type="button" onClick={() => go("link")}>
               Entrar con un enlace por correo
             </button>
           </>
-        ) : (
+        )}
+        {mode === "link" && (
           <>
             <span>¿Prefieres tu contraseña?</span>
-            <button type="button" onClick={() => { setMode("password"); setError(null); setSent(false); }}>
+            <button type="button" onClick={() => go("password")}>
               Entrar con contraseña
             </button>
           </>
         )}
+        {mode === "signup" && (
+          <>
+            <span>¿Ya tienes cuenta?</span>
+            <button type="button" onClick={() => go("password")}>
+              Entrar
+            </button>
+          </>
+        )}
       </div>
+
+      {mode !== "signup" && (
+        <div className="gate__switch">
+          <span>¿Aún no tienes cuenta?</span>
+          <button type="button" onClick={() => go("signup")}>
+            Crear una
+          </button>
+        </div>
+      )}
 
       <div className="gate__brandline">
         {BRAND.product} — {BRAND.company}
@@ -145,11 +251,21 @@ export default function LoginForm() {
 function traducir(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("invalid login credentials")) return "Correo o contraseña incorrectos.";
-  if (m.includes("email not confirmed")) return "Tu correo aún no está confirmado. Revisa tu bandeja de entrada.";
-  if (m.includes("signups not allowed") || m.includes("should create user"))
-    return "Ese correo no tiene cuenta todavía. Pídesela a un administrador.";
-  if (m.includes("rate limit") || m.includes("too many"))
+  if (m.includes("email not confirmed"))
+    return "Tu correo aún no está confirmado. Revisa tu bandeja de entrada.";
+  if (m.includes("user already registered") || m.includes("already been registered"))
+    return "Ese correo ya tiene cuenta. Entra con tu contraseña o pide un enlace por correo.";
+  if (m.includes("password should be at least"))
+    return "La contraseña es demasiado corta: usa al menos 8 caracteres.";
+  if (m.includes("weak password") || m.includes("password is known to be weak"))
+    return "Esa contraseña es demasiado fácil de adivinar. Prueba con otra más larga.";
+  if (m.includes("signups not allowed") || m.includes("signup is disabled"))
+    return "El registro está cerrado. Un administrador tiene que activarlo en Supabase (Authentication → Sign In / Providers → Email) o darte de alta a mano.";
+  if (m.includes("should create user"))
+    return "Ese correo no tiene cuenta todavía. Créala con «Crear una».";
+  if (m.includes("rate limit") || m.includes("too many") || m.includes("for security purposes"))
     return "Demasiados intentos seguidos. Espera un minuto y vuelve a probar.";
   if (m.includes("user not found")) return "Ese correo no tiene cuenta todavía.";
+  if (m.includes("email address") && m.includes("invalid")) return "Ese correo no parece válido.";
   return message;
 }

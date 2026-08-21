@@ -34,7 +34,7 @@ usuario y datos persistentes.
 |---|---|
 | Código de la aplicación | Listo. Compila y está en esta rama. |
 | Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): 10 tablas, RLS en todas, realtime y funciones. |
-| Publicación en Vercel | **Pendiente** — falta conectar GitHub a la cuenta de Vercel (ver abajo). |
+| Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | **Pendiente** — hay que crear los usuarios en Supabase. |
 | Logo y tipografía de DecaSight | **Pendiente** — ahora hay una marca provisional. |
 
@@ -42,16 +42,20 @@ usuario y datos persistentes.
 
 ## Lo que queda por hacer
 
-### 1. Conectar GitHub con Vercel  *(1 minuto, imprescindible)*
+### 1. Conectar GitHub con Vercel  *(1 minuto, recomendable)*
 
-Vercel rechaza enlazar el repositorio con este error:
+La aplicación **ya está publicada** en <https://bitacora-21-days1.vercel.app>, pero el proyecto
+de Vercel no está enlazado al repositorio: el código se subió directamente. Mientras siga así,
+un push a GitHub **no** actualiza la web; hay que volver a publicar a mano.
 
-> *You need to add a Login Connection to your GitHub account first.*
+Para que cada push despliegue solo, instala la aplicación de Vercel en la cuenta de GitHub —
+<https://github.com/apps/vercel> → *Install* → elegir `21days-repository` — y luego, en Vercel,
+**Project Settings → Git → Connect Git Repository**. Es un permiso de la cuenta, no del proyecto,
+y solo lo puede dar su titular.
 
-Se arregla en <https://vercel.com/account/login-connections> → **GitHub** → *Connect*.
-Es un permiso de la cuenta de Vercel, no del proyecto, y solo lo puede dar su titular.
-
-Hecho eso, el proyecto se crea enlazado al repositorio y cada push despliega solo.
+> Los despliegues los hace una cuenta con permisos limitados en el equipo: puede publicar, pero
+> no leer el estado de los despliegues ni cambiar los ajustes del proyecto. Para tocar ajustes
+> (dominio propio, variables de entorno) hace falta entrar como propietario del equipo.
 
 ### 2. Dar de alta al equipo  *(1 minuto por persona)*
 
@@ -74,12 +78,12 @@ update public.profiles set full_name = 'Marc Valero', initials = 'MV' where emai
 > **Cierra el registro público.** En *Authentication → Sign In / Providers → Email*, desactiva
 > **Allow new users to sign up**. Así solo entra quien tú das de alta.
 
-### 3. Ajustar las URLs de acceso  *(cuando exista la URL de Vercel)*
+### 3. Ajustar las URLs de acceso  *(1 minuto, imprescindible para el acceso por correo)*
 
 Supabase → **Authentication → URL Configuration**:
 
-- **Site URL**: la dirección que dé Vercel (o vuestro dominio).
-- **Redirect URLs**: añade `https://…/auth/callback`.
+- **Site URL**: `https://bitacora-21-days1.vercel.app` (o vuestro dominio, cuando lo haya).
+- **Redirect URLs**: añade `https://bitacora-21-days1.vercel.app/auth/callback`.
 
 Sin esto, el acceso por enlace de correo no vuelve a la aplicación. El acceso con contraseña
 funciona igual.
@@ -108,7 +112,8 @@ así que se puede volver a ejecutar sin romper nada.
 | Variable | Obligatoria | Para qué |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Sí | Dirección del proyecto de Supabase. Ya viene puesta en `.env.production`. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí | Clave pública (*anon*). Ya viene puesta en `.env.production`. Es segura en el navegador: en Next.js toda variable `NEXT_PUBLIC_*` viaja dentro del bundle, y quien protege los datos son las políticas RLS. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Sí | Clave pública (`sb_publishable_…`), la que Supabase recomienda hoy. Ya viene puesta en `.env.production`. Es segura en el navegador: en Next.js toda variable `NEXT_PUBLIC_*` viaja dentro del bundle, y quien protege los datos son las políticas RLS. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | La clave pública antigua (JWT *anon*). Solo se usa si no hay clave publishable; sirve para no romper entornos que ya la tuvieran. |
 | `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` | No | Dominios permitidos, separados por comas (`decasight.com`). Vacío = sin restricción. |
 
 > La clave `service_role` de Supabase **no** se usa aquí y no debe ponerse nunca en Vercel como
@@ -120,7 +125,7 @@ así que se puede volver a ejecutar sin romper nada.
 
 ```bash
 npm install
-cp .env.example .env.local     # y rellena las dos claves de Supabase
+cp .env.example .env.local     # y rellena la URL y la clave de Supabase
 npm run dev                    # http://localhost:3000
 ```
 

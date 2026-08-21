@@ -28,41 +28,61 @@ usuario y datos persistentes.
 
 ---
 
-## Puesta en marcha
+## Estado
 
-### 1. Crear el proyecto en Supabase
+| Pieza | Estado |
+|---|---|
+| Código de la aplicación | Listo. Compila y está en esta rama. |
+| Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): 10 tablas, RLS en todas, realtime y funciones. |
+| Publicación en Vercel | **Pendiente** — falta conectar GitHub a la cuenta de Vercel (ver abajo). |
+| Altas del equipo | **Pendiente** — hay que crear los usuarios en Supabase. |
+| Logo y tipografía de DecaSight | **Pendiente** — ahora hay una marca provisional. |
 
-En <https://supabase.com/dashboard> → **New project**. Elige la región de Europa (Frankfurt o
-Londres) para que vaya rápido desde aquí, y guarda la contraseña de la base de datos.
+---
 
-### 2. Instalar el esquema
+## Lo que queda por hacer
 
-En el panel de Supabase → **SQL Editor** → **New query**, pega el contenido de
-[`supabase/schema.sql`](supabase/schema.sql) y ejecútalo. Crea las tablas, los permisos por fila
-(RLS), el tiempo real y el alta automática de perfiles.
+### 1. Conectar GitHub con Vercel  *(1 minuto, imprescindible)*
 
-Se puede volver a ejecutar tantas veces como haga falta sin romper nada.
+Vercel rechaza enlazar el repositorio con este error:
 
-### 3. Dar de alta al equipo
+> *You need to add a Login Connection to your GitHub account first.*
 
-**Authentication → Users → Add user**, uno por cada trabajador, con su correo de DecaSight y una
+Se arregla en <https://vercel.com/account/login-connections> → **GitHub** → *Connect*.
+Es un permiso de la cuenta de Vercel, no del proyecto, y solo lo puede dar su titular.
+
+Hecho eso, el proyecto se crea enlazado al repositorio y cada push despliega solo.
+
+### 2. Dar de alta al equipo  *(1 minuto por persona)*
+
+En Supabase → **Authentication → Users → Add user**, con el correo de cada trabajador y una
 contraseña inicial. Marca *Auto Confirm User* para que puedan entrar sin verificar el correo.
+El perfil se crea solo.
 
-Cada alta crea su perfil automáticamente. Para nombrar a alguien administrador (puede borrar
-clientes y mensajes de otros):
+Para nombrar administradores (pueden borrar clientes y mensajes de otros), en el **SQL Editor**:
 
 ```sql
 update public.profiles set role = 'admin' where email = 'hola@21daysagency.com';
 ```
 
-Si quieres cambiar el nombre que se muestra o sus iniciales:
+Y para ajustar cómo se muestra alguien:
 
 ```sql
 update public.profiles set full_name = 'Marc Valero', initials = 'MV' where email = 'marc@…';
 ```
 
-> **Deja el registro público cerrado.** En *Authentication → Sign In / Providers → Email*,
-> desactiva **Allow new users to sign up**. Así solo entra quien tú das de alta.
+> **Cierra el registro público.** En *Authentication → Sign In / Providers → Email*, desactiva
+> **Allow new users to sign up**. Así solo entra quien tú das de alta.
+
+### 3. Ajustar las URLs de acceso  *(cuando exista la URL de Vercel)*
+
+Supabase → **Authentication → URL Configuration**:
+
+- **Site URL**: la dirección que dé Vercel (o vuestro dominio).
+- **Redirect URLs**: añade `https://…/auth/callback`.
+
+Sin esto, el acceso por enlace de correo no vuelve a la aplicación. El acceso con contraseña
+funciona igual.
 
 ### 4. (Opcional) Datos de ejemplo
 
@@ -75,23 +95,20 @@ delete from public.clients
 where name in ('Ferretería Solà', 'Grup Martí Reformes', 'Òptica Vidal', 'Restaurant Can Bosch');
 ```
 
-### 5. Publicar en Vercel
+---
 
-1. En <https://vercel.com/new>, importa este repositorio. Vercel detecta Next.js solo: no toques
-   los ajustes de build.
-2. En **Environment Variables**, añade las de la tabla de abajo (las de Supabase están en
-   *Project Settings → API*).
-3. **Deploy**.
-4. Vuelve a Supabase → **Authentication → URL Configuration** y pon en **Site URL** la dirección
-   que te ha dado Vercel (`https://…vercel.app` o vuestro dominio). En **Redirect URLs** añade
-   `https://…/auth/callback`. Sin esto, el acceso por enlace de correo no vuelve a la aplicación.
+## Reinstalar la base de datos desde cero
+
+Ya está instalada, pero si algún día hace falta rehacerla o montar un segundo entorno: pega
+[`supabase/schema.sql`](supabase/schema.sql) entero en **SQL Editor → New query**. Es idempotente,
+así que se puede volver a ejecutar sin romper nada.
 
 ### Variables de entorno
 
 | Variable | Obligatoria | Para qué |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Sí | Dirección del proyecto de Supabase. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí | Clave pública (*anon*). Es segura en el navegador: quien manda son las políticas RLS. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Sí | Dirección del proyecto de Supabase. Ya viene puesta en `.env.production`. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí | Clave pública (*anon*). Ya viene puesta en `.env.production`. Es segura en el navegador: en Next.js toda variable `NEXT_PUBLIC_*` viaja dentro del bundle, y quien protege los datos son las políticas RLS. |
 | `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` | No | Dominios permitidos, separados por comas (`decasight.com`). Vacío = sin restricción. |
 
 > La clave `service_role` de Supabase **no** se usa aquí y no debe ponerse nunca en Vercel como

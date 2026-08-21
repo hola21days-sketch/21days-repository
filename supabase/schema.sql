@@ -119,6 +119,7 @@ create index if not exists cards_column_idx on public.cards (column_id, position
 create or replace function public.set_card_ref()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 declare
   v_seq    integer;
@@ -141,7 +142,7 @@ create trigger cards_set_ref
   for each row execute function public.set_card_ref();
 
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   return new;
@@ -387,3 +388,14 @@ $$;
 drop policy if exists profiles_insert on public.profiles;
 create policy profiles_insert on public.profiles
   for insert to authenticated with check (id = auth.uid());
+
+-- ============================================================================
+-- 9. Endurecimiento (avisos del linter de seguridad de Supabase)
+-- ----------------------------------------------------------------------------
+-- handle_new_user() e is_admin() son SECURITY DEFINER. Sin esto quedan
+-- expuestas como /rest/v1/rpc/... y cualquiera con la clave pública podría
+-- invocarlas. handle_new_user() solo debe correr como trigger, e is_admin()
+-- solo desde dentro de las políticas RLS.
+-- ============================================================================
+revoke execute on function public.handle_new_user() from anon, authenticated, public;
+revoke execute on function public.is_admin()        from anon, authenticated, public;

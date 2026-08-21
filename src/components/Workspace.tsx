@@ -6,10 +6,12 @@ import Board from "./Board";
 import Chat from "./Chat";
 import CardDrawer from "./CardDrawer";
 import NewClientDialog from "./NewClientDialog";
+import Resumen from "./Resumen";
+import Tareas from "./Tareas";
 import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import type { BoardColumn, Card, Message, Profile } from "@/lib/types";
+import type { Attachment, BoardColumn, Card, Message, Profile } from "@/lib/types";
 
 type ClientRow = {
   id: string;
@@ -65,14 +67,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   );
 
   const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
-  const [tab, setTab] = useState<"board" | "chat">("board");
+  const [tab, setTab] = useState<"board" | "chat" | "tareas">("board");
   const [railOpen, setRailOpen] = useState(false);
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [newClientOpen, setNewClientOpen] = useState(false);
 
   const [messagesByClient, setMessagesByClient] = useState<Record<string, Message[]>>({});
+  const [attachmentsByMessage, setAttachmentsByMessage] = useState<Record<string, Attachment[]>>({});
   const [loadingChat, setLoadingChat] = useState(false);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [pendingTasks, setPendingTasks] = useState(0);
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -126,6 +131,11 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     return new Set([...ultimaPorCliente.values()].map((c) => c.id));
   }, [columns]);
 
+  const activeDoneColumnId = useMemo(
+    () => activeColumns.at(-1)?.id ?? null,
+    [activeColumns],
+  );
+
   const railClients = useMemo(
     () =>
       clients.map((c) => ({
@@ -164,6 +174,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   }, [supabase]);
 
   // --------------------------------------------------------------- realtime
+  const mergeAttachments = useCallback((files: Attachment[]) => {
+    setAttachmentsByMessage((prev) => {
+      const next = { ...prev };
+      for (const f of files) {
+        const list = next[f.message_id] ?? [];
+        if (!list.some((x) => x.id === f.id)) next[f.message_id] = [...list, f];
+      }
+      return next;
+    });
+  }, []);
+
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scheduleCardRefresh = useCallback(() => {
     if (refreshTimer.current) clearTimeout(refreshTimer.current);
@@ -207,13 +228,20 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           upsertMessage(row.client_id, row);
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "message_attachments" },
+        (payload) => {
+          mergeAttachments([payload.new as Attachment]);
+        },
+      )
       .subscribe();
 
     return () => {
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       void supabase.removeChannel(channel);
     };
-  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage]);
+  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage, mergeAttachments]);
 
   // ------------------------------------------------------------------- chat
   // Clientes cuyo chat ya está cargado. En una ref y no en el estado para que
@@ -238,8 +266,14 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
       loadedChats.current.add(clientId);
       setMessagesByClient((prev) => ({ ...prev, [clientId]: (data as Message[]).slice().reverse() }));
+
+      const { data: files } = await supabase
+        .from("message_attachments")
+        .select("*")
+        .eq("client_id", clientId);
+      if (files) mergeAttachments(files as Attachment[]);
     },
-    [supabase],
+    [supabase, mergeAttachments],
   );
 
   const markRead = useCallback(
@@ -260,6 +294,22 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const activeMessageCount = activeMessages.length;
 
   useEffect(() => {
+    if (!activeId) return;
+    let vigente = true;
+    void (async () => {
+      const { count } = await supabase
+        .from("client_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", activeId)
+        .eq("done", false);
+      if (vigente) setPendingTasks(count ?? 0);
+    })();
+    return () => {
+      vigente = false;
+    };
+  }, [activeId, supabase]);
+
+  useEffect(() => {
     if (!activeId || tab !== "chat") return;
     void loadMessages(activeId);
   }, [activeId, tab, loadMessages]);
@@ -270,43 +320,92 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     // Se vuelve a marcar al llegar mensajes nuevos con el chat abierto.
   }, [activeId, tab, activeMessageCount, markRead]);
 
-  async function sendMessage(body: string) {
+  /**
+   * Manda el mensaje y, si lleva archivos, los sube al bucket `adjuntos`.
+   * Los ficheros van tal cual: mismo nombre, mismo tipo, sin recomprimir, así
+   * que un vídeo 4K o un Excel se descargan idénticos a como se subieron.
+   */
+  async function sendMessage(body: string, files: File[] = []) {
     if (!activeId) return;
+    const clientId = activeId;
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const optimistic: Message = {
       id: tempId,
-      client_id: activeId,
+      client_id: clientId,
       author_id: me.id,
       body,
       created_at: new Date().toISOString(),
     };
     setPendingIds((prev) => new Set(prev).add(tempId));
-    setMessagesByClient((prev) => ({ ...prev, [activeId]: [...(prev[activeId] ?? []), optimistic] }));
+    setMessagesByClient((prev) => ({ ...prev, [clientId]: [...(prev[clientId] ?? []), optimistic] }));
+    if (files.length > 0) setUploading(`Subiendo ${files.length} archivo${files.length > 1 ? "s" : ""}…`);
 
     const { data, error } = await supabase
       .from("messages")
-      .insert({ client_id: activeId, author_id: me.id, body })
+      .insert({ client_id: clientId, author_id: me.id, body })
       .select("*")
       .single();
 
-    setPendingIds((prev) => {
-      const next = new Set(prev);
-      next.delete(tempId);
-      return next;
-    });
-
     if (error || !data) {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tempId);
+        return next;
+      });
+      setUploading(null);
       setMessagesByClient((prev) => ({
         ...prev,
-        [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== tempId),
+        [clientId]: (prev[clientId] ?? []).filter((m) => m.id !== tempId),
       }));
       alert("No se ha podido enviar el mensaje. Comprueba tu conexión y vuelve a intentarlo.");
       return;
     }
 
     const saved = data as Message;
-    upsertMessage(activeId, saved, tempId);
-    setLastMsgAt((prev) => ({ ...prev, [activeId]: saved.created_at }));
+
+    const fallidos: string[] = [];
+    for (const [i, file] of files.entries()) {
+      setUploading(`Subiendo ${i + 1} de ${files.length}: ${file.name}`);
+      const limpio = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${clientId}/${saved.id}/${crypto.randomUUID()}-${limpio}`;
+      const { error: subida } = await supabase.storage.from("adjuntos").upload(path, file, {
+        contentType: file.type || "application/octet-stream",
+        upsert: false,
+      });
+      if (subida) {
+        fallidos.push(file.name);
+        continue;
+      }
+      const { data: fila } = await supabase
+        .from("message_attachments")
+        .insert({
+          message_id: saved.id,
+          client_id: clientId,
+          path,
+          name: file.name,
+          mime: file.type || "application/octet-stream",
+          size_bytes: file.size,
+        })
+        .select("*")
+        .single();
+      if (fila) mergeAttachments([fila as Attachment]);
+    }
+
+    setUploading(null);
+    setPendingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(tempId);
+      return next;
+    });
+
+    upsertMessage(clientId, saved, tempId);
+    setLastMsgAt((prev) => ({ ...prev, [clientId]: saved.created_at }));
+
+    if (fallidos.length > 0) {
+      alert(
+        `No se han podido subir: ${fallidos.join(", ")}.\n\nSuele ser por el tamaño máximo por archivo del proyecto de Supabase. Sube el archivo a Drive y pega el enlace en el chat, o pide que suban ese límite.`,
+      );
+    }
   }
 
   // --------------------------------------------------------------- tarjetas
@@ -440,6 +539,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         clients={railClients}
         activeId={activeId}
         me={me}
+        profiles={profiles}
         open={railOpen}
         onSelect={(id) => {
           setActiveId(id);
@@ -483,6 +583,13 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                   Chat
                   {isUnread(activeClient.id) && <span className="tab-flag" />}
                 </button>
+                <button
+                  className={tab === "tareas" ? "tab is-active" : "tab"}
+                  onClick={() => setTab("tareas")}
+                >
+                  Tareas
+                  {pendingTasks > 0 && <span className="count-chip tab-count">{pendingTasks}</span>}
+                </button>
               </nav>
             )}
           </div>
@@ -514,6 +621,18 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           </div>
         )}
 
+        {activeClient && (
+          <Resumen
+            key={activeClient.id}
+            clientId={activeClient.id}
+            cards={activeCards}
+            doneColumnId={activeDoneColumnId}
+            pendingTasks={pendingTasks}
+            me={me}
+            profileById={profileById}
+          />
+        )}
+
         {activeClient && tab === "board" && (
           <Board
             columns={activeColumns}
@@ -528,11 +647,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         {activeClient && tab === "chat" && (
           <Chat
             messages={activeMessages}
+            attachmentsByMessage={attachmentsByMessage}
             profileById={profileById}
             loading={loadingChat && activeMessages.length === 0}
             pendingIds={pendingIds}
+            uploading={uploading}
             onSend={sendMessage}
           />
+        )}
+
+        {activeClient && tab === "tareas" && (
+          <Tareas key={activeClient.id} clientId={activeClient.id} onCount={setPendingTasks} />
         )}
       </main>
 

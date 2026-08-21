@@ -19,13 +19,23 @@ type Props = {
   clients: RailClient[];
   activeId: string | null;
   me: Profile;
+  profiles: Profile[];
   open: boolean;
   onSelect: (id: string) => void;
   onNewClient: () => void;
   onClose: () => void;
 };
 
-export default function Rail({ clients, activeId, me, open, onSelect, onNewClient, onClose }: Props) {
+export default function Rail({
+  clients,
+  activeId,
+  me,
+  profiles,
+  open,
+  onSelect,
+  onNewClient,
+  onClose,
+}: Props) {
   return (
     <aside className={open ? "rail rail--open" : "rail"} id="rail">
       <div className="rail__brand">
@@ -83,7 +93,7 @@ export default function Rail({ clients, activeId, me, open, onSelect, onNewClien
       </ul>
 
       <div className="rail__punch">
-        <Fichaje profileId={me.id} />
+        <Fichaje me={me} profiles={profiles} />
       </div>
 
       <div className="rail__footer">

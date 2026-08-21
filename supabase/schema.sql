@@ -236,6 +236,65 @@ create table if not exists public.time_punches (
 create index if not exists time_punches_profile_at_idx
   on public.time_punches (profile_id, at desc);
 
+-- Archivos del chat. Se guardan en el bucket privado `adjuntos` tal cual se
+-- suben (mismo nombre, mismo tipo, sin recomprimir) y se descargan con una URL
+-- firmada, así que un 4K o un Excel salen idénticos a como entraron.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('adjuntos', 'adjuntos', false, 5368709120)
+on conflict (id) do update set file_size_limit = excluded.file_size_limit;
+
+drop policy if exists adjuntos_select on storage.objects;
+create policy adjuntos_select on storage.objects
+  for select to authenticated using (bucket_id = 'adjuntos');
+
+drop policy if exists adjuntos_insert on storage.objects;
+create policy adjuntos_insert on storage.objects
+  for insert to authenticated with check (bucket_id = 'adjuntos');
+
+drop policy if exists adjuntos_delete on storage.objects;
+create policy adjuntos_delete on storage.objects
+  for delete to authenticated using (bucket_id = 'adjuntos' and owner = auth.uid());
+
+create table if not exists public.message_attachments (
+  id          uuid primary key default gen_random_uuid(),
+  message_id  uuid not null references public.messages(id) on delete cascade,
+  client_id   uuid not null references public.clients(id) on delete cascade,
+  path        text not null,
+  name        text not null,
+  mime        text not null default '',
+  size_bytes  bigint not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists message_attachments_message_idx
+  on public.message_attachments (message_id);
+
+-- Avisos importantes de cada cliente. La cabecera solo enseña los del mes.
+create table if not exists public.client_notices (
+  id         uuid primary key default gen_random_uuid(),
+  client_id  uuid not null references public.clients(id) on delete cascade,
+  body       text not null,
+  author_id  uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists client_notices_client_idx
+  on public.client_notices (client_id, created_at desc);
+
+-- Lista de pendientes de cada cliente, aparte del tablero.
+create table if not exists public.client_tasks (
+  id         uuid primary key default gen_random_uuid(),
+  client_id  uuid not null references public.clients(id) on delete cascade,
+  text       text not null,
+  done       boolean not null default false,
+  position   double precision not null default 0,
+  author_id  uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists client_tasks_client_idx
+  on public.client_tasks (client_id, position);
+
 -- ============================================================================
 -- 5. Seguridad a nivel de fila (RLS)
 -- ----------------------------------------------------------------------------
@@ -265,6 +324,9 @@ alter table public.card_comments   enable row level security;
 alter table public.messages        enable row level security;
 alter table public.chat_reads      enable row level security;
 alter table public.time_punches    enable row level security;
+alter table public.message_attachments enable row level security;
+alter table public.client_notices      enable row level security;
+alter table public.client_tasks        enable row level security;
 
 -- Perfiles: todos se ven entre ellos; cada uno edita el suyo; el admin, cualquiera.
 drop policy if exists profiles_select on public.profiles;
@@ -298,7 +360,8 @@ do $$
 declare t text;
 begin
   foreach t in array array[
-    'client_members', 'board_columns', 'cards', 'card_assignees', 'checklist_items', 'chat_reads'
+    'client_members', 'board_columns', 'cards', 'card_assignees', 'checklist_items', 'chat_reads',
+    'message_attachments', 'client_notices', 'client_tasks'
   ] loop
     execute format('drop policy if exists %I_all on public.%I', t, t);
     execute format(
@@ -352,7 +415,8 @@ create policy card_comments_delete on public.card_comments
 do $$
 declare t text;
 begin
-  foreach t in array array['cards', 'messages', 'checklist_items', 'card_comments', 'board_columns', 'clients'] loop
+  foreach t in array array['cards', 'messages', 'checklist_items', 'card_comments', 'board_columns',
+                           'clients', 'message_attachments', 'client_notices', 'client_tasks'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
     exception

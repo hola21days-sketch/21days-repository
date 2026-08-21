@@ -65,3 +65,24 @@ export function stampColor(id: string): string {
   for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % STAMP_COLORS.length;
   return STAMP_COLORS[h];
 }
+
+/** 1536000 -> "1,5 MB". Se queda en unidades redondas, sin decimales de más. */
+export function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["kB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i += 1;
+  }
+  return `${value.toFixed(value < 10 ? 1 : 0).replace(".", ",")} ${units[i]}`;
+}
+
+/** "2026-08-21T09:14:00Z" -> "2026-08-21" en hora local. */
+export function localDay(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+}

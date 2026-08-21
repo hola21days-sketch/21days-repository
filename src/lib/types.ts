@@ -88,3 +88,32 @@ export type Punch = {
   kind: PunchKind;
   at: string;
 };
+
+export type Attachment = {
+  id: string;
+  message_id: string;
+  client_id: string;
+  path: string;
+  name: string;
+  mime: string;
+  size_bytes: number;
+  created_at: string;
+};
+
+export type Notice = {
+  id: string;
+  client_id: string;
+  body: string;
+  author_id: string | null;
+  created_at: string;
+};
+
+export type ClientTask = {
+  id: string;
+  client_id: string;
+  text: string;
+  done: boolean;
+  position: number;
+  author_id: string | null;
+  created_at: string;
+};

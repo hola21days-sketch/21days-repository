@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { commentStamp, isOverdue } from "@/lib/format";
+import { isOverdue } from "@/lib/format";
 import type { Card, Notice, Profile } from "@/lib/types";
 
 type Props = {
@@ -11,31 +11,25 @@ type Props = {
   doneColumnId: string | null;
   pendingTasks: number;
   me: Profile;
-  profileById: Record<string, Profile>;
 };
 
-const MESES = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-];
-
 /**
- * Cabecera de cada cliente: cómo va el mes y los avisos importantes.
+ * Una línea con cómo va el cliente y sus avisos del mes.
  * ---------------------------------------------------------------------------
- * Las cifras salen del propio tablero, así que no hay nada que mantener a
- * mano: cambian solas al mover tarjetas. Los avisos sí se escriben, y solo se
- * muestran los del mes en curso para que la cabecera no se llene de historia.
+ * Va apretada a propósito: es una cinta de estado, no un panel. Las cifras
+ * salen del tablero (nada que mantener a mano) y solo se enseña lo que tiene
+ * algo que decir: si no hay atrasos ni avisos, esos huecos no ocupan sitio.
+ * Los avisos se despliegan al pulsar, para no robarle alto al tablero.
  */
-export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, me, profileById }: Props) {
+export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, me }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [draft, setDraft] = useState("");
   const [abierto, setAbierto] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
 
   const inicioDeMes = useMemo(() => {
     const d = new Date();
-    return new Date(d.getFullYear(), d.getMonth(), 1);
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
   }, []);
 
   const cargar = useCallback(async () => {
@@ -43,7 +37,7 @@ export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, m
       .from("client_notices")
       .select("*")
       .eq("client_id", clientId)
-      .gte("created_at", inicioDeMes.toISOString())
+      .gte("created_at", inicioDeMes)
       .order("created_at", { ascending: false });
     setNotices((data ?? []) as Notice[]);
   }, [supabase, clientId, inicioDeMes]);
@@ -56,18 +50,12 @@ export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, m
     const body = draft.trim();
     if (!body) return;
     setDraft("");
-    setError(null);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("client_notices")
       .insert({ client_id: clientId, body, author_id: me.id })
       .select("*")
       .single();
-    if (error || !data) {
-      setError("No se ha podido guardar el aviso.");
-      return;
-    }
-    setNotices((prev) => [data as Notice, ...prev]);
-    setAbierto(false);
+    if (data) setNotices((prev) => [data as Notice, ...prev]);
   }
 
   async function quitar(notice: Notice) {
@@ -75,53 +63,49 @@ export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, m
     await supabase.from("client_notices").delete().eq("id", notice.id);
   }
 
-  const publicados = cards.filter(
-    (c) => doneColumnId && c.column_id === doneColumnId,
-  ).length;
+  const enReport = cards.filter((c) => doneColumnId && c.column_id === doneColumnId).length;
   const enCurso = cards.filter((c) => c.column_id !== doneColumnId).length;
   const atrasadas = cards.filter(
     (c) => c.column_id !== doneColumnId && isOverdue(c.due_date),
   ).length;
 
-  const mes = `${MESES[new Date().getMonth()]} ${new Date().getFullYear()}`;
-
   return (
-    <section className="digest" aria-label="Resumen del cliente">
-      <div className="digest__stats">
-        <div className="stat">
-          <span className="stat__num">{publicados}</span>
-          <span className="stat__label">Vídeos en Report</span>
-        </div>
-        <div className="stat">
-          <span className="stat__num">{enCurso}</span>
-          <span className="stat__label">En producción</span>
-        </div>
-        <div className={atrasadas > 0 ? "stat stat--alerta" : "stat"}>
-          <span className="stat__num">{atrasadas}</span>
-          <span className="stat__label">Entregas pasadas</span>
-        </div>
-        <div className="stat">
-          <span className="stat__num">{pendingTasks}</span>
-          <span className="stat__label">Tareas pendientes</span>
-        </div>
+    <section className="digest" aria-label="Estado del cliente">
+      <div className="digest__line">
+        <span className="digest__stat">
+          <b>{enCurso}</b> en producción
+        </span>
+        <span className="digest__stat">
+          <b>{enReport}</b> en report
+        </span>
+        {atrasadas > 0 && (
+          <span className="digest__stat is-alerta">
+            <b>{atrasadas}</b> con la entrega pasada
+          </span>
+        )}
+        {pendingTasks > 0 && (
+          <span className="digest__stat">
+            <b>{pendingTasks}</b> tareas
+          </span>
+        )}
+
+        <button
+          type="button"
+          className="digest__toggle"
+          onClick={() => setAbierto((o) => !o)}
+          aria-expanded={abierto}
+        >
+          {notices.length > 0 ? `Avisos del mes · ${notices.length}` : "Avisos del mes"}
+        </button>
       </div>
 
-      <div className="digest__notices">
-        <div className="digest__head">
-          <span className="digest__title">Avisos de {mes}</span>
-          <button type="button" className="btn btn--ghost" onClick={() => setAbierto((o) => !o)}>
-            {abierto ? "Cancelar" : "+ Aviso"}
-          </button>
-        </div>
-
-        {error && <div className="notice notice--error">{error}</div>}
-
-        {abierto && (
+      {abierto && (
+        <div className="digest__panel">
           <div className="digest__new">
             <input
               className="input-inline"
               autoFocus
-              placeholder="Ej.: el cliente cierra por vacaciones del 5 al 15"
+              placeholder="Ej.: cierran por vacaciones del 5 al 15"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
@@ -132,36 +116,38 @@ export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, m
                 if (e.key === "Escape") setAbierto(false);
               }}
             />
-            <button type="button" className="btn btn--primary" onClick={() => void añadir()} disabled={!draft.trim()}>
-              Guardar
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void añadir()}
+              disabled={!draft.trim()}
+            >
+              Añadir
             </button>
           </div>
-        )}
 
-        {notices.length === 0 && !abierto && (
-          <p className="digest__empty">Sin avisos este mes.</p>
-        )}
-
-        <ul className="digest__list">
-          {notices.map((n) => (
-            <li key={n.id}>
-              <span className="digest__dot" />
-              <span className="digest__body">{n.body}</span>
-              <span className="digest__meta">
-                {profileById[n.author_id ?? ""]?.initials ?? "··"} · {commentStamp(n.created_at)}
-              </span>
-              <button
-                type="button"
-                className="checklist__remove"
-                onClick={() => void quitar(n)}
-                aria-label="Quitar aviso"
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+          {notices.length === 0 ? (
+            <p className="digest__empty">Nada apuntado este mes.</p>
+          ) : (
+            <ul className="digest__list">
+              {notices.map((n) => (
+                <li key={n.id}>
+                  <span className="digest__dot" />
+                  <span className="digest__body">{n.body}</span>
+                  <button
+                    type="button"
+                    className="checklist__remove"
+                    onClick={() => void quitar(n)}
+                    aria-label="Quitar aviso"
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }

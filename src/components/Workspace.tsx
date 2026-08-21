@@ -629,7 +629,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             doneColumnId={activeDoneColumnId}
             pendingTasks={pendingTasks}
             me={me}
-            profileById={profileById}
           />
         )}
 

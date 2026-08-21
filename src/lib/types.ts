@@ -79,3 +79,12 @@ export type CardComment = {
   body: string;
   created_at: string;
 };
+
+export type PunchKind = "entrada" | "pausa" | "regreso" | "salida";
+
+export type Punch = {
+  id: string;
+  profile_id: string;
+  kind: PunchKind;
+  at: string;
+};

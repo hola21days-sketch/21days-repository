@@ -2,6 +2,7 @@
 
 import Stamp from "./Stamp";
 import Logo from "./Logo";
+import Fichaje from "./Fichaje";
 import { BRAND } from "@/lib/brand";
 import { initialsOf, stampColor } from "@/lib/format";
 import type { Profile } from "@/lib/types";
@@ -80,6 +81,10 @@ export default function Rail({ clients, activeId, me, open, onSelect, onNewClien
           </li>
         ))}
       </ul>
+
+      <div className="rail__punch">
+        <Fichaje profileId={me.id} />
+      </div>
 
       <div className="rail__footer">
         <Stamp label={me.initials || initialsOf(me.full_name)} color={me.color} />

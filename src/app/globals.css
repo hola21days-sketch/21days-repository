@@ -232,6 +232,43 @@ a { color: var(--accent-ink); }
   border-radius: 50%;
   background: var(--danger);
 }
+/* Fichaje, al pie del rail */
+.rail__punch {
+  border-top: 1px solid var(--rule);
+  padding: 0.7rem 1.1rem 0.5rem;
+  flex: none;
+}
+.punch__state {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+  background: var(--surface-alt);
+  color: var(--ink-muted);
+}
+.punch__state--dentro { background: var(--success-soft); color: var(--success); }
+.punch__state--pausa { background: var(--amber-soft); color: var(--amber); }
+.punch__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+.punch__btn { padding: 0.35rem 0.2rem; font-size: 0.76rem; text-align: center; }
+.punch__btn:disabled { opacity: 0.4; }
+.punch__btn--out:not(:disabled) { color: var(--danger); }
+.punch__btn--out:not(:disabled):hover { background: var(--danger-soft); }
+.punch__error { margin: 0 0 0.4rem; padding: 0.35rem 0.5rem; font-size: 0.74rem; }
+.punch__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+}
+.punch__foot b { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
 .rail__footer {
   border-top: 1px solid var(--rule);
   padding: 0.7rem 1.1rem;

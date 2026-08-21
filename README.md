@@ -18,15 +18,17 @@ usuario y datos persistentes.
 
 - **Índice de clientes** — con el número de encargos abiertos y un punto rojo cuando hay mensajes
   del equipo sin leer.
-- **Tablero por cliente** — columnas *Por hacer · En curso · Hecho*, tarjetas que se arrastran de
-  una a otra, con referencia propia (`F001`, `F002`…), etiquetas, fecha de entrega y responsables.
-  Las entregas pasadas se marcan en rojo.
+- **Tablero por cliente** — columnas *Idear · Grabar · Editar · Programar · Report*, tarjetas que
+  se arrastran de una a otra, con referencia propia (`F001`, `F002`…), etiquetas, fecha de entrega
+  y responsables. Las entregas pasadas se marcan en rojo.
 - **Detalle del encargo** — descripción, checklist, responsables, fecha y comentarios del equipo.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
 - **Modo claro y oscuro**, y uso desde el móvil.
 - **Alta desde la propia pantalla de acceso** — cada trabajador se crea su cuenta con su correo,
-  su nombre y una contraseña; el perfil se genera solo.
+  su nombre y una contraseña, y entra en el acto: no hay que confirmar el correo.
+- **Fichaje** — abajo a la izquierda: entrada, pausa, regreso y salida, con el estado de la jornada
+  y las horas acumuladas del día. Cada uno ve las suyas; un administrador, las de todo el equipo.
 
 ---
 
@@ -69,9 +71,10 @@ así:
 
 - **Allow new users to sign up**: activado (si no, la pantalla avisa de que el registro está
   cerrado);
-- **Confirm email**: si lo dejas activado, cada alta recibe un correo de confirmación y hasta
-  abrirlo no se puede entrar — y para que ese enlace vuelva a la aplicación hace falta el paso 3.
-  Desactivarlo hace que el alta entre directa.
+- **Confirm email**: da igual cómo esté. El esquema instala un trigger
+  (`auto_confirm_new_user`) que da el correo por confirmado al crear el usuario, así que el alta
+  entra directa. Si lo dejas activado, Supabase seguirá mandando un correo de confirmación que ya
+  no hace falta abrir; desactívalo si prefieres que no se envíe.
 
 También puedes seguir dando de alta a mano en **Authentication → Users → Add user** (marcando
 *Auto Confirm User*), que es lo suyo si prefieres controlar tú quién entra.
@@ -167,7 +170,8 @@ src/
     globals.css           Toda la hoja de estilo, con los tokens de marca arriba
   components/
     Workspace.tsx         Estado, guardado y tiempo real
-    Rail.tsx              Índice de clientes
+    Rail.tsx              Índice de clientes y fichaje
+    Fichaje.tsx           Entrada, pausa, regreso y salida
     Board.tsx             Tablero y arrastre de tarjetas
     CardDrawer.tsx        Detalle del encargo
     Chat.tsx              Chat del equipo
@@ -186,6 +190,7 @@ supabase/
 Bitácora es una herramienta interna: **cualquier trabajador autenticado ve y edita el trabajo de
 todos los clientes**. Lo que sí está protegido por RLS:
 
+- los fichajes → cada uno solo ve y ficha los suyos (el administrador ve los de todos);
 - borrar clientes → solo administradores;
 - editar o borrar mensajes y comentarios → solo su autor (o un administrador);
 - sin sesión no se lee absolutamente nada.

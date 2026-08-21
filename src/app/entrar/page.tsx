@@ -25,7 +25,8 @@ export default function EntrarPage() {
           <li>
             <span className="gate__bullet" />
             <span>
-              <b>Tablero por cliente</b> — arrastra los encargos entre Por hacer, En curso y Hecho.
+              <b>Tablero por cliente</b> — arrastra los encargos entre Idear, Grabar, Editar,
+              Programar y Report.
             </span>
           </li>
           <li>
@@ -37,8 +38,7 @@ export default function EntrarPage() {
           <li>
             <span className="gate__bullet" />
             <span>
-              <b>Detalle del encargo</b> — descripción, checklist, responsables, fecha de entrega y
-              comentarios.
+              <b>Fichaje</b> — entrada, pausa, regreso y salida, con las horas del día a la vista.
             </span>
           </li>
           <li>

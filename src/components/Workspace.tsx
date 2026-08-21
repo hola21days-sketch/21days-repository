@@ -112,10 +112,19 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     [activeId, tab, lastMsgAt, reads],
   );
 
-  const doneColumnIds = useMemo(
-    () => new Set(columns.filter((c) => c.key === "done").map((c) => c.id)),
-    [columns],
-  );
+  // Se da por cerrado lo que llega a la última columna del tablero (hoy,
+  // Report). Va por posición y no por nombre, para que siga valiendo si
+  // algún día se renombran o se añaden columnas.
+  const doneColumnIds = useMemo(() => {
+    const ultimaPorCliente = new Map<string, { id: string; position: number }>();
+    for (const c of columns) {
+      const actual = ultimaPorCliente.get(c.client_id);
+      if (!actual || c.position > actual.position) {
+        ultimaPorCliente.set(c.client_id, { id: c.id, position: c.position });
+      }
+    }
+    return new Set([...ultimaPorCliente.values()].map((c) => c.id));
+  }, [columns]);
 
   const railClients = useMemo(
     () =>

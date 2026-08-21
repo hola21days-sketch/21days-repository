@@ -75,9 +75,9 @@ export default function LoginForm() {
           )}`,
         },
       });
-      setBusy(false);
 
       if (error) {
+        setBusy(false);
         setError(traducir(error.message));
         return;
       }
@@ -85,19 +85,31 @@ export default function LoginForm() {
       // Supabase no dice "ese correo ya existe" para no delatar quién tiene
       // cuenta: devuelve un usuario sin identidades. Lo traducimos nosotros.
       if (data.user && data.user.identities?.length === 0) {
+        setBusy(false);
         setError("Ese correo ya tiene cuenta. Entra con tu contraseña o pide un enlace por correo.");
         return;
       }
 
-      // Con la confirmación por correo desactivada, el alta ya deja sesión.
+      // Lo normal: el alta ya trae sesión y entramos directos.
       if (data.session) {
         router.push(volverA());
         router.refresh();
         return;
       }
 
+      // Si el proyecto tiene activada la confirmación por correo, signUp no
+      // devuelve sesión. Aun así entramos: el trigger auto_confirm_new_user de
+      // la base de datos deja el correo por confirmado al crear el usuario.
+      const entrada = await supabase.auth.signInWithPassword({ email, password });
+      setBusy(false);
+      if (!entrada.error) {
+        router.push(volverA());
+        router.refresh();
+        return;
+      }
+
       setNotice(
-        `Cuenta creada. Te hemos enviado un correo a ${email} para confirmarla: ábrelo y ya podrás entrar.`,
+        `Cuenta creada para ${email}. Ya puedes entrar con tu contraseña desde «Entrar».`,
       );
       return;
     }

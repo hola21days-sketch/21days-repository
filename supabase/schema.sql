@@ -60,6 +60,29 @@ begin
 end;
 $$;
 
+-- Alta sin confirmación por correo: el ajuste "Confirm email" del panel no se
+-- puede tocar desde SQL, así que damos el correo por confirmado al crear el
+-- usuario. Quien se registra entra en el acto. `confirmed_at` es una columna
+-- generada, por eso solo se toca `email_confirmed_at`.
+create or replace function public.auto_confirm_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.email_confirmed_at is null then
+    new.email_confirmed_at := coalesce(new.created_at, now());
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_auto_confirm on auth.users;
+create trigger on_auth_user_auto_confirm
+  before insert on auth.users
+  for each row execute function public.auto_confirm_new_user();
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
@@ -201,6 +224,18 @@ create table if not exists public.chat_reads (
   primary key (client_id, profile_id)
 );
 
+-- Fichajes: un registro por pulsación (entrada, pausa, regreso, salida).
+-- Es un histórico: la aplicación solo añade, nunca corrige ni borra.
+create table if not exists public.time_punches (
+  id         uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  kind       text not null check (kind in ('entrada', 'pausa', 'regreso', 'salida')),
+  at         timestamptz not null default now()
+);
+
+create index if not exists time_punches_profile_at_idx
+  on public.time_punches (profile_id, at desc);
+
 -- ============================================================================
 -- 5. Seguridad a nivel de fila (RLS)
 -- ----------------------------------------------------------------------------
@@ -229,6 +264,7 @@ alter table public.checklist_items enable row level security;
 alter table public.card_comments   enable row level security;
 alter table public.messages        enable row level security;
 alter table public.chat_reads      enable row level security;
+alter table public.time_punches    enable row level security;
 
 -- Perfiles: todos se ven entre ellos; cada uno edita el suyo; el admin, cualquiera.
 drop policy if exists profiles_select on public.profiles;
@@ -270,6 +306,15 @@ begin
   end loop;
 end;
 $$;
+
+-- Fichajes: cada uno ve y ficha lo suyo; el admin ve los de todo el equipo.
+drop policy if exists time_punches_select on public.time_punches;
+create policy time_punches_select on public.time_punches
+  for select to authenticated using (profile_id = auth.uid() or public.is_admin());
+
+drop policy if exists time_punches_insert on public.time_punches;
+create policy time_punches_insert on public.time_punches
+  for insert to authenticated with check (profile_id = auth.uid());
 
 -- Mensajes: cualquiera lee y escribe (como su propio autor); solo el autor edita/borra.
 drop policy if exists messages_select on public.messages;
@@ -346,9 +391,11 @@ begin
   returning * into v_client;
 
   insert into public.board_columns (client_id, key, label, position) values
-    (v_client.id, 'todo',  'Por hacer', 0),
-    (v_client.id, 'doing', 'En curso',  1),
-    (v_client.id, 'done',  'Hecho',     2);
+    (v_client.id, 'idear',     'Idear',     0),
+    (v_client.id, 'grabar',    'Grabar',    1),
+    (v_client.id, 'editar',    'Editar',    2),
+    (v_client.id, 'programar', 'Programar', 3),
+    (v_client.id, 'report',    'Report',    4);
 
   insert into public.client_members (client_id, profile_id)
   values (v_client.id, auth.uid())
@@ -398,4 +445,5 @@ create policy profiles_insert on public.profiles
 -- solo desde dentro de las políticas RLS.
 -- ============================================================================
 revoke execute on function public.handle_new_user() from anon, authenticated, public;
+revoke execute on function public.auto_confirm_new_user() from anon, authenticated, public;
 revoke execute on function public.is_admin()        from anon, authenticated, public;

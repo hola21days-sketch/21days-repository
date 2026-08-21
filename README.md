@@ -22,7 +22,12 @@ usuario y datos persistentes.
   se arrastran de una a otra, con referencia propia (`F001`, `F002`…), etiquetas, fecha de entrega
   y responsables. Las entregas pasadas se marcan en rojo.
 - **Detalle del encargo** — descripción, checklist, responsables, fecha y comentarios del equipo.
-- **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente.
+- **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente, con
+  **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
+  idénticos (sin recomprimir ni recortar resolución).
+- **Resumen del mes por cliente** — bajo el nombre del cliente: vídeos en Report, en producción,
+  entregas pasadas y tareas pendientes, más los avisos importantes que apunte el equipo.
+- **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
 - **Modo claro y oscuro**, y uso desde el móvil.
 - **Alta desde la propia pantalla de acceso** — cada trabajador se crea su cuenta con su correo,
@@ -40,6 +45,7 @@ usuario y datos persistentes.
 | Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): 10 tablas, RLS en todas, realtime y funciones. |
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
+| Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el CSV que exporta la app. |
 | Logo y tipografía de DecaSight | **Pendiente** — ahora hay una marca provisional. |
 
 ---
@@ -106,7 +112,24 @@ Supabase → **Authentication → URL Configuration**:
 Sin esto, el acceso por enlace de correo no vuelve a la aplicación. El acceso con contraseña
 funciona igual.
 
-### 4. (Opcional) Datos de ejemplo
+### 4. Comprobar el tamaño máximo de archivo  *(solo si falla alguna subida)*
+
+Los adjuntos van al bucket privado `adjuntos`, que admite hasta 5 GB por fichero. Pero por encima
+manda el **límite global del proyecto** (Supabase → *Storage → Settings → Upload file size limit*),
+que en el plan gratuito son 50 MB. Si una subida falla, la aplicación lo dice y sugiere pasar ese
+archivo por Drive; para subir vídeos grandes desde la propia herramienta hay que subir ese límite
+en Supabase (requiere plan de pago).
+
+### 5. Fichajes en Google Sheets
+
+La hoja está creada:
+[Fichajes — Bitácora](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit).
+Para actualizarla: en Bitácora, panel de fichaje → **Exportar CSV**, y en la hoja
+*Archivo → Importar → Subir → Sustituir hoja actual*. Cada fila es un día de una persona con
+entrada, salida, pausas, minutos de pausa y horas trabajadas. El CSV trae lo que cada uno puede
+ver: los suyos, o los de todo el equipo si es administrador.
+
+### 6. (Opcional) Datos de ejemplo
 
 Para ver la aplicación llena desde el primer momento, ejecuta
 [`supabase/seed.sql`](supabase/seed.sql) en el SQL Editor. Reproduce los cuatro clientes del

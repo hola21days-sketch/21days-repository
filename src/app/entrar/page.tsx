@@ -32,7 +32,8 @@ export default function EntrarPage() {
           <li>
             <span className="gate__bullet" />
             <span>
-              <b>Chat interno</b> — conversación del equipo sobre cada cliente, que el cliente no ve.
+              <b>Chat interno con archivos</b> — vídeo 4K, Excel o PDF, guardados tal cual y solo
+              para el equipo.
             </span>
           </li>
           <li>

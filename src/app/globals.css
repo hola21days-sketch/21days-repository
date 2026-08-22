@@ -1134,6 +1134,87 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 
 /* ==========================================================================
+   Mensajes directos
+   ========================================================================== */
+.dm {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+}
+.dm__gente {
+  border-right: 1px solid var(--rule);
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 0.8rem 0.6rem;
+}
+.dm__gente-titulo {
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 0.4rem 0.5rem;
+}
+.dm__gente ul { list-style: none; margin: 0; padding: 0; }
+.dm__vacio { font-size: 0.8rem; color: var(--ink-faint); padding: 0.4rem; }
+.dm__persona {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.45rem;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.dm__persona:hover { background: var(--bg); }
+.dm__persona.is-active { background: var(--accent-soft); }
+.dm__persona-nombre {
+  flex: 1;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dm__hilo { display: flex; flex-direction: column; min-height: 0; }
+.dm__hilo-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+}
+.dm__hilo-nombre { font-weight: 600; }
+.dm__hilo-sub { font-size: 0.76rem; color: var(--ink-faint); }
+
+/* ==========================================================================
+   Transcripciones de vídeo
+   ========================================================================== */
+.transcripcion { padding: 0.25rem 0 0.1rem; }
+.transcripcion__pedir { font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+.transcripcion__meta {
+  margin: 0.5rem 0 0.15rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.transcripcion__texto {
+  border-left: 2px solid var(--rule);
+  padding-left: 0.7rem;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+.transcripcion__texto p { margin: 0; }
+.transcripcion__error { margin: 0.3rem 0 0; font-size: 0.78rem; color: var(--danger); }
+
+/* ==========================================================================
    Responsive — al final a propósito: estas reglas tienen la misma
    especificidad que las de arriba y deben ganar por orden de cascada.
    ========================================================================== */
@@ -1161,4 +1242,8 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .report { padding: 0.9rem 1rem 1.2rem; }
   .callbar, .callbar__form { padding-left: 1rem; padding-right: 1rem; }
   .column { width: 84vw; max-width: 300px; }
+
+  .dm { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .dm__gente { border-right: none; border-bottom: 1px solid var(--rule); max-height: 30vh; }
+  .dm__hilo-cabecera { padding: 0.6rem 1rem; }
 }

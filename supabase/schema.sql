@@ -633,3 +633,84 @@ create policy profiles_insert on public.profiles
 revoke execute on function public.handle_new_user() from anon, authenticated, public;
 revoke execute on function public.auto_confirm_new_user() from anon, authenticated, public;
 revoke execute on function public.is_admin()        from anon, authenticated, public;
+
+-- ============================================================================
+-- 10. Mensajes directos y transcripciones de vídeo
+-- ============================================================================
+
+-- Conversaciones privadas entre dos miembros del equipo. No pasan por ningún
+-- cliente: la fila solo la ven quien escribe y quien recibe.
+create table if not exists public.dm_messages (
+  id           uuid primary key default gen_random_uuid(),
+  sender_id    uuid not null references public.profiles(id) on delete cascade,
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  body         text not null,
+  created_at   timestamptz not null default now(),
+  edited_at    timestamptz,
+  read_at      timestamptz,
+  check (sender_id <> recipient_id)
+);
+
+create index if not exists dm_messages_pareja_idx
+  on public.dm_messages (sender_id, recipient_id, created_at);
+create index if not exists dm_messages_sinleer_idx
+  on public.dm_messages (recipient_id) where read_at is null;
+
+-- Lo que se dice en los vídeos y audios del chat, en su idioma y traducido.
+-- Lo escribe la función de borde `transcribir` (ver supabase/functions).
+create table if not exists public.transcripts (
+  id            uuid primary key default gen_random_uuid(),
+  attachment_id uuid not null unique references public.message_attachments(id) on delete cascade,
+  client_id     uuid not null references public.clients(id) on delete cascade,
+  language      text not null default '',
+  text          text not null default '',
+  translation   text not null default '',
+  status        text not null default 'pendiente' check (status in ('pendiente', 'listo', 'error')),
+  error         text not null default '',
+  created_at    timestamptz not null default now()
+);
+
+create index if not exists transcripts_client_idx on public.transcripts (client_id);
+
+alter table public.dm_messages enable row level security;
+alter table public.transcripts enable row level security;
+
+-- Solo los dos participantes ven el hilo. Escribir, solo como uno mismo;
+-- actualizar, cualquiera de los dos (el destinatario marca el "leído");
+-- borrar, solo quien lo escribió.
+drop policy if exists dm_messages_select on public.dm_messages;
+create policy dm_messages_select on public.dm_messages
+  for select to authenticated using (sender_id = auth.uid() or recipient_id = auth.uid());
+
+drop policy if exists dm_messages_insert on public.dm_messages;
+create policy dm_messages_insert on public.dm_messages
+  for insert to authenticated with check (sender_id = auth.uid());
+
+drop policy if exists dm_messages_update on public.dm_messages;
+create policy dm_messages_update on public.dm_messages
+  for update to authenticated
+  using (sender_id = auth.uid() or recipient_id = auth.uid())
+  with check (sender_id = auth.uid() or recipient_id = auth.uid());
+
+drop policy if exists dm_messages_delete on public.dm_messages;
+create policy dm_messages_delete on public.dm_messages
+  for delete to authenticated using (sender_id = auth.uid());
+
+-- Las transcripciones son del trabajo compartido, como el resto del chat.
+drop policy if exists transcripts_all on public.transcripts;
+create policy transcripts_all on public.transcripts
+  for all to authenticated using (true) with check (true);
+
+do $$
+declare t text;
+begin
+  foreach t in array array['dm_messages', 'transcripts'] loop
+    begin
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    exception
+      when duplicate_object then null;
+      when undefined_object then null;
+    end;
+  end loop;
+end;
+$$;

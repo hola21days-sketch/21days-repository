@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Rail from "./Rail";
+import type { Vista } from "./Rail";
 import Board from "./Board";
 import Chat from "./Chat";
 import CardDrawer from "./CardDrawer";
@@ -9,6 +10,7 @@ import NewClientDialog from "./NewClientDialog";
 import Resumen from "./Resumen";
 import Informes from "./Informes";
 import Tareas from "./Tareas";
+import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
@@ -79,8 +81,34 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState<string | null>(null);
   const [pendingTasks, setPendingTasks] = useState(0);
-  const [vista, setVista] = useState<"cliente" | "informes">("cliente");
+  const [vista, setVista] = useState<Vista>("cliente");
+  const [dmUnread, setDmUnread] = useState(0);
   const [openSessions, setOpenSessions] = useState<WorkSession[]>([]);
+
+  /**
+   * Mensajes directos sin leer. Se cuenta aquí arriba para que el aviso del
+   * panel izquierdo salga aunque no estés en la vista de mensajes.
+   */
+  useEffect(() => {
+    async function contar() {
+      const { count } = await supabase
+        .from("dm_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_id", me.id)
+        .is("read_at", null);
+      setDmUnread(count ?? 0);
+    }
+    void contar();
+    const canal = supabase
+      .channel("dm-aviso")
+      .on("postgres_changes", { event: "*", schema: "public", table: "dm_messages" }, () => {
+        void contar();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [supabase, me.id]);
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -676,6 +704,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         }}
         onClose={() => setRailOpen(false)}
         vista={vista}
+        dmUnread={dmUnread}
         onVista={(v) => {
           setVista(v);
           setRailOpen(false);
@@ -695,12 +724,18 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               </button>
               <div>
                 <div className="main__title">
-                  {vista === "informes" ? "Informes" : (activeClient?.name ?? "Bitácora")}
+                  {vista === "informes"
+                    ? "Informes"
+                    : vista === "dm"
+                      ? "Mensajes directos"
+                      : (activeClient?.name ?? "Bitácora")}
                 </div>
                 <div className="main__kind">
                   {vista === "informes"
                     ? "Tiempo por cliente y fase"
-                    : (activeClient?.kind ?? "Sin cliente seleccionado")}
+                    : vista === "dm"
+                      ? "Conversaciones privadas del equipo"
+                      : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
               </div>
             </div>
@@ -767,6 +802,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             profileById={profileById}
             cardTitles={cardTitles}
           />
+        )}
+
+        {vista === "dm" && (
+          <MensajesDirectos me={me} profiles={profiles} onUnread={setDmUnread} />
         )}
 
         {vista === "cliente" && !activeClient && (

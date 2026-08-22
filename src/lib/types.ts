@@ -143,3 +143,25 @@ export type WorkSession = {
   started_at: string;
   ended_at: string | null;
 };
+
+export type DirectMessage = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  body: string;
+  created_at: string;
+  edited_at: string | null;
+  read_at: string | null;
+};
+
+export type Transcript = {
+  id: string;
+  attachment_id: string;
+  client_id: string;
+  language: string;
+  text: string;
+  translation: string;
+  status: "pendiente" | "listo" | "error";
+  error: string;
+  created_at: string;
+};

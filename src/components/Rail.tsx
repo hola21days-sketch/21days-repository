@@ -7,6 +7,8 @@ import { BRAND } from "@/lib/brand";
 import { initialsOf, stampColor } from "@/lib/format";
 import type { Profile } from "@/lib/types";
 
+export type Vista = "cliente" | "informes" | "dm";
+
 export type RailClient = {
   id: string;
   name: string;
@@ -24,8 +26,9 @@ type Props = {
   onSelect: (id: string) => void;
   onNewClient: () => void;
   onClose: () => void;
-  vista: "cliente" | "informes";
-  onVista: (v: "cliente" | "informes") => void;
+  vista: Vista;
+  onVista: (v: Vista) => void;
+  dmUnread: number;
 };
 
 export default function Rail({
@@ -39,6 +42,7 @@ export default function Rail({
   onClose,
   vista,
   onVista,
+  dmUnread,
 }: Props) {
   return (
     <aside className={open ? "rail rail--open" : "rail"} id="rail">
@@ -97,6 +101,15 @@ export default function Rail({
           </li>
         ))}
       </ul>
+
+      <button
+        type="button"
+        className={vista === "dm" ? "rail__nav is-active" : "rail__nav"}
+        onClick={() => onVista(vista === "dm" ? "cliente" : "dm")}
+      >
+        Mensajes directos
+        {dmUnread > 0 && <span className="count-chip">{dmUnread}</span>}
+      </button>
 
       <button
         type="button"

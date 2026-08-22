@@ -27,6 +27,11 @@ usuario y datos persistentes.
   idénticos (sin recomprimir ni recortar resolución). Los mensajes se pueden **editar y borrar**,
   se puede **mencionar** a alguien con `@`, y desde ahí se entra o se programa una
   **videollamada** (salas de Jitsi Meet, sin cuentas ni claves).
+- **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
+  *Transcribir y traducir*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
+  debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
+- **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
+  uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos.
 - **Resumen del mes por cliente** — bajo el nombre del cliente: vídeos en Report, en producción,
   entregas pasadas y tareas pendientes, más los avisos importantes que apunte el equipo.
 - **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero: cada una se abre
@@ -51,7 +56,7 @@ usuario y datos persistentes.
 | Pieza | Estado |
 |---|---|
 | Código de la aplicación | Listo. Compila y está en esta rama. |
-| Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): 10 tablas, RLS en todas, realtime y funciones. |
+| Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): tablas con RLS en todas, realtime, funciones y la función de borde `transcribir`. |
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
 | Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el CSV que exporta la app. |
@@ -129,7 +134,19 @@ que en el plan gratuito son 50 MB. Si una subida falla, la aplicación lo dice y
 archivo por Drive; para subir vídeos grandes desde la propia herramienta hay que subir ese límite
 en Supabase (requiere plan de pago).
 
-### 5. Fichajes en Google Sheets
+### 5. Activar la transcripción de vídeos  *(2 minutos, solo si la queréis)*
+
+El botón *Transcribir y traducir* llama a la función `transcribir` de Supabase, que usa el
+reconocimiento de voz de OpenAI. Para que funcione:
+
+1. Saca una clave en <https://platform.openai.com/api-keys>.
+2. En Supabase → **Edge Functions → Secrets**, añade `OPENAI_API_KEY` con ese valor.
+
+Cuesta unos **0,006 $ por minuto** de vídeo y el servicio admite archivos de hasta **25 MB**
+(para vídeos largos, sube solo el audio). Sin la clave, el botón sigue ahí pero avisa de que falta
+configurarla — no rompe nada.
+
+### 6. Fichajes en Google Sheets
 
 La hoja está creada:
 [Fichajes — Bitácora](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit).
@@ -138,7 +155,7 @@ Para actualizarla: en Bitácora, panel de fichaje → **Exportar CSV**, y en la 
 entrada, salida, pausas, minutos de pausa y horas trabajadas. El CSV trae lo que cada uno puede
 ver: los suyos, o los de todo el equipo si es administrador.
 
-### 6. (Opcional) Datos de ejemplo
+### 7. (Opcional) Datos de ejemplo
 
 Para ver la aplicación llena desde el primer momento, ejecuta
 [`supabase/seed.sql`](supabase/seed.sql) en el SQL Editor. Reproduce los cuatro clientes del
@@ -207,7 +224,8 @@ src/
     Informes.tsx          Tiempo por cliente, fase y persona
     Board.tsx             Tablero y arrastre de tarjetas
     CardDrawer.tsx        Detalle del encargo
-    Chat.tsx              Chat del equipo
+    Chat.tsx              Chat del equipo, adjuntos y transcripciones
+    MensajesDirectos.tsx  Conversaciones privadas entre compañeros
     Logo.tsx              Logotipo de 21days agency
   lib/
     supabase/             Clientes de Supabase (navegador, servidor, middleware)
@@ -216,6 +234,7 @@ src/
 supabase/
   schema.sql              Tablas, permisos, tiempo real
   seed.sql                Datos de ejemplo (opcional)
+  functions/transcribir/  Función de borde: voz a texto y traducción
 ```
 
 ### Permisos
@@ -227,6 +246,7 @@ todos los clientes**. Lo que sí está protegido por RLS:
 - los cronómetros → los ve todo el equipo (los informes son compartidos), pero cada uno solo
   arranca y para los suyos;
 - borrar clientes → solo administradores;
+- los mensajes directos → solo los dos que hablan; nadie más los lee, ni el administrador;
 - editar o borrar mensajes y comentarios → solo su autor (o un administrador);
 - sin sesión no se lee absolutamente nada.
 

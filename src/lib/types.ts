@@ -117,3 +117,14 @@ export type ClientTask = {
   author_id: string | null;
   created_at: string;
 };
+
+export type WorkSession = {
+  id: string;
+  card_id: string;
+  client_id: string;
+  column_key: string;
+  column_label: string;
+  profile_id: string;
+  started_at: string;
+  ended_at: string | null;
+};

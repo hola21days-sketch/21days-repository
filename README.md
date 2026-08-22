@@ -1,6 +1,6 @@
-# Bitácora — DecaSight
+# Bitácora — 21days agency
 
-Herramienta interna de **DecaSight** para llevar el control de los clientes: un tablero de
+Herramienta interna de **21days agency** para llevar el control de los clientes: un tablero de
 encargos y un chat de equipo por cada cliente, en vivo y compartido por todo el equipo.
 
 Nace de la propuesta de diseño de Marc y la convierte en una aplicación real con acceso por
@@ -28,6 +28,12 @@ usuario y datos persistentes.
 - **Resumen del mes por cliente** — bajo el nombre del cliente: vídeos en Report, en producción,
   entregas pasadas y tareas pendientes, más los avisos importantes que apunte el equipo.
 - **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero.
+- **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
+  qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
+  están en proceso ahora mismo.
+- **Informes de tiempo** — semana o mes, con el total por cliente y fase (p. ej. *Editar de X: 4h
+  20m*), el total por persona, quién está trabajando en cada cosa en este momento y exportación
+  a CSV.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
 - **Modo claro y oscuro**, y uso desde el móvil.
 - **Alta desde la propia pantalla de acceso** — cada trabajador se crea su cuenta con su correo,
@@ -46,7 +52,7 @@ usuario y datos persistentes.
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
 | Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el CSV que exporta la app. |
-| Logo y tipografía de DecaSight | **Pendiente** — ahora hay una marca provisional. |
+| Logo y tipografía de 21days agency | **Pendiente** — ahora hay una marca provisional. |
 
 ---
 
@@ -195,10 +201,11 @@ src/
     Workspace.tsx         Estado, guardado y tiempo real
     Rail.tsx              Índice de clientes y fichaje
     Fichaje.tsx           Entrada, pausa, regreso y salida
+    Informes.tsx          Tiempo por cliente, fase y persona
     Board.tsx             Tablero y arrastre de tarjetas
     CardDrawer.tsx        Detalle del encargo
     Chat.tsx              Chat del equipo
-    Logo.tsx              Logotipo de DecaSight
+    Logo.tsx              Logotipo de 21days agency
   lib/
     supabase/             Clientes de Supabase (navegador, servidor, middleware)
     brand.ts              Nombre, bajada y logo de la marca
@@ -214,6 +221,8 @@ Bitácora es una herramienta interna: **cualquier trabajador autenticado ve y ed
 todos los clientes**. Lo que sí está protegido por RLS:
 
 - los fichajes → cada uno solo ve y ficha los suyos (el administrador ve los de todos);
+- los cronómetros → los ve todo el equipo (los informes son compartidos), pero cada uno solo
+  arranca y para los suyos;
 - borrar clientes → solo administradores;
 - editar o borrar mensajes y comentarios → solo su autor (o un administrador);
 - sin sesión no se lee absolutamente nada.
@@ -223,12 +232,12 @@ políticas de `schema.sql` apoyándose en la tabla `client_members`.
 
 ---
 
-## Cambiar la identidad de DecaSight
+## Cambiar la identidad de 21days agency
 
 Todo el color y la tipografía salen de un único sitio, así que la marca se cambia sin tocar
 componentes:
 
-- **Colores** — bloque `Identidad DecaSight` al principio de `src/app/globals.css`
+- **Colores** — bloque `Identidad 21days agency` al principio de `src/app/globals.css`
   (`--accent`, `--ink`, `--bg`… y sus equivalentes en modo oscuro).
 - **Tipografía** — variables `--font-display` y `--font-body` en ese mismo bloque.
 - **Logotipo** — `src/components/Logo.tsx`. Ahora lleva una marca provisional dibujada con los

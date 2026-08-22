@@ -295,6 +295,31 @@ create table if not exists public.client_tasks (
 create index if not exists client_tasks_client_idx
   on public.client_tasks (client_id, position);
 
+-- Tiempo dedicado a cada tarjeta: una fila por tramo de trabajo (quién, en qué
+-- tarjeta, de qué cliente y en qué fase). La fase se guarda copiada porque la
+-- tarjeta se mueve de columna: así el informe de "cuánto se tardó editando" no
+-- cambia cuando la tarjeta avanza.
+create table if not exists public.work_sessions (
+  id           uuid primary key default gen_random_uuid(),
+  card_id      uuid not null references public.cards(id) on delete cascade,
+  client_id    uuid not null references public.clients(id) on delete cascade,
+  column_key   text not null default '',
+  column_label text not null default '',
+  profile_id   uuid not null references public.profiles(id) on delete cascade,
+  started_at   timestamptz not null default now(),
+  ended_at     timestamptz,
+  check (ended_at is null or ended_at >= started_at)
+);
+
+create index if not exists work_sessions_client_idx
+  on public.work_sessions (client_id, started_at desc);
+create index if not exists work_sessions_profile_idx
+  on public.work_sessions (profile_id, started_at desc);
+
+-- Nadie puede tener dos cronómetros en marcha a la vez.
+create unique index if not exists work_sessions_una_abierta_por_persona
+  on public.work_sessions (profile_id) where ended_at is null;
+
 -- ============================================================================
 -- 5. Seguridad a nivel de fila (RLS)
 -- ----------------------------------------------------------------------------
@@ -327,6 +352,7 @@ alter table public.time_punches    enable row level security;
 alter table public.message_attachments enable row level security;
 alter table public.client_notices      enable row level security;
 alter table public.client_tasks        enable row level security;
+alter table public.work_sessions       enable row level security;
 
 -- Perfiles: todos se ven entre ellos; cada uno edita el suyo; el admin, cualquiera.
 drop policy if exists profiles_select on public.profiles;
@@ -379,6 +405,80 @@ drop policy if exists time_punches_insert on public.time_punches;
 create policy time_punches_insert on public.time_punches
   for insert to authenticated with check (profile_id = auth.uid());
 
+-- Cronómetros: el equipo ve el trabajo de todos (los informes son compartidos);
+-- cada uno solo abre y cierra los suyos.
+drop policy if exists work_sessions_select on public.work_sessions;
+create policy work_sessions_select on public.work_sessions
+  for select to authenticated using (true);
+
+drop policy if exists work_sessions_insert on public.work_sessions;
+create policy work_sessions_insert on public.work_sessions
+  for insert to authenticated with check (profile_id = auth.uid());
+
+drop policy if exists work_sessions_update on public.work_sessions;
+create policy work_sessions_update on public.work_sessions
+  for update to authenticated
+  using (profile_id = auth.uid() or public.is_admin())
+  with check (profile_id = auth.uid() or public.is_admin());
+
+drop policy if exists work_sessions_delete on public.work_sessions;
+create policy work_sessions_delete on public.work_sessions
+  for delete to authenticated using (profile_id = auth.uid() or public.is_admin());
+
+-- Arrancar el cronómetro en una tarjeta: cierra el que tuvieras abierto, copia
+-- el cliente y la fase, y devuelve el tramo nuevo.
+create or replace function public.start_work(p_card_id uuid)
+returns public.work_sessions
+language plpgsql
+security invoker
+set search_path = public
+as $fn$
+declare
+  v_card    public.cards;
+  v_column  public.board_columns;
+  v_session public.work_sessions;
+begin
+  select * into v_card from public.cards where id = p_card_id;
+  if v_card.id is null then
+    raise exception 'Esa tarjeta ya no existe.';
+  end if;
+
+  select * into v_column from public.board_columns where id = v_card.column_id;
+
+  update public.work_sessions
+     set ended_at = now()
+   where profile_id = auth.uid() and ended_at is null;
+
+  insert into public.work_sessions (card_id, client_id, column_key, column_label, profile_id)
+  values (p_card_id, v_card.client_id, coalesce(v_column.key, ''), coalesce(v_column.label, ''), auth.uid())
+  returning * into v_session;
+
+  return v_session;
+end;
+$fn$;
+
+grant execute on function public.start_work(uuid) to authenticated;
+
+-- Parar lo que tenga abierto quien llama.
+create or replace function public.stop_work()
+returns integer
+language plpgsql
+security invoker
+set search_path = public
+as $fn$
+declare
+  v_n integer;
+begin
+  update public.work_sessions
+     set ended_at = now()
+   where profile_id = auth.uid() and ended_at is null;
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$fn$;
+
+grant execute on function public.stop_work() to authenticated;
+
 -- Mensajes: cualquiera lee y escribe (como su propio autor); solo el autor edita/borra.
 drop policy if exists messages_select on public.messages;
 create policy messages_select on public.messages
@@ -416,7 +516,8 @@ do $$
 declare t text;
 begin
   foreach t in array array['cards', 'messages', 'checklist_items', 'card_comments', 'board_columns',
-                           'clients', 'message_attachments', 'client_notices', 'client_tasks'] loop
+                           'clients', 'message_attachments', 'client_notices', 'client_tasks',
+                           'work_sessions'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
     exception

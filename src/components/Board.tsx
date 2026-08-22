@@ -12,6 +12,8 @@ type Props = {
   onOpenCard: (cardId: string) => void;
   onMoveCard: (cardId: string, columnId: string) => void;
   onAddCard: (columnId: string, title: string) => void;
+  /** Quién tiene el cronómetro en marcha en cada tarjeta. */
+  workingByCard: Record<string, Profile[]>;
 };
 
 export default function Board({
@@ -21,6 +23,7 @@ export default function Board({
   onOpenCard,
   onMoveCard,
   onAddCard,
+  workingByCard,
 }: Props) {
   const [dragCardId, setDragCardId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
@@ -77,7 +80,17 @@ export default function Board({
                     }
                   }}
                 >
-                  <div className="card__ref">#{cd.ref}</div>
+                  <div className="card__ref">
+                    #{cd.ref}
+                    {(workingByCard[cd.id]?.length ?? 0) > 0 && (
+                      <span
+                        className="card__live"
+                        title={`En proceso: ${workingByCard[cd.id].map((p) => p.full_name).join(", ")}`}
+                      >
+                        ▶ en proceso
+                      </span>
+                    )}
+                  </div>
                   <p className="card__title">{cd.title}</p>
                   {cd.labels.length > 0 && (
                     <div className="chip-row">

@@ -4,7 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { commentStamp, formatDue, isOverdue } from "@/lib/format";
-import { LABELS, type Card, type CardComment, type ChecklistItem, type Profile } from "@/lib/types";
+import { comoHoras } from "./Informes";
+import {
+  LABELS,
+  type Card,
+  type CardComment,
+  type ChecklistItem,
+  type Profile,
+  type WorkSession,
+} from "@/lib/types";
 
 type Props = {
   card: Card;
@@ -16,6 +24,12 @@ type Props = {
   onPatch: (cardId: string, patch: Partial<Card>) => void;
   onToggleAssignee: (cardId: string, profileId: string) => void;
   onDelete: (cardId: string) => void;
+  /** Mi cronómetro, si lo tengo en marcha (en esta tarjeta o en otra). */
+  myOpenSession: WorkSession | null;
+  /** Quién más está ahora mismo en esta tarjeta. */
+  workingHere: Profile[];
+  onStartWork: (cardId: string) => void;
+  onStopWork: () => void;
 };
 
 export default function CardDrawer({
@@ -28,6 +42,10 @@ export default function CardDrawer({
   onPatch,
   onToggleAssignee,
   onDelete,
+  myOpenSession,
+  workingHere,
+  onStartWork,
+  onStopWork,
 }: Props) {
   const supabase = createClient();
 
@@ -38,6 +56,8 @@ export default function CardDrawer({
   const [newItem, setNewItem] = useState("");
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState<WorkSession[]>([]);
+  const [ahora, setAhora] = useState(() => Date.now());
 
   useEffect(() => {
     setTitle(card.title);
@@ -53,6 +73,13 @@ export default function CardDrawer({
     setChecklist((items.data ?? []) as ChecklistItem[]);
     setComments((cms.data ?? []) as CardComment[]);
     setLoading(false);
+
+    const { data: tramos } = await supabase
+      .from("work_sessions")
+      .select("*")
+      .eq("card_id", card.id)
+      .order("started_at");
+    setSessions((tramos ?? []) as WorkSession[]);
   }, [card.id, supabase]);
 
   useEffect(() => {
@@ -102,6 +129,30 @@ export default function CardDrawer({
     if (data) setComments((prev) => [...prev, data as CardComment]);
   }
 
+  const mio = myOpenSession?.card_id === card.id ? myOpenSession : null;
+
+  // Solo hace falta que el reloj corra si el cronómetro está en esta tarjeta.
+  useEffect(() => {
+    if (!mio) return;
+    const id = setInterval(() => setAhora(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [mio]);
+
+  /** Minutos de un tramo; los abiertos cuentan hasta ahora. */
+  function minutosDe(s: WorkSession): number {
+    const ini = new Date(s.started_at).getTime();
+    const fin = s.ended_at ? new Date(s.ended_at).getTime() : ahora;
+    return Math.max(0, (fin - ini) / 60000);
+  }
+
+  const totalMinutos = sessions.reduce((acc, s) => acc + minutosDe(s), 0) +
+    (mio && !sessions.some((s) => s.id === mio.id) ? minutosDe(mio) : 0);
+
+  const porPersona = sessions.reduce<Record<string, number>>((acc, s) => {
+    acc[s.profile_id] = (acc[s.profile_id] ?? 0) + minutosDe(s);
+    return acc;
+  }, {});
+
   const doneCount = checklist.filter((i) => i.done).length;
 
   return (
@@ -131,6 +182,60 @@ export default function CardDrawer({
         </div>
 
         <div className="drawer__body">
+          <div className="drawer__section timer">
+            <div className="drawer__label">Tiempo dedicado</div>
+            <div className="timer__row">
+              {mio ? (
+                <button type="button" className="btn btn--danger timer__btn" onClick={onStopWork}>
+                  ■ Parar proceso
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn--primary timer__btn"
+                  onClick={() => onStartWork(card.id)}
+                >
+                  ▶ Iniciar proceso
+                </button>
+              )}
+              <span className="timer__clock">{comoHoras(totalMinutos)}</span>
+            </div>
+
+            {mio && (
+              <p className="timer__hint">
+                Contando desde las{" "}
+                {new Date(mio.started_at).toLocaleTimeString("es-ES", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                . Se guarda con la fase en la que está la tarjeta ahora.
+              </p>
+            )}
+            {!mio && myOpenSession && (
+              <p className="timer__hint">
+                Tienes el cronómetro en otra tarjeta: al arrancar aquí, aquel se cierra solo.
+              </p>
+            )}
+            {workingHere.length > 0 && (
+              <p className="timer__hint">
+                Trabajando aquí ahora: {workingHere.map((p) => p.full_name).join(", ")}.
+              </p>
+            )}
+
+            {Object.keys(porPersona).length > 0 && (
+              <ul className="timer__list">
+                {Object.entries(porPersona)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([id, minutos]) => (
+                    <li key={id}>
+                      <span>{profileById[id]?.full_name ?? "Alguien"}</span>
+                      <b>{comoHoras(minutos)}</b>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+
           <div className="drawer__section">
             <div className="drawer__label">Etiquetas</div>
             <div className="drawer__row">

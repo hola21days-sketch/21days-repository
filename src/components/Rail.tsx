@@ -24,6 +24,8 @@ type Props = {
   onSelect: (id: string) => void;
   onNewClient: () => void;
   onClose: () => void;
+  vista: "cliente" | "informes";
+  onVista: (v: "cliente" | "informes") => void;
 };
 
 export default function Rail({
@@ -35,6 +37,8 @@ export default function Rail({
   onSelect,
   onNewClient,
   onClose,
+  vista,
+  onVista,
 }: Props) {
   return (
     <aside className={open ? "rail rail--open" : "rail"} id="rail">
@@ -75,7 +79,9 @@ export default function Rail({
           <li key={c.id}>
             <button
               type="button"
-              className={c.id === activeId ? "client-item is-active" : "client-item"}
+              className={
+                c.id === activeId && vista === "cliente" ? "client-item is-active" : "client-item"
+              }
               onClick={() => onSelect(c.id)}
             >
               <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
@@ -91,6 +97,14 @@ export default function Rail({
           </li>
         ))}
       </ul>
+
+      <button
+        type="button"
+        className={vista === "informes" ? "rail__nav is-active" : "rail__nav"}
+        onClick={() => onVista(vista === "informes" ? "cliente" : "informes")}
+      >
+        Informes de tiempo
+      </button>
 
       <div className="rail__punch">
         <Fichaje me={me} profiles={profiles} />

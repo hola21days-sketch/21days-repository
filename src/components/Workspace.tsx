@@ -7,11 +7,12 @@ import Chat from "./Chat";
 import CardDrawer from "./CardDrawer";
 import NewClientDialog from "./NewClientDialog";
 import Resumen from "./Resumen";
+import Informes from "./Informes";
 import Tareas from "./Tareas";
 import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import type { Attachment, BoardColumn, Card, Message, Profile } from "@/lib/types";
+import type { Attachment, BoardColumn, Card, Message, Profile, WorkSession } from "@/lib/types";
 
 type ClientRow = {
   id: string;
@@ -78,6 +79,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState<string | null>(null);
   const [pendingTasks, setPendingTasks] = useState(0);
+  const [vista, setVista] = useState<"cliente" | "informes">("cliente");
+  const [openSessions, setOpenSessions] = useState<WorkSession[]>([]);
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -173,6 +176,60 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
   }, [supabase]);
 
+  // ------------------------------------------------------------ cronómetros
+  const refreshSessions = useCallback(async () => {
+    const { data } = await supabase.from("work_sessions").select("*").is("ended_at", null);
+    if (data) setOpenSessions(data as WorkSession[]);
+  }, [supabase]);
+
+  useEffect(() => {
+    void refreshSessions();
+  }, [refreshSessions]);
+
+  const myOpenSession = useMemo(
+    () => openSessions.find((s) => s.profile_id === me.id) ?? null,
+    [openSessions, me.id],
+  );
+
+  /** Quién está ahora mismo en cada tarjeta, para marcarlo en el tablero. */
+  const workingByCard = useMemo(() => {
+    const mapa: Record<string, Profile[]> = {};
+    for (const s of openSessions) {
+      const quien = profileById[s.profile_id];
+      if (!quien) continue;
+      mapa[s.card_id] = [...(mapa[s.card_id] ?? []), quien];
+    }
+    return mapa;
+  }, [openSessions, profileById]);
+
+  const cardTitles = useMemo(
+    () => Object.fromEntries(cards.map((c) => [c.id, c.title])) as Record<string, string>,
+    [cards],
+  );
+
+  const clientNames = useMemo(
+    () => Object.fromEntries(clients.map((c) => [c.id, c.name])) as Record<string, string>,
+    [clients],
+  );
+
+  async function startWork(cardId: string) {
+    const { error } = await supabase.rpc("start_work", { p_card_id: cardId });
+    if (error) {
+      alert("No se ha podido arrancar el cronómetro. Vuelve a intentarlo.");
+      return;
+    }
+    await refreshSessions();
+  }
+
+  async function stopWork() {
+    const { error } = await supabase.rpc("stop_work");
+    if (error) {
+      alert("No se ha podido parar el cronómetro. Vuelve a intentarlo.");
+      return;
+    }
+    await refreshSessions();
+  }
+
   // --------------------------------------------------------------- realtime
   const mergeAttachments = useCallback((files: Attachment[]) => {
     setAttachmentsByMessage((prev) => {
@@ -235,13 +292,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           mergeAttachments([payload.new as Attachment]);
         },
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "work_sessions" }, () => {
+        void refreshSessions();
+      })
       .subscribe();
 
     return () => {
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       void supabase.removeChannel(channel);
     };
-  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage, mergeAttachments]);
+  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage, mergeAttachments, refreshSessions]);
 
   // ------------------------------------------------------------------- chat
   // Clientes cuyo chat ya está cargado. En una ref y no en el estado para que
@@ -543,6 +603,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         open={railOpen}
         onSelect={(id) => {
           setActiveId(id);
+          setVista("cliente");
           setRailOpen(false);
         }}
         onNewClient={() => {
@@ -550,6 +611,11 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           setRailOpen(false);
         }}
         onClose={() => setRailOpen(false)}
+        vista={vista}
+        onVista={(v) => {
+          setVista(v);
+          setRailOpen(false);
+        }}
       />
 
       <main className="main">
@@ -564,11 +630,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                 ☰
               </button>
               <div>
-                <div className="main__title">{activeClient?.name ?? "Bitácora"}</div>
-                <div className="main__kind">{activeClient?.kind ?? "Sin cliente seleccionado"}</div>
+                <div className="main__title">
+                  {vista === "informes" ? "Informes" : (activeClient?.name ?? "Bitácora")}
+                </div>
+                <div className="main__kind">
+                  {vista === "informes"
+                    ? "Tiempo por cliente y fase"
+                    : (activeClient?.kind ?? "Sin cliente seleccionado")}
+                </div>
               </div>
             </div>
-            {activeClient && (
+            {activeClient && vista === "cliente" && (
               <nav className="tabs">
                 <button
                   className={tab === "board" ? "tab is-active" : "tab"}
@@ -595,7 +667,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           </div>
 
           <div className="main__actions">
-            {activeClient && (
+            {activeClient && vista === "cliente" && (
               <button
                 type="button"
                 onClick={toggleMembership}
@@ -614,14 +686,22 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           </div>
         </header>
 
-        {!activeClient && (
+        {vista === "informes" && (
+          <Informes
+            clientNames={clientNames}
+            profileById={profileById}
+            cardTitles={cardTitles}
+          />
+        )}
+
+        {vista === "cliente" && !activeClient && (
           <div className="empty">
             Todavía no hay ningún cliente en la bitácora. Añade el primero con el botón <b>+</b> del
             panel de la izquierda.
           </div>
         )}
 
-        {activeClient && (
+        {vista === "cliente" && activeClient && (
           <Resumen
             key={activeClient.id}
             clientId={activeClient.id}
@@ -632,7 +712,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           />
         )}
 
-        {activeClient && tab === "board" && (
+        {vista === "cliente" && activeClient && tab === "board" && (
           <Board
             columns={activeColumns}
             cards={activeCards}
@@ -640,10 +720,11 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             onOpenCard={setOpenCardId}
             onMoveCard={moveCard}
             onAddCard={addCard}
+            workingByCard={workingByCard}
           />
         )}
 
-        {activeClient && tab === "chat" && (
+        {vista === "cliente" && activeClient && tab === "chat" && (
           <Chat
             messages={activeMessages}
             attachmentsByMessage={attachmentsByMessage}
@@ -655,12 +736,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           />
         )}
 
-        {activeClient && tab === "tareas" && (
+        {vista === "cliente" && activeClient && tab === "tareas" && (
           <Tareas key={activeClient.id} clientId={activeClient.id} onCount={setPendingTasks} />
         )}
       </main>
 
-      {openCard && activeClient && (
+      {vista === "cliente" && openCard && activeClient && (
         <CardDrawer
           card={openCard}
           clientName={activeClient.name}
@@ -671,6 +752,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           onPatch={patchCard}
           onToggleAssignee={toggleAssignee}
           onDelete={deleteCard}
+          myOpenSession={myOpenSession}
+          workingHere={(workingByCard[openCard.id] ?? []).filter((p) => p.id !== me.id)}
+          onStartWork={startWork}
+          onStopWork={stopWork}
         />
       )}
 

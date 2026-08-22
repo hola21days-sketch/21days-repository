@@ -3,7 +3,7 @@ import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${BRAND.product} · ${BRAND.company}`,
+  title: BRAND.company,
   description: `${BRAND.tagline} de ${BRAND.company}: tablero, chat interno y seguimiento de encargos, cliente a cliente.`,
 };
 

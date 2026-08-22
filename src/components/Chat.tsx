@@ -9,6 +9,9 @@ import type { Attachment, Meeting, Message, Profile, Transcript } from "@/lib/ty
 type Props = {
   clientId: string;
   clientName: string;
+  /** Enlace fijo de Google Meet de este cliente (vacío si aún no hay). */
+  meetUrl: string;
+  onMeetUrl: (url: string) => void;
   messages: Message[];
   attachmentsByMessage: Record<string, Attachment[]>;
   profiles: Profile[];
@@ -35,6 +38,27 @@ async function abrir(att: Attachment) {
   window.open(data.signedUrl, "_blank", "noopener");
 }
 
+/** Deja el enlace de Google Meet en su forma canónica, o devuelve "" si no lo es. */
+function limpiarMeet(texto: string): string {
+  const t = texto.trim();
+  const m = t.match(/(?:https?:\/\/)?meet\.google\.com\/([a-z]{3}-[a-z]{4}-[a-z]{3}|lookup\/[\w-]+)/i);
+  return m ? `https://meet.google.com/${m[1]}` : "";
+}
+
+/** Enlace para meter la reunión en Google Calendar con un clic. */
+function enlaceCalendario(titulo: string, cuando: Date, url: string): string {
+  const sello = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, "");
+  const fin = new Date(cuando.getTime() + 30 * 60000);
+  const p = new URLSearchParams({
+    action: "TEMPLATE",
+    text: titulo,
+    dates: `${sello(cuando)}/${sello(fin)}`,
+    details: `Videollamada del equipo\n${url}`,
+    location: url,
+  });
+  return `https://calendar.google.com/calendar/render?${p.toString()}`;
+}
+
 /** ¿Es un archivo del que se puede sacar la voz? */
 function tieneVoz(mime: string) {
   return mime.startsWith("video/") || mime.startsWith("audio/");
@@ -59,6 +83,8 @@ function conMenciones(body: string, nombres: string[]) {
 export default function Chat({
   clientId,
   clientName,
+  meetUrl,
+  onMeetUrl,
   messages,
   attachmentsByMessage,
   profiles,
@@ -87,8 +113,27 @@ export default function Chat({
 
   const nombres = useMemo(() => profiles.map((p) => p.full_name), [profiles]);
 
-  /** Sala fija del cliente: el enlace siempre es el mismo, sin cuentas ni claves. */
-  const salaFija = useMemo(() => `https://meet.jit.si/bitacora-${clientId}`, [clientId]);
+  /**
+   * Google Meet no deja inventarse el código de una sala: hay que abrirla desde
+   * la propia cuenta de Google y pegar aquí el enlace. Eso es lo que hace el
+   * botón "Crear en Google Meet" — abre una sala nueva y luego se pega.
+   */
+  const [pegando, setPegando] = useState(false);
+  const [enlace, setEnlace] = useState("");
+  const [aviso, setAviso] = useState("");
+
+  async function guardarSala() {
+    const url = limpiarMeet(enlace);
+    if (!url) {
+      setAviso("Eso no parece un enlace de Google Meet. Debe empezar por meet.google.com/");
+      return;
+    }
+    setAviso("");
+    await supabase.from("clients").update({ meet_url: url }).eq("id", clientId);
+    onMeetUrl(url);
+    setEnlace("");
+    setPegando(false);
+  }
 
   useEffect(() => {
     const log = logRef.current;
@@ -177,7 +222,16 @@ export default function Chat({
     const cuando = String(datos.get("cuando") ?? "");
     const titulo = String(datos.get("titulo") ?? "").trim() || `Videollamada · ${clientName}`;
     if (!cuando) return;
-    const url = `https://meet.jit.si/bitacora-${clientId}-${Math.random().toString(36).slice(2, 8)}`;
+
+    // El enlace de la reunión: el que se pegue en el formulario o, si no, el
+    // enlace fijo del cliente. Sin enlace no se programa nada.
+    const url = limpiarMeet(String(datos.get("enlace") ?? "")) || meetUrl;
+    if (!url) {
+      setAviso("Falta el enlace de Google Meet de la reunión.");
+      return;
+    }
+    setAviso("");
+
     const { data } = await supabase
       .from("meetings")
       .insert({
@@ -198,7 +252,7 @@ export default function Chat({
           month: "short",
           hour: "2-digit",
           minute: "2-digit",
-        })}\n${url}`,
+        })}\n${url}\nAñadir al calendario: ${enlaceCalendario(titulo, new Date(cuando), url)}`,
         [],
         [],
       );
@@ -211,11 +265,28 @@ export default function Chat({
   return (
     <section className="chat">
       <div className="callbar">
-        <a className="btn btn--primary callbar__join" href={salaFija} target="_blank" rel="noopener">
-          Entrar a la videollamada
-        </a>
+        {meetUrl ? (
+          <a className="btn btn--primary callbar__join" href={meetUrl} target="_blank" rel="noopener">
+            Entrar a la videollamada
+          </a>
+        ) : (
+          <a
+            className="btn btn--primary callbar__join"
+            href="https://meet.google.com/new"
+            target="_blank"
+            rel="noopener"
+            onClick={() => setPegando(true)}
+          >
+            Crear en Google Meet
+          </a>
+        )}
+
         <button type="button" className="btn" onClick={() => setProgramando((o) => !o)}>
           {programando ? "Cancelar" : "Programar una"}
+        </button>
+
+        <button type="button" className="btn btn--ghost" onClick={() => setPegando((o) => !o)}>
+          {meetUrl ? "Cambiar el enlace" : "Pegar el enlace"}
         </button>
 
         {meetings.length > 0 && (
@@ -240,15 +311,57 @@ export default function Chat({
         )}
       </div>
 
+      {pegando && (
+        <div className="callbar__form">
+          <input
+            className="input-inline callbar__enlace"
+            autoFocus
+            placeholder="https://meet.google.com/abc-defg-hij"
+            value={enlace}
+            onChange={(e) => setEnlace(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void guardarSala();
+              }
+              if (e.key === "Escape") setPegando(false);
+            }}
+          />
+          <button type="button" className="btn btn--primary" onClick={() => void guardarSala()}>
+            Guardar la sala
+          </button>
+          <a className="btn btn--ghost" href="https://meet.google.com/new" target="_blank" rel="noopener">
+            Abrir Google Meet
+          </a>
+          <p className="callbar__pista">
+            Google Meet no deja inventarse el código de una sala: ábrela con <b>Abrir Google
+            Meet</b>, copia la dirección del navegador y pégala aquí. Queda guardada como la sala
+            fija de {clientName}.
+          </p>
+        </div>
+      )}
+
       {programando && (
         <form className="callbar__form" onSubmit={programar}>
           <input className="input-inline" name="titulo" placeholder="Título (opcional)" />
           <input className="input-inline" name="cuando" type="datetime-local" required />
+          <input
+            className="input-inline callbar__enlace"
+            name="enlace"
+            placeholder={
+              meetUrl ? "Enlace de Meet (si no, se usa la sala fija)" : "https://meet.google.com/abc-defg-hij"
+            }
+          />
           <button type="submit" className="btn btn--primary">
             Programar
           </button>
+          <a className="btn btn--ghost" href="https://meet.google.com/new" target="_blank" rel="noopener">
+            Crear en Google Meet
+          </a>
         </form>
       )}
+
+      {aviso && <p className="callbar__aviso">{aviso}</p>}
 
       <div className="chat__log" ref={logRef}>
         {loading && <div className="empty">Cargando la conversación…</div>}

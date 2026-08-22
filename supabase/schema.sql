@@ -99,8 +99,25 @@ create table if not exists public.clients (
   card_seq   integer not null default 0,
   position   integer not null default 0,
   archived   boolean not null default false,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Ficha del cliente: el contexto que hace falta para entender la cuenta de
+  -- un vistazo, y el enlace fijo de Google Meet del equipo con él.
+  description      text    not null default '',
+  started_on       date,
+  season           text    not null default '',
+  videos_per_month integer not null default 0,
+  contact          text    not null default '',
+  meet_url         text    not null default ''
 );
+
+-- Para instalaciones que ya existían antes de la ficha.
+alter table public.clients
+  add column if not exists description      text    not null default '',
+  add column if not exists started_on       date,
+  add column if not exists season           text    not null default '',
+  add column if not exists videos_per_month integer not null default 0,
+  add column if not exists contact          text    not null default '',
+  add column if not exists meet_url         text    not null default '';
 
 create table if not exists public.client_members (
   client_id  uuid not null references public.clients(id) on delete cascade,
@@ -297,8 +314,8 @@ create table if not exists public.client_tasks (
   created_at  timestamptz not null default now()
 );
 
--- Videollamadas: salas de Jitsi Meet, que existen con solo abrir el enlace.
--- No hacen falta cuentas ni claves de ningún proveedor.
+-- Videollamadas: el enlace de Google Meet de cada reunión. Google no deja
+-- inventarse el código de una sala, así que el enlace se pega desde la app.
 create table if not exists public.meetings (
   id         uuid primary key default gen_random_uuid(),
   client_id  uuid not null references public.clients(id) on delete cascade,

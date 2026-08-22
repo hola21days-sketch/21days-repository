@@ -26,12 +26,16 @@ usuario y datos persistentes.
   **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
   idénticos (sin recomprimir ni recortar resolución). Los mensajes se pueden **editar y borrar**,
   se puede **mencionar** a alguien con `@`, y desde ahí se entra o se programa una
-  **videollamada** (salas de Jitsi Meet, sin cuentas ni claves).
+  **videollamada de Google Meet**, al momento o programada (con enlace para meterla en Google
+  Calendar).
 - **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
   *Transcribir y traducir*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
   debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos.
+- **Ficha del cliente** — se abre pulsando su nombre arriba: descripción, desde cuándo es cliente
+  (y cuánto lleva con nosotros), temporada, vídeos al mes, contacto y cómo va ahora mismo el
+  tablero. Se edita ahí mismo.
 - **Resumen del mes por cliente** — bajo el nombre del cliente: vídeos en Report, en producción,
   entregas pasadas y tareas pendientes, más los avisos importantes que apunte el equipo.
 - **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero: cada una se abre
@@ -224,7 +228,8 @@ src/
     Informes.tsx          Tiempo por cliente, fase y persona
     Board.tsx             Tablero y arrastre de tarjetas
     CardDrawer.tsx        Detalle del encargo
-    Chat.tsx              Chat del equipo, adjuntos y transcripciones
+    Chat.tsx              Chat del equipo, adjuntos, transcripciones y Meet
+    FichaCliente.tsx      Ficha y contexto de cada cliente
     MensajesDirectos.tsx  Conversaciones privadas entre compañeros
     Logo.tsx              Logotipo de 21days agency
   lib/

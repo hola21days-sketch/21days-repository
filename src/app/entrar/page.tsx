@@ -11,10 +11,10 @@ export default function EntrarPage() {
         <div>
           <Logo />
           <div className="gate__mark" style={{ marginTop: "1.1rem" }}>
-            Bit<span>á</span>cora
+            <span>21</span>days agency
           </div>
           <div className="gate__brandline" style={{ marginTop: "0.4rem" }}>
-            {BRAND.company} · {BRAND.tagline}
+            {BRAND.tagline}
           </div>
         </div>
         <p className="gate__lede">

@@ -50,7 +50,7 @@ export default function Rail({
         <div>
           <Logo className="rail__logo" />
           <div className="rail__brand-mark">
-            Bit<span>á</span>cora
+            <span>21</span>days agency
           </div>
           <div className="rail__brand-sub">{BRAND.tagline}</div>
         </div>

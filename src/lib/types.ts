@@ -165,3 +165,16 @@ export type Transcript = {
   error: string;
   created_at: string;
 };
+
+/** La ficha de un cliente: lo que hay guardado en la tabla `clients`. */
+export type ClientDetails = {
+  id: string;
+  name: string;
+  kind: string;
+  description: string;
+  started_on: string | null;
+  season: string;
+  videos_per_month: number;
+  contact: string;
+  meet_url: string;
+};

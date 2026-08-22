@@ -1215,6 +1215,104 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .transcripcion__error { margin: 0.3rem 0 0; font-size: 0.78rem; color: var(--danger); }
 
 /* ==========================================================================
+   Ficha del cliente — se despliega al pulsar su nombre en la cabecera
+   ========================================================================== */
+.main__titulo-caja { position: relative; }
+.main__title--boton {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.main__title--boton:hover { color: var(--accent); }
+.main__title-chevron { font-size: 0.62rem; color: var(--ink-faint); }
+
+.ficha {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 26;
+  width: min(460px, 86vw);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 0.9rem 1rem 1rem;
+}
+.ficha__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.ficha__nombre { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+.ficha__tipo {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+.ficha__acciones { display: flex; align-items: center; gap: 0.3rem; flex: none; }
+.ficha__cerrar {
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0.2rem;
+}
+.ficha__descripcion { margin: 0 0 0.7rem; font-size: 0.87rem; white-space: pre-wrap; }
+.ficha__vacio { margin: 0 0 0.7rem; font-size: 0.83rem; color: var(--ink-faint); }
+.ficha__datos {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.ficha__datos div { margin: 0; }
+.ficha__datos dt {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+.ficha__datos dd { margin: 0.1rem 0 0; font-size: 0.86rem; }
+.ficha__form { display: grid; gap: 0.6rem; }
+.ficha__form label { display: grid; gap: 0.2rem; }
+.ficha__form label > span {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+.ficha__fila { display: grid; gap: 0.6rem; grid-template-columns: 1fr 1fr 0.6fr; }
+.ficha__botones { display: flex; gap: 0.4rem; margin-top: 0.2rem; }
+
+.callbar__enlace { min-width: 250px; flex: 1; }
+.callbar__pista {
+  flex-basis: 100%;
+  margin: 0.1rem 0 0;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+.callbar__aviso {
+  margin: 0;
+  padding: 0.4rem 1.4rem 0.6rem;
+  font-size: 0.78rem;
+  color: var(--danger);
+  background: var(--bg);
+  flex: none;
+}
+
+/* ==========================================================================
    Responsive — al final a propósito: estas reglas tienen la misma
    especificidad que las de arriba y deben ganar por orden de cascada.
    ========================================================================== */
@@ -1246,4 +1344,8 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .dm { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .dm__gente { border-right: none; border-bottom: 1px solid var(--rule); max-height: 30vh; }
   .dm__hilo-cabecera { padding: 0.6rem 1rem; }
+
+  .ficha { width: min(460px, 92vw); }
+  .ficha__fila { grid-template-columns: 1fr; }
+  .callbar__aviso { padding-left: 1rem; padding-right: 1rem; }
 }

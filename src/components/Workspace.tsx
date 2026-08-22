@@ -8,12 +8,14 @@ import Chat from "./Chat";
 import CardDrawer from "./CardDrawer";
 import NewClientDialog from "./NewClientDialog";
 import Resumen from "./Resumen";
+import FichaCliente from "./FichaCliente";
 import Informes from "./Informes";
 import Tareas from "./Tareas";
 import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
+import { BRAND } from "@/lib/brand";
 import type { Attachment, BoardColumn, Card, Message, Profile, WorkSession } from "@/lib/types";
 
 type ClientRow = {
@@ -23,6 +25,12 @@ type ClientRow = {
   ref_prefix: string;
   position: number;
   archived: boolean;
+  description: string;
+  started_on: string | null;
+  season: string;
+  videos_per_month: number;
+  contact: string;
+  meet_url: string;
 };
 type MemberRow = { client_id: string; profile_id: string };
 type AssigneeRow = { card_id: string; profile_id: string };
@@ -83,6 +91,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [pendingTasks, setPendingTasks] = useState(0);
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
+  const [fichaAbierta, setFichaAbierta] = useState(false);
   const [openSessions, setOpenSessions] = useState<WorkSession[]>([]);
 
   /**
@@ -696,6 +705,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         onSelect={(id) => {
           setActiveId(id);
           setVista("cliente");
+          setFichaAbierta(false);
           setRailOpen(false);
         }}
         onNewClient={() => {
@@ -722,14 +732,29 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               >
                 ☰
               </button>
-              <div>
-                <div className="main__title">
-                  {vista === "informes"
-                    ? "Informes"
-                    : vista === "dm"
-                      ? "Mensajes directos"
-                      : (activeClient?.name ?? "Bitácora")}
-                </div>
+              <div className="main__titulo-caja">
+                {vista === "cliente" && activeClient ? (
+                  <button
+                    type="button"
+                    className="main__title main__title--boton"
+                    onClick={() => setFichaAbierta((o) => !o)}
+                    aria-expanded={fichaAbierta}
+                    title="Ver la ficha del cliente"
+                  >
+                    {activeClient.name}
+                    <span className="main__title-chevron" aria-hidden>
+                      ▾
+                    </span>
+                  </button>
+                ) : (
+                  <div className="main__title">
+                    {vista === "informes"
+                      ? "Informes"
+                      : vista === "dm"
+                        ? "Mensajes directos"
+                        : BRAND.company}
+                  </div>
+                )}
                 <div className="main__kind">
                   {vista === "informes"
                     ? "Tiempo por cliente y fase"
@@ -737,6 +762,24 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                       ? "Conversaciones privadas del equipo"
                       : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
+
+                {fichaAbierta && activeClient && vista === "cliente" && (
+                  <FichaCliente
+                    client={activeClient}
+                    enCurso={activeCards.filter((c) => c.column_id !== activeDoneColumnId).length}
+                    enReport={
+                      activeCards.filter(
+                        (c) => activeDoneColumnId && c.column_id === activeDoneColumnId,
+                      ).length
+                    }
+                    onSaved={(cambios) =>
+                      setClients((prev) =>
+                        prev.map((c) => (c.id === activeClient.id ? { ...c, ...cambios } : c)),
+                      )
+                    }
+                    onClose={() => setFichaAbierta(false)}
+                  />
+                )}
               </div>
             </div>
             {activeClient && vista === "cliente" && (
@@ -832,6 +875,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           <Chat
             clientId={activeClient.id}
             clientName={activeClient.name}
+            meetUrl={activeClient.meet_url}
+            onMeetUrl={(url) =>
+              setClients((prev) =>
+                prev.map((c) => (c.id === activeClient.id ? { ...c, meet_url: url } : c)),
+              )
+            }
             messages={activeMessages}
             attachmentsByMessage={attachmentsByMessage}
             profiles={profiles}

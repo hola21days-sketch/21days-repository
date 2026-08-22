@@ -8,8 +8,8 @@
 export const BRAND = {
   /** Empresa propietaria de la herramienta. */
   company: "21days agency",
-  /** Nombre del producto. */
-  product: "Bitácora",
+  /** Nombre del producto: es la propia marca de la agencia. */
+  product: "21days agency",
   /** Bajada que aparece bajo el logo en el rail. */
   tagline: "Control de clientes",
   /** Texto alternativo del logo. */

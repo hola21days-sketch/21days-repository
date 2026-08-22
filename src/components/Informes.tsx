@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Stamp from "./Stamp";
-import { localDay } from "@/lib/format";
 import type { Profile, WorkSession } from "@/lib/types";
 
 type Props = {
   clientNames: Record<string, string>;
   profileById: Record<string, Profile>;
   cardTitles: Record<string, string>;
+  me: Profile;
 };
 
 type Periodo = "semana" | "mes";
@@ -66,12 +66,13 @@ export function comoHoras(minutos: number): string {
  * Sale de los cronómetros de las tarjetas. Los tramos abiertos se cuentan
  * hasta este momento, así que la semana en curso ya se ve mientras avanza.
  */
-export default function Informes({ clientNames, profileById, cardTitles }: Props) {
+export default function Informes({ clientNames, profileById, cardTitles, me }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [periodo, setPeriodo] = useState<Periodo>("semana");
   const [salto, setSalto] = useState(0);
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [exportando, setExportando] = useState(false);
   const [ahora, setAhora] = useState(() => Date.now());
 
   const { desde, hasta, texto } = useMemo(() => ventana(periodo, salto), [periodo, salto]);
@@ -132,32 +133,30 @@ export default function Informes({ clientNames, profileById, cardTitles }: Props
   const totalPeriodo = porCliente.reduce((acc, [, f]) => acc + f.total, 0);
   const enMarcha = sessions.filter((s) => !s.ended_at);
 
-  function exportar() {
-    const cabecera = ["Cliente", "Fase", "Persona", "Inicio", "Fin", "Minutos", "Tarea"];
-    const escapar = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
-    const csv = [
-      cabecera.map(escapar).join(","),
-      ...sessions.map((s) =>
-        [
-          clientNames[s.client_id] ?? "",
-          s.column_label || "Sin fase",
-          profileById[s.profile_id]?.full_name ?? "",
-          s.started_at,
-          s.ended_at ?? "",
-          Math.round(minutosDe(s, ahora)),
-          cardTitles[s.card_id] ?? "",
-        ]
-          .map(escapar)
-          .join(","),
-      ),
-    ].join("\n");
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `tiempos-${periodo}-${localDay(desde.toISOString())}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  /**
+   * Vuelca el periodo a un libro de Excel con sus tablas y sus medias. El
+   * generador se carga solo al pulsar: pesa lo suyo y no tiene por qué estar
+   * en la primera carga de la app.
+   */
+  async function exportar() {
+    setExportando(true);
+    try {
+      const { exportarTiempos } = await import("@/lib/excel/tiempos");
+      await exportarTiempos({
+        sessions,
+        clientNames,
+        profileById,
+        cardTitles,
+        periodo,
+        textoPeriodo: texto,
+        desde,
+        hasta,
+        ahora,
+        generadoPor: me.full_name,
+      });
+    } finally {
+      setExportando(false);
+    }
   }
 
   return (
@@ -199,8 +198,14 @@ export default function Informes({ clientNames, profileById, cardTitles }: Props
           >
             →
           </button>
-          <button type="button" className="btn btn--ghost" onClick={exportar} disabled={sessions.length === 0}>
-            Exportar CSV
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => void exportar()}
+            disabled={sessions.length === 0 || exportando}
+            title="Descarga el informe completo en Excel"
+          >
+            {exportando ? "Preparando…" : "Descargar en Excel"}
           </button>
         </div>
       </header>

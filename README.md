@@ -44,9 +44,16 @@ usuario y datos persistentes.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.
-- **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase (p. ej. *Editar de X: 4h
-  20m*), el total por persona, quién está trabajando en cada cosa en este momento y exportación
-  a CSV.
+- **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase
+  (p. ej. *Editar de X: 4h 20m*), el total por persona y quién está trabajando en cada cosa en
+  este momento.
+- **Informes en Excel** — *Descargar en Excel* en los informes de tiempo y en el panel de fichaje.
+  No es un CSV pelado: es un libro con varias hojas, cabeceras de marca, barras dentro de las
+  celdas, filtros y totales. El de tiempo trae *Resumen*, *Por persona* (media por día trabajado,
+  media por día laborable y media de cada día de la semana), *Por cliente* (matriz cliente × fase
+  y quién ha tocado cada cuenta), *Por día* y el *Detalle* tramo a tramo. El de fichaje trae
+  *Resumen* (jornadas, media por jornada, entrada y salida medias, pausa media, día más largo),
+  *Por día de la semana*, *Detalle diario* y los *Marcajes* en bruto.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
 - **Modo claro y oscuro**, y uso desde el móvil.
 - **Alta desde la propia pantalla de acceso** — cada trabajador se crea su cuenta con su correo,
@@ -64,7 +71,7 @@ usuario y datos persistentes.
 | Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): tablas con RLS en todas, realtime, funciones y la función de borde `transcribir`. |
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
-| Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el CSV que exporta la app. |
+| Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el Excel que exporta la app. |
 | Logo y tipografía de 21days agency | **Pendiente** — ahora hay una marca provisional. |
 
 ---
@@ -155,10 +162,10 @@ configurarla — no rompe nada.
 
 La hoja está creada:
 [Fichajes — Bitácora](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit).
-Para actualizarla: en Bitácora, panel de fichaje → **Exportar CSV**, y en la hoja
-*Archivo → Importar → Subir → Sustituir hoja actual*. Cada fila es un día de una persona con
-entrada, salida, pausas, minutos de pausa y horas trabajadas. El CSV trae lo que cada uno puede
-ver: los suyos, o los de todo el equipo si es administrador.
+Para actualizarla: en la app, panel de fichaje → **Descargar en Excel**, y en la hoja
+*Archivo → Importar → Subir → Sustituir hoja actual* (Google Sheets abre el `.xlsx` igual que un
+CSV, y así conserva las cuatro pestañas). El libro trae lo que cada uno puede ver: sus fichajes,
+o los de todo el equipo si es administrador.
 
 ### 7. (Opcional) Datos de ejemplo
 
@@ -234,6 +241,7 @@ src/
     MensajesDirectos.tsx  Conversaciones privadas entre compañeros
     Logo.tsx              Logotipo de 21days agency
   lib/
+    excel/                Los libros de Excel: estilo común, tiempos y fichajes
     supabase/             Clientes de Supabase (navegador, servidor, middleware)
     brand.ts              Nombre, bajada y logo de la marca
     types.ts, format.ts   Tipos y formateo de fechas

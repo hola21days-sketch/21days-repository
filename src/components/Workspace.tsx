@@ -844,6 +844,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             clientNames={clientNames}
             profileById={profileById}
             cardTitles={cardTitles}
+            me={me}
           />
         )}
 

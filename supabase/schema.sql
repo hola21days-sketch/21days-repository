@@ -211,7 +211,9 @@ create table if not exists public.messages (
   client_id  uuid not null references public.clients(id) on delete cascade,
   author_id  uuid not null references public.profiles(id) on delete cascade,
   body       text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  edited_at  timestamptz,
+  mentions   uuid[] not null default '{}'
 );
 
 create index if not exists messages_client_idx on public.messages (client_id, created_at);
@@ -283,14 +285,32 @@ create index if not exists client_notices_client_idx
 
 -- Lista de pendientes de cada cliente, aparte del tablero.
 create table if not exists public.client_tasks (
+  id          uuid primary key default gen_random_uuid(),
+  client_id   uuid not null references public.clients(id) on delete cascade,
+  text        text not null,
+  done        boolean not null default false,
+  position    double precision not null default 0,
+  author_id   uuid references public.profiles(id) on delete set null,
+  assignee_id uuid references public.profiles(id) on delete set null,
+  notes       text not null default '',
+  due_date    date,
+  created_at  timestamptz not null default now()
+);
+
+-- Videollamadas: salas de Jitsi Meet, que existen con solo abrir el enlace.
+-- No hacen falta cuentas ni claves de ningún proveedor.
+create table if not exists public.meetings (
   id         uuid primary key default gen_random_uuid(),
   client_id  uuid not null references public.clients(id) on delete cascade,
-  text       text not null,
-  done       boolean not null default false,
-  position   double precision not null default 0,
-  author_id  uuid references public.profiles(id) on delete set null,
+  title      text not null default '',
+  url        text not null,
+  starts_at  timestamptz,
+  created_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+create index if not exists meetings_client_idx
+  on public.meetings (client_id, starts_at desc nulls last);
 
 create index if not exists client_tasks_client_idx
   on public.client_tasks (client_id, position);
@@ -353,6 +373,7 @@ alter table public.message_attachments enable row level security;
 alter table public.client_notices      enable row level security;
 alter table public.client_tasks        enable row level security;
 alter table public.work_sessions       enable row level security;
+alter table public.meetings            enable row level security;
 
 -- Perfiles: todos se ven entre ellos; cada uno edita el suyo; el admin, cualquiera.
 drop policy if exists profiles_select on public.profiles;
@@ -387,7 +408,7 @@ declare t text;
 begin
   foreach t in array array[
     'client_members', 'board_columns', 'cards', 'card_assignees', 'checklist_items', 'chat_reads',
-    'message_attachments', 'client_notices', 'client_tasks'
+    'message_attachments', 'client_notices', 'client_tasks', 'meetings'
   ] loop
     execute format('drop policy if exists %I_all on public.%I', t, t);
     execute format(
@@ -517,7 +538,7 @@ declare t text;
 begin
   foreach t in array array['cards', 'messages', 'checklist_items', 'card_comments', 'board_columns',
                            'clients', 'message_attachments', 'client_notices', 'client_tasks',
-                           'work_sessions'] loop
+                           'work_sessions', 'meetings'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
     exception

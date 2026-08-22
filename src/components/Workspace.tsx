@@ -295,6 +295,31 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "work_sessions" }, () => {
         void refreshSessions();
       })
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
+        (payload) => {
+          const row = payload.new as Message;
+          setMessagesByClient((prev) => ({
+            ...prev,
+            [row.client_id]: (prev[row.client_id] ?? []).map((m) => (m.id === row.id ? row : m)),
+          }));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages" },
+        (payload) => {
+          const viejo = payload.old as { id: string };
+          setMessagesByClient((prev) => {
+            const next: Record<string, Message[]> = {};
+            for (const [id, lista] of Object.entries(prev)) {
+              next[id] = lista.filter((m) => m.id !== viejo.id);
+            }
+            return next;
+          });
+        },
+      )
       .subscribe();
 
     return () => {
@@ -385,7 +410,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * Los ficheros van tal cual: mismo nombre, mismo tipo, sin recomprimir, así
    * que un vídeo 4K o un Excel se descargan idénticos a como se subieron.
    */
-  async function sendMessage(body: string, files: File[] = []) {
+  async function sendMessage(body: string, files: File[] = [], mentions: string[] = []) {
     if (!activeId) return;
     const clientId = activeId;
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
@@ -395,6 +420,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       author_id: me.id,
       body,
       created_at: new Date().toISOString(),
+      edited_at: null,
+      mentions,
     };
     setPendingIds((prev) => new Set(prev).add(tempId));
     setMessagesByClient((prev) => ({ ...prev, [clientId]: [...(prev[clientId] ?? []), optimistic] }));
@@ -402,7 +429,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
     const { data, error } = await supabase
       .from("messages")
-      .insert({ client_id: clientId, author_id: me.id, body })
+      .insert({ client_id: clientId, author_id: me.id, body, mentions })
       .select("*")
       .single();
 
@@ -465,6 +492,43 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       alert(
         `No se han podido subir: ${fallidos.join(", ")}.\n\nSuele ser por el tamaño máximo por archivo del proyecto de Supabase. Sube el archivo a Drive y pega el enlace en el chat, o pide que suban ese límite.`,
       );
+    }
+  }
+
+  async function editMessage(messageId: string, body: string) {
+    const antes = messagesByClient;
+    setMessagesByClient((prev) => {
+      const next: Record<string, Message[]> = {};
+      for (const [id, lista] of Object.entries(prev)) {
+        next[id] = lista.map((m) =>
+          m.id === messageId ? { ...m, body, edited_at: new Date().toISOString() } : m,
+        );
+      }
+      return next;
+    });
+    const { error } = await supabase
+      .from("messages")
+      .update({ body, edited_at: new Date().toISOString() })
+      .eq("id", messageId);
+    if (error) {
+      setMessagesByClient(antes);
+      alert("No se ha podido editar el mensaje.");
+    }
+  }
+
+  async function deleteMessage(messageId: string) {
+    const antes = messagesByClient;
+    setMessagesByClient((prev) => {
+      const next: Record<string, Message[]> = {};
+      for (const [id, lista] of Object.entries(prev)) {
+        next[id] = lista.filter((m) => m.id !== messageId);
+      }
+      return next;
+    });
+    const { error } = await supabase.from("messages").delete().eq("id", messageId);
+    if (error) {
+      setMessagesByClient(antes);
+      alert("No se ha podido borrar el mensaje.");
     }
   }
 
@@ -666,6 +730,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             )}
           </div>
 
+          {vista === "cliente" && activeClient && (
+            <Resumen
+              key={activeClient.id}
+              clientId={activeClient.id}
+              cards={activeCards}
+              doneColumnId={activeDoneColumnId}
+              pendingTasks={pendingTasks}
+              me={me}
+            />
+          )}
+
           <div className="main__actions">
             {activeClient && vista === "cliente" && (
               <button
@@ -701,16 +776,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           </div>
         )}
 
-        {vista === "cliente" && activeClient && (
-          <Resumen
-            key={activeClient.id}
-            clientId={activeClient.id}
-            cards={activeCards}
-            doneColumnId={activeDoneColumnId}
-            pendingTasks={pendingTasks}
-            me={me}
-          />
-        )}
 
         {vista === "cliente" && activeClient && tab === "board" && (
           <Board
@@ -726,18 +791,30 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
         {vista === "cliente" && activeClient && tab === "chat" && (
           <Chat
+            clientId={activeClient.id}
+            clientName={activeClient.name}
             messages={activeMessages}
             attachmentsByMessage={attachmentsByMessage}
+            profiles={profiles}
             profileById={profileById}
+            me={me}
             loading={loadingChat && activeMessages.length === 0}
             pendingIds={pendingIds}
             uploading={uploading}
             onSend={sendMessage}
+            onEdit={editMessage}
+            onDelete={deleteMessage}
           />
         )}
 
         {vista === "cliente" && activeClient && tab === "tareas" && (
-          <Tareas key={activeClient.id} clientId={activeClient.id} onCount={setPendingTasks} />
+          <Tareas
+            key={activeClient.id}
+            clientId={activeClient.id}
+            profiles={profiles}
+            profileById={profileById}
+            onCount={setPendingTasks}
+          />
         )}
       </main>
 

@@ -24,10 +24,13 @@ usuario y datos persistentes.
 - **Detalle del encargo** — descripción, checklist, responsables, fecha y comentarios del equipo.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente, con
   **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
-  idénticos (sin recomprimir ni recortar resolución).
+  idénticos (sin recomprimir ni recortar resolución). Los mensajes se pueden **editar y borrar**,
+  se puede **mencionar** a alguien con `@`, y desde ahí se entra o se programa una
+  **videollamada** (salas de Jitsi Meet, sin cuentas ni claves).
 - **Resumen del mes por cliente** — bajo el nombre del cliente: vídeos en Report, en producción,
   entregas pasadas y tareas pendientes, más los avisos importantes que apunte el equipo.
-- **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero.
+- **Lista de pendientes por cliente** — pestaña *Tareas*, aparte del tablero: cada una se abre
+  para poner quién la hace, las indicaciones y para cuándo.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.

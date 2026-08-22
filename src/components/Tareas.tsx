@@ -1,19 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import type { ClientTask } from "@/lib/types";
+import { formatDue } from "@/lib/format";
+import type { ClientTask, Profile } from "@/lib/types";
+
+type Props = {
+  clientId: string;
+  profiles: Profile[];
+  profileById: Record<string, Profile>;
+  onCount?: (n: number) => void;
+};
 
 /**
  * Lista de pendientes propia de cada cliente.
  * ---------------------------------------------------------------------------
  * Es aparte del tablero a propósito: el tablero lleva los vídeos (Idear,
- * Grabar…) y esto es la lista suelta de recados de ese canal.
+ * Grabar…) y esto es la lista suelta de recados de ese canal. Cada tarea puede
+ * abrirse para poner quién la hace, las indicaciones y para cuándo.
  */
-export default function Tareas({ clientId, onCount }: { clientId: string; onCount?: (n: number) => void }) {
+export default function Tareas({ clientId, profiles, profileById, onCount }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [draft, setDraft] = useState("");
+  const [abierta, setAbierta] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,11 +64,14 @@ export default function Tareas({ clientId, onCount }: { clientId: string; onCoun
       return;
     }
     setTasks((prev) => [...prev, data as ClientTask]);
+    setAbierta((data as ClientTask).id);
   }
 
-  async function marcar(task: ClientTask) {
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done: !t.done } : t)));
-    await supabase.from("client_tasks").update({ done: !task.done }).eq("id", task.id);
+  /** Guarda un cambio suelto de la tarea (responsable, indicaciones, fecha…). */
+  async function guardar(task: ClientTask, patch: Partial<ClientTask>) {
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...patch } : t)));
+    const { error } = await supabase.from("client_tasks").update(patch).eq("id", task.id);
+    if (error) setError("No se ha podido guardar el cambio.");
   }
 
   async function quitar(task: ClientTask) {
@@ -67,6 +81,87 @@ export default function Tareas({ clientId, onCount }: { clientId: string; onCoun
 
   const pendientes = tasks.filter((t) => !t.done);
   const hechas = tasks.filter((t) => t.done);
+
+  function fila(t: ClientTask) {
+    const responsable = t.assignee_id ? profileById[t.assignee_id] : null;
+    const abierto = abierta === t.id;
+    return (
+      <li key={t.id} className={t.done ? "task is-done" : "task"}>
+        <div className="task__row">
+          <input
+            type="checkbox"
+            checked={t.done}
+            onChange={() => void guardar(t, { done: !t.done })}
+            aria-label={t.text}
+          />
+          <button type="button" className="task__text" onClick={() => setAbierta(abierto ? null : t.id)}>
+            {t.text}
+          </button>
+          {responsable && (
+            <Stamp
+              label={responsable.initials}
+              color={responsable.color}
+              title={`Lo lleva ${responsable.full_name}`}
+            />
+          )}
+          {t.due_date && <span className="task__due">{formatDue(t.due_date)}</span>}
+          {t.notes && !abierto && <span className="task__flag" title="Tiene indicaciones">✎</span>}
+          <button
+            type="button"
+            className="checklist__remove"
+            onClick={() => void quitar(t)}
+            aria-label={`Quitar "${t.text}"`}
+          >
+            ✕
+          </button>
+        </div>
+
+        {abierto && (
+          <div className="task__panel">
+            <div className="task__fields">
+              <label className="task__field">
+                <span>Quién lo hace</span>
+                <select
+                  className="input-inline"
+                  value={t.assignee_id ?? ""}
+                  onChange={(e) => void guardar(t, { assignee_id: e.target.value || null })}
+                >
+                  <option value="">Sin asignar</option>
+                  {profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="task__field">
+                <span>Para cuándo</span>
+                <input
+                  className="input-inline"
+                  type="date"
+                  value={t.due_date ?? ""}
+                  onChange={(e) => void guardar(t, { due_date: e.target.value || null })}
+                />
+              </label>
+            </div>
+
+            <label className="task__field">
+              <span>Indicaciones</span>
+              <textarea
+                className="input-inline task__notes"
+                defaultValue={t.notes}
+                placeholder="Cómo se hace, qué hace falta, enlaces, referencias…"
+                onBlur={(e) => {
+                  if (e.target.value !== t.notes) void guardar(t, { notes: e.target.value });
+                }}
+              />
+            </label>
+          </div>
+        )}
+      </li>
+    );
+  }
 
   return (
     <section className="tasks">
@@ -99,49 +194,19 @@ export default function Tareas({ clientId, onCount }: { clientId: string; onCoun
         {loading && <div className="tasks__empty">Cargando…</div>}
         {!loading && tasks.length === 0 && (
           <div className="tasks__empty">
-            Nada pendiente por aquí. Lo que apuntes se guarda solo para este cliente y lo ve todo el
-            equipo.
+            Nada pendiente por aquí. Pulsa sobre una tarea para poner quién la hace y las
+            indicaciones.
           </div>
         )}
 
-        <ul className="checklist tasks__list">
-          {pendientes.map((t) => (
-            <li key={t.id}>
-              <input type="checkbox" checked={false} onChange={() => void marcar(t)} aria-label={t.text} />
-              <span className="checklist__text">{t.text}</span>
-              <button
-                type="button"
-                className="checklist__remove"
-                onClick={() => void quitar(t)}
-                aria-label={`Quitar "${t.text}"`}
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
+        <ul className="tasks__list">{pendientes.map(fila)}</ul>
 
         {hechas.length > 0 && (
           <>
             <div className="drawer__label" style={{ marginTop: "1.1rem" }}>
               Hechas · {hechas.length}
             </div>
-            <ul className="checklist tasks__list">
-              {hechas.map((t) => (
-                <li key={t.id} className="is-done">
-                  <input type="checkbox" checked onChange={() => void marcar(t)} aria-label={t.text} />
-                  <span className="checklist__text">{t.text}</span>
-                  <button
-                    type="button"
-                    className="checklist__remove"
-                    onClick={() => void quitar(t)}
-                    aria-label={`Quitar "${t.text}"`}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <ul className="tasks__list">{hechas.map(fila)}</ul>
           </>
         )}
       </div>

@@ -62,6 +62,8 @@ export type Message = {
   author_id: string;
   body: string;
   created_at: string;
+  edited_at: string | null;
+  mentions: string[];
 };
 
 export type ChecklistItem = {
@@ -115,6 +117,19 @@ export type ClientTask = {
   done: boolean;
   position: number;
   author_id: string | null;
+  assignee_id: string | null;
+  notes: string;
+  due_date: string | null;
+  created_at: string;
+};
+
+export type Meeting = {
+  id: string;
+  client_id: string;
+  title: string;
+  url: string;
+  starts_at: string | null;
+  created_by: string | null;
   created_at: string;
 };
 

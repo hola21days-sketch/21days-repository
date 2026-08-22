@@ -15,6 +15,8 @@ type Props = {
   messages: Message[];
   attachmentsByMessage: Record<string, Attachment[]>;
   profiles: Profile[];
+  /** Quién sigue a este cliente: son los que reciben el aviso de la reunión. */
+  members: Profile[];
   profileById: Record<string, Profile>;
   me: Profile;
   loading: boolean;
@@ -88,6 +90,7 @@ export default function Chat({
   messages,
   attachmentsByMessage,
   profiles,
+  members,
   profileById,
   me,
   loading,
@@ -216,6 +219,33 @@ export default function Chat({
     if (input) input.style.height = "auto";
   }
 
+  /**
+   * Avisa por mensaje directo a todo el que sigue al cliente. La reunión ya
+   * queda anunciada en el chat, pero el chat solo se ve si entras; el mensaje
+   * directo lleva su aviso de sin leer y se ve desde cualquier pantalla.
+   */
+  async function avisarPorMensajeDirecto(titulo: string, cuando: Date, url: string) {
+    // Si nadie sigue al cliente todavía, se avisa a todo el equipo.
+    const destinatarios = (members.length > 0 ? members : profiles).filter((p) => p.id !== me.id);
+    if (destinatarios.length === 0) return;
+
+    const fecha = cuando.toLocaleString("es-ES", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const cuerpo =
+      `📹 ${me.full_name} ha programado una videollamada de ${clientName}.\n` +
+      `${titulo}\n${fecha}\n${url}\n` +
+      `Añadir al calendario: ${enlaceCalendario(titulo, cuando, url)}`;
+
+    await supabase.from("dm_messages").insert(
+      destinatarios.map((p) => ({ sender_id: me.id, recipient_id: p.id, body: cuerpo })),
+    );
+  }
+
   async function programar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const datos = new FormData(e.currentTarget);
@@ -245,6 +275,7 @@ export default function Chat({
       .single();
     if (data) {
       setMeetings((prev) => [...prev, data as Meeting]);
+      await avisarPorMensajeDirecto(titulo, new Date(cuando), url);
       onSend(
         `📹 ${titulo} — ${new Date(cuando).toLocaleString("es-ES", {
           weekday: "short",
@@ -358,6 +389,9 @@ export default function Chat({
           <a className="btn btn--ghost" href="https://meet.google.com/new" target="_blank" rel="noopener">
             Crear en Google Meet
           </a>
+          <p className="callbar__pista">
+            Al programarla se avisa por mensaje directo a quien sigue a {clientName}.
+          </p>
         </form>
       )}
 

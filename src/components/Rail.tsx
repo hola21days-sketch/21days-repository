@@ -111,13 +111,15 @@ export default function Rail({
         {dmUnread > 0 && <span className="count-chip">{dmUnread}</span>}
       </button>
 
-      <button
-        type="button"
-        className={vista === "informes" ? "rail__nav is-active" : "rail__nav"}
-        onClick={() => onVista(vista === "informes" ? "cliente" : "informes")}
-      >
-        Informes de tiempo
-      </button>
+      {me.role === "admin" && (
+        <button
+          type="button"
+          className={vista === "informes" ? "rail__nav is-active" : "rail__nav"}
+          onClick={() => onVista(vista === "informes" ? "cliente" : "informes")}
+        >
+          Informes de tiempo
+        </button>
+      )}
 
       <div className="rail__punch">
         <Fichaje me={me} profiles={profiles} />

@@ -32,7 +32,8 @@ usuario y datos persistentes.
   *Transcribir y traducir*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
   debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
-  uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos.
+  uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
+  programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
 - **Ficha del cliente** — se abre pulsando su nombre arriba: descripción, desde cuándo es cliente
   (y cuánto lleva con nosotros), temporada, vídeos al mes, contacto y cómo va ahora mismo el
   tablero. Se edita ahí mismo.
@@ -43,7 +44,7 @@ usuario y datos persistentes.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.
-- **Informes de tiempo** — semana o mes, con el total por cliente y fase (p. ej. *Editar de X: 4h
+- **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase (p. ej. *Editar de X: 4h
   20m*), el total por persona, quién está trabajando en cada cosa en este momento y exportación
   a CSV.
 - **En vivo** — lo que cambia un compañero aparece al momento en la pantalla de los demás.
@@ -242,14 +243,33 @@ supabase/
   functions/transcribir/  Función de borde: voz a texto y traducción
 ```
 
+### Quién es administrador
+
+Los administradores son los únicos que ven los *Informes de tiempo* y el fichaje de todo el
+equipo. No se marcan a mano: van por correo, en la tabla `admin_emails`. Para nombrar a alguien,
+en Supabase → **SQL Editor**:
+
+```sql
+insert into public.admin_emails (email, note)
+values ('correo@ejemplo.com', 'Nombre y apellido')
+on conflict (email) do nothing;
+
+-- si esa persona ya tenía cuenta, esto la asciende
+update public.profiles p set role = 'admin'
+ where lower(p.email) = 'correo@ejemplo.com';
+```
+
+Si todavía no se ha registrado, no hace falta el segundo paso: entrará como administradora el día
+que se dé de alta.
+
 ### Permisos
 
 Bitácora es una herramienta interna: **cualquier trabajador autenticado ve y edita el trabajo de
 todos los clientes**. Lo que sí está protegido por RLS:
 
 - los fichajes → cada uno solo ve y ficha los suyos (el administrador ve los de todos);
-- los cronómetros → los ve todo el equipo (los informes son compartidos), pero cada uno solo
-  arranca y para los suyos;
+- los cronómetros y los informes de tiempo → cada uno ve los suyos y los administradores, los de
+  todo el equipo; el apartado *Informes* ni siquiera aparece si no eres administrador;
 - borrar clientes → solo administradores;
 - los mensajes directos → solo los dos que hablan; nadie más los lee, ni el administrador;
 - editar o borrar mensajes y comentarios → solo su autor (o un administrador);

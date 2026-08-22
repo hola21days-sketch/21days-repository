@@ -716,7 +716,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         vista={vista}
         dmUnread={dmUnread}
         onVista={(v) => {
-          setVista(v);
+          setVista(v === "informes" && me.role !== "admin" ? "cliente" : v);
           setRailOpen(false);
         }}
       />
@@ -839,7 +839,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           </div>
         </header>
 
-        {vista === "informes" && (
+        {vista === "informes" && me.role === "admin" && (
           <Informes
             clientNames={clientNames}
             profileById={profileById}
@@ -875,6 +875,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           <Chat
             clientId={activeClient.id}
             clientName={activeClient.name}
+            members={activeMembers}
             meetUrl={activeClient.meet_url}
             onMeetUrl={(url) =>
               setClients((prev) =>

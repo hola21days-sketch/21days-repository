@@ -443,11 +443,13 @@ drop policy if exists time_punches_insert on public.time_punches;
 create policy time_punches_insert on public.time_punches
   for insert to authenticated with check (profile_id = auth.uid());
 
--- Cronómetros: el equipo ve el trabajo de todos (los informes son compartidos);
--- cada uno solo abre y cierra los suyos.
+-- Cronómetros: cada uno ve los suyos y los administradores, los de todo el
+-- equipo. Los informes de tiempo se apoyan en esta tabla, así que con esto
+-- quedan cerrados de verdad, no solo escondidos en la pantalla.
 drop policy if exists work_sessions_select on public.work_sessions;
 create policy work_sessions_select on public.work_sessions
-  for select to authenticated using (true);
+  for select to authenticated
+  using (profile_id = auth.uid() or public.is_admin());
 
 drop policy if exists work_sessions_insert on public.work_sessions;
 create policy work_sessions_insert on public.work_sessions
@@ -731,3 +733,83 @@ begin
   end loop;
 end;
 $$;
+
+-- ============================================================================
+-- 11. Quién manda: administradores por correo
+-- ----------------------------------------------------------------------------
+-- Los correos apuntados aquí entran como administradores, tanto si ya tienen
+-- cuenta como si se registran mañana. handle_new_user() lee esta tabla al dar
+-- de alta a alguien; ver más abajo la versión definitiva de esa función.
+-- ============================================================================
+create table if not exists public.admin_emails (
+  email      text primary key,
+  note       text not null default '',
+  created_at timestamptz not null default now()
+);
+
+alter table public.admin_emails enable row level security;
+
+drop policy if exists admin_emails_select on public.admin_emails;
+create policy admin_emails_select on public.admin_emails
+  for select to authenticated using (true);
+
+drop policy if exists admin_emails_write on public.admin_emails;
+create policy admin_emails_write on public.admin_emails
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Al darse de alta, el rol sale de esa lista.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  v_name     text;
+  v_initials text;
+  v_color    text;
+  v_role     text;
+begin
+  v_name := coalesce(
+    nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(trim(new.raw_user_meta_data ->> 'name'), ''),
+    initcap(replace(split_part(coalesce(new.email, 'equipo'), '@', 1), '.', ' '))
+  );
+
+  select upper(string_agg(left(word, 1), '' order by ord))
+  into v_initials
+  from (
+    select word, ord
+    from regexp_split_to_table(v_name, '\s+') with ordinality as t(word, ord)
+    where word <> ''
+    limit 2
+  ) s;
+
+  v_color := (array['#146c6b', '#c98a2e', '#5b6863', '#8a5a3f', '#3f8f5f', '#b14a3a'])
+             [(abs(hashtext(new.id::text)) % 6) + 1];
+
+  v_role := case
+    when exists (
+      select 1 from public.admin_emails a
+      where lower(a.email) = lower(coalesce(new.email, ''))
+    ) then 'admin'
+    else 'member'
+  end;
+
+  insert into public.profiles (id, email, full_name, initials, color, role)
+  values (new.id, coalesce(new.email, ''), v_name, coalesce(v_initials, 'XX'), v_color, v_role)
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$function$;
+
+revoke execute on function public.handle_new_user() from anon, authenticated, public;
+
+-- Poner al día a quien ya tuviera cuenta antes de entrar en la lista.
+update public.profiles p
+   set role = 'admin'
+ where role <> 'admin'
+   and exists (
+     select 1 from public.admin_emails a where lower(a.email) = lower(p.email)
+   );

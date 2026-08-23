@@ -24,7 +24,8 @@ usuario y datos persistentes.
 - **Detalle del encargo** — descripción, checklist, responsables, fecha y comentarios del equipo.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente, con
   **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
-  idénticos (sin recomprimir ni recortar resolución). Los mensajes se pueden **editar y borrar**,
+  idénticos (sin recomprimir ni recortar resolución). Los grandes se suben por partes, con
+  porcentaje y reintentos, así que un corte de red no tira la subida. Los mensajes se pueden **editar y borrar**,
   se puede **mencionar** a alguien con `@`, y desde ahí se entra o se programa una
   **videollamada de Google Meet**, al momento o programada (con enlace para meterla en Google
   Calendar).
@@ -138,13 +139,30 @@ Supabase → **Authentication → URL Configuration**:
 Sin esto, el acceso por enlace de correo no vuelve a la aplicación. El acceso con contraseña
 funciona igual.
 
-### 4. Comprobar el tamaño máximo de archivo  *(solo si falla alguna subida)*
+### 4. Subir vídeos grandes  *(imprescindible para trabajar con 4K)*
 
-Los adjuntos van al bucket privado `adjuntos`, que admite hasta 5 GB por fichero. Pero por encima
-manda el **límite global del proyecto** (Supabase → *Storage → Settings → Upload file size limit*),
-que en el plan gratuito son 50 MB. Si una subida falla, la aplicación lo dice y sugiere pasar ese
-archivo por Drive; para subir vídeos grandes desde la propia herramienta hay que subir ese límite
-en Supabase (requiere plan de pago).
+Los archivos se guardan **tal cual**: mismo códec, misma resolución, mismo peso. La aplicación no
+recomprime nada, ni al subir ni al descargar. Lo que sí tiene tope es Supabase.
+
+Los archivos de más de 6 MB se suben **por partes** (protocolo TUS, trozos de 6 MB): se ve el
+porcentaje mientras avanza, cada trozo se reintenta solo y un corte de red no tira la subida
+entera. Eso arregla los cortes, pero no el tope.
+
+El tope por archivo lo pone el **límite global del proyecto** (Supabase → *Storage → Settings →
+Global file size limit*), y depende del plan:
+
+| Plan de Supabase | Máximo por archivo | Almacenamiento incluido |
+|---|---|---|
+| Free | **50 MB** (no se puede subir) | 1 GB |
+| Pro (25 $/mes) | hasta 500 GB | 100 GB |
+
+Con el plan gratuito, un vídeo 4K casi nunca cabe. Para subirlos desde la herramienta hay que
+pasar el proyecto a Pro, poner el límite global en el valor que queráis y, en Vercel, añadir la
+variable `NEXT_PUBLIC_MAX_UPLOAD_MB` con ese mismo número (en MB) para que la aplicación deje de
+frenar antes de tiempo.
+
+Mientras tanto la aplicación avisa al elegir el archivo, en vez de fallar a mitad de subida, y
+recuerda la alternativa: subir el vídeo a Drive y pegar el enlace en el chat.
 
 ### 5. Activar la transcripción de vídeos  *(2 minutos, solo si la queréis)*
 
@@ -193,7 +211,8 @@ así que se puede volver a ejecutar sin romper nada.
 | `NEXT_PUBLIC_SUPABASE_URL` | Sí | Dirección del proyecto de Supabase. Ya viene puesta en `.env.production`. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Sí | Clave pública (`sb_publishable_…`), la que Supabase recomienda hoy. Ya viene puesta en `.env.production`. Es segura en el navegador: en Next.js toda variable `NEXT_PUBLIC_*` viaja dentro del bundle, y quien protege los datos son las políticas RLS. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | La clave pública antigua (JWT *anon*). Solo se usa si no hay clave publishable; sirve para no romper entornos que ya la tuvieran. |
-| `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` | No | Dominios permitidos, separados por comas (`decasight.com`). Vacío = sin restricción. |
+| `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` | No | Dominios permitidos, separados por comas (`21daysagency.com`). Vacío = sin restricción. |
+| `NEXT_PUBLIC_MAX_UPLOAD_MB` | No | Tope por archivo que enseña y respeta la aplicación, en MB. Por defecto `50`, que es el máximo del plan gratuito de Supabase. Al subir de plan, hay que poner aquí el mismo número que en *Storage → Settings → Global file size limit*. |
 
 > La clave `service_role` de Supabase **no** se usa aquí y no debe ponerse nunca en Vercel como
 > variable `NEXT_PUBLIC_`.
@@ -242,6 +261,7 @@ src/
     Logo.tsx              Logotipo de 21days agency
   lib/
     excel/                Los libros de Excel: estilo común, tiempos y fichajes
+    subir.ts              Subida por partes de archivos grandes, con avance
     supabase/             Clientes de Supabase (navegador, servidor, middleware)
     brand.ts              Nombre, bajada y logo de la marca
     types.ts, format.ts   Tipos y formateo de fechas

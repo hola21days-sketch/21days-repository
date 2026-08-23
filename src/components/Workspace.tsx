@@ -16,6 +16,7 @@ import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
+import { ErrorDeSubida, MAX_MB, subirArchivo } from "@/lib/subir";
 import type { Attachment, BoardColumn, Card, Message, Profile, WorkSession } from "@/lib/types";
 
 type ClientRow = {
@@ -88,6 +89,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [loadingChat, setLoadingChat] = useState(false);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState<string | null>(null);
+  const [progreso, setProgreso] = useState<number | null>(null);
   const [pendingTasks, setPendingTasks] = useState(0);
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
@@ -488,16 +490,24 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     const saved = data as Message;
 
     const fallidos: string[] = [];
+    let algunoPorTamaño = false;
     for (const [i, file] of files.entries()) {
-      setUploading(`Subiendo ${i + 1} de ${files.length}: ${file.name}`);
+      const cuenta = files.length > 1 ? `${i + 1} de ${files.length} · ` : "";
+      setUploading(`Subiendo ${cuenta}${file.name}`);
+      setProgreso(0);
       const limpio = file.name.replace(/[^\w.\-]+/g, "_");
       const path = `${clientId}/${saved.id}/${crypto.randomUUID()}-${limpio}`;
-      const { error: subida } = await supabase.storage.from("adjuntos").upload(path, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-      if (subida) {
-        fallidos.push(file.name);
+      try {
+        await subirArchivo("adjuntos", path, file, (a) => {
+          setProgreso(a.parte);
+          setUploading(
+            `Subiendo ${cuenta}${file.name} · ${Math.round(a.parte * 100)}%`,
+          );
+        });
+      } catch (e) {
+        const motivo = e instanceof ErrorDeSubida ? e.message : "error inesperado";
+        if (e instanceof ErrorDeSubida && e.porTamaño) algunoPorTamaño = true;
+        fallidos.push(`${file.name} (${motivo})`);
         continue;
       }
       const { data: fila } = await supabase
@@ -516,6 +526,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     }
 
     setUploading(null);
+    setProgreso(null);
     setPendingIds((prev) => {
       const next = new Set(prev);
       next.delete(tempId);
@@ -526,9 +537,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     setLastMsgAt((prev) => ({ ...prev, [clientId]: saved.created_at }));
 
     if (fallidos.length > 0) {
-      alert(
-        `No se han podido subir: ${fallidos.join(", ")}.\n\nSuele ser por el tamaño máximo por archivo del proyecto de Supabase. Sube el archivo a Drive y pega el enlace en el chat, o pide que suban ese límite.`,
-      );
+      const cola = algunoPorTamaño
+        ? `\n\nEl proyecto de Supabase admite como mucho ${MAX_MB} MB por archivo. Para vídeos más grandes hay que subir el plan de Supabase (Storage → Settings → Global file size limit) o pasar el vídeo por Drive y pegar aquí el enlace.`
+        : "\n\nEl mensaje se ha guardado. Vuelve a arrastrar el archivo para reintentar solo la subida.";
+      alert(`No se han podido subir:\n· ${fallidos.join("\n· ")}${cola}`);
     }
   }
 
@@ -891,6 +903,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             loading={loadingChat && activeMessages.length === 0}
             pendingIds={pendingIds}
             uploading={uploading}
+            progreso={progreso}
             onSend={sendMessage}
             onEdit={editMessage}
             onDelete={deleteMessage}

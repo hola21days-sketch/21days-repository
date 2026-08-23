@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { dayLabel, formatSize, formatTime } from "@/lib/format";
+import { MAX_BYTES, MAX_MB } from "@/lib/subir";
 import type { Attachment, Meeting, Message, Profile, Transcript } from "@/lib/types";
 
 type Props = {
@@ -22,6 +23,8 @@ type Props = {
   loading: boolean;
   pendingIds: Set<string>;
   uploading: string | null;
+  /** De 0 a 1 mientras sube un archivo. */
+  progreso: number | null;
   onSend: (body: string, files: File[], mentions: string[]) => void;
   onEdit: (messageId: string, body: string) => void;
   onDelete: (messageId: string) => void;
@@ -96,6 +99,7 @@ export default function Chat({
   loading,
   pendingIds,
   uploading,
+  progreso,
   onSend,
   onEdit,
   onDelete,
@@ -124,6 +128,7 @@ export default function Chat({
   const [pegando, setPegando] = useState(false);
   const [enlace, setEnlace] = useState("");
   const [aviso, setAviso] = useState("");
+  const [avisoArchivos, setAvisoArchivos] = useState("");
 
   async function guardarSala() {
     const url = limpiarMeet(enlace);
@@ -546,7 +551,12 @@ export default function Chat({
                       </ul>
                     )}
                     {pendingIds.has(m.id) && uploading && (
-                      <div className="file__progress">{uploading}</div>
+                      <div className="file__progress">
+                        <span>{uploading}</span>
+                        <span className="file__bar" aria-hidden>
+                          <span style={{ width: `${Math.round((progreso ?? 0) * 100)}%` }} />
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -556,6 +566,15 @@ export default function Chat({
       </div>
 
       <div className="composer">
+        {avisoArchivos && (
+          <p className="composer__aviso">
+            {avisoArchivos}
+            <button type="button" onClick={() => setAvisoArchivos("")} aria-label="Cerrar aviso">
+              ✕
+            </button>
+          </p>
+        )}
+
         {files.length > 0 && (
           <ul className="composer__files">
             {files.map((f, i) => (
@@ -595,7 +614,17 @@ export default function Chat({
             multiple
             hidden
             onChange={(e) => {
-              setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])]);
+              const elegidos = Array.from(e.target.files ?? []);
+              const caben = elegidos.filter((f) => f.size <= MAX_BYTES);
+              const grandes = elegidos.filter((f) => f.size > MAX_BYTES);
+              setFiles((prev) => [...prev, ...caben]);
+              setAvisoArchivos(
+                grandes.length > 0
+                  ? `${grandes.map((f) => `${f.name} (${formatSize(f.size)})`).join(", ")}: ` +
+                    `el proyecto admite ${MAX_MB} MB por archivo. Sube el vídeo a Drive y pega aquí el enlace, ` +
+                    `o pide que suban el límite en Supabase.`
+                  : "",
+              );
             }}
           />
           <button
@@ -638,7 +667,8 @@ export default function Chat({
         </div>
         <div className="composer__hint">
           Solo lo ve el equipo. Los archivos se guardan tal cual —vídeo 4K, Excel, PDF— y se
-          descargan igual que se subieron.
+          descargan igual que se subieron, sin recomprimir. Hasta {MAX_MB} MB por archivo; los
+          grandes van por partes, así que un corte de red no tira la subida.
         </div>
       </div>
     </section>

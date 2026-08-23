@@ -1,0 +1,213 @@
+// 21Days — esquema de contabilidad.
+// SQLite en local. Todo el tipado numerico usa Decimal para no perder centimos;
+// al migrar a Postgres solo cambia el datasource (ver README).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------- catalogo
+
+/// Estado comercial del cliente.
+/// ACTIVE | PAUSED | LOST  (SQLite no tiene enums nativos)
+model Client {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  status     String    @default("ACTIVE")
+  startedAt  DateTime?
+  endedAt    DateTime?
+  monthlyFee Decimal? // cuota mensual por defecto, con IVA
+  /// Jaume Rey factura sin IVA: excluirlo del IVA repercutido.
+  vatExempt  Boolean   @default(false)
+  notes      String?
+  sortOrder  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  aliases   ClientAlias[]
+  movements Movement[]
+  budgets   BudgetLine[]
+
+  @@index([status])
+}
+
+/// Nombres alternativos del mismo cliente en el Excel.
+/// Hace que la importacion sea repetible y que "Kreps Innova" y
+/// "Krepsinnova" acaben en la misma ficha.
+model ClientAlias {
+  id       String @id @default(cuid())
+  alias    String @unique
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
+
+/// Concepto de coste. category: PAYROLL | STRUCTURE | TEAM | TAX | EXTRA | PROJECT
+model CostConcept {
+  id            String  @id @default(cuid())
+  name          String  @unique
+  category      String
+  /// fijo (recurrente) o variable
+  isFixed       Boolean @default(true)
+  /// si su IVA es deducible en el modelo 303
+  vatDeductible Boolean @default(true)
+  /// retencion de IRPF que le practicamos, 0 si no lleva
+  irpfRate      Decimal @default(0)
+  notes         String?
+  sortOrder     Int     @default(0)
+
+  aliases   CostConceptAlias[]
+  movements Movement[]
+
+  @@index([category])
+}
+
+model CostConceptAlias {
+  id            String      @id @default(cuid())
+  alias         String      @unique
+  costConceptId String
+  costConcept   CostConcept @relation(fields: [costConceptId], references: [id], onDelete: Cascade)
+
+  @@index([costConceptId])
+}
+
+// ---------------------------------------------------------------- nucleo
+
+/// Tabla central. Un unico registro recorre previsto -> facturado -> cobrado
+/// sin duplicarse: cambia `status` y se rellena `settledDate`.
+model Movement {
+  id   String @id @default(cuid())
+  /// INCOME | EXPENSE
+  kind String
+
+  clientId      String?
+  client        Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  costConceptId String?
+  costConcept   CostConcept? @relation(fields: [costConceptId], references: [id], onDelete: SetNull)
+
+  /// Descripcion libre. Es lo que alimenta el detalle linea a linea de extras.
+  concept String
+
+  /// Periodo contable al que se imputa (el mes de la columna del Excel).
+  year  Int
+  month Int
+
+  /// Fecha de factura y fecha real de cobro/pago. Guardamos las dos aunque
+  /// los calculos usen criterio de caja, para poder cambiar de criterio
+  /// sin volver a meter datos.
+  issueDate   DateTime?
+  dueDate     DateTime?
+  settledDate DateTime?
+
+  /// Importes. grossAmount es el que se teclea (con IVA incluido).
+  grossAmount Decimal
+  baseAmount  Decimal
+  vatRate     Decimal @default(0.21)
+  vatAmount   Decimal
+  irpfRate    Decimal @default(0)
+  irpfAmount  Decimal @default(0)
+
+  /// Si su IVA entra en el soportado deducible.
+  vatDeductible Boolean @default(true)
+
+  /// Importe realmente cobrado/pagado. null = nada aun.
+  /// Permite cobros parciales sin duplicar el movimiento.
+  settledAmount Decimal?
+
+  /// FORECAST | INVOICED | PARTIAL | SETTLED | OVERDUE | NA
+  status     String  @default("FORECAST")
+  isForecast Boolean @default(false)
+
+  invoiceNumber String?
+  notes         String?
+
+  /// Escenario de previsión al que pertenece (null = real / base).
+  scenarioId String?
+  scenario   Scenario? @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  /// Clave estable derivada del origen en el Excel. Hace la importacion
+  /// idempotente: reimportar actualiza en vez de duplicar.
+  importKey String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([year, month])
+  @@index([kind, year, month])
+  @@index([clientId, year, month])
+  @@index([costConceptId, year, month])
+  @@index([status])
+  @@index([scenarioId])
+}
+
+/// Lo que esperamos facturar a un cliente en un mes concreto (hoja 3, matriz
+/// superior). Sirve de base para el autorrelleno de previsiones.
+model BudgetLine {
+  id       String  @id @default(cuid())
+  clientId String
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  year     Int
+  month    Int
+  amount   Decimal
+
+  /// Discriminante de escenario. "base" = previsión principal.
+  /// Va aparte del FK porque SQLite/Prisma no admiten null en clave unica.
+  scenarioKey String    @default("base")
+  scenarioId  String?
+  scenario    Scenario? @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, year, month, scenarioKey])
+  @@index([year, month])
+}
+
+/// Escenarios de previsión (base, optimista, conservador).
+model Scenario {
+  id        String   @id @default(cuid())
+  name      String
+  /// BASE | OPTIMISTIC | CONSERVATIVE | CUSTOM
+  kind      String   @default("CUSTOM")
+  year      Int
+  notes     String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  movements Movement[]
+  budgets   BudgetLine[]
+
+  @@unique([name, year])
+}
+
+/// Liquidacion trimestral. kind: VAT_303 | IRPF_111
+model TaxSettlement {
+  id      String @id @default(cuid())
+  year    Int
+  quarter Int
+  kind    String
+
+  /// Importe calculado por la app a partir de los movimientos.
+  computedAmount Decimal  @default(0)
+  /// Importe realmente presentado, si difiere del calculado.
+  manualAmount   Decimal?
+
+  /// Mes en que se paga (1, 4, 7, 10 del trimestre siguiente).
+  dueDate DateTime
+  paidAt  DateTime?
+  /// PENDING | PAID
+  status  String    @default("PENDING")
+  notes   String?
+
+  @@unique([year, quarter, kind])
+  @@index([status])
+}
+
+/// Ajustes globales (caja inicial, tipos por defecto, etc.).
+model Setting {
+  key   String @id
+  value String
+}

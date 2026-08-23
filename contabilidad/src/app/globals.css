@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ tokens
+   Sobrio, alta densidad, un solo acento vivo. Referencias: Linear, Stripe,
+   Mercury. Las cifras SIEMPRE en monoespaciada con numeros tabulares para que
+   las columnas queden alineadas al pixel.                                   */
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-num), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* superficie */
+  --color-canvas: oklch(99.2% 0.002 260);
+  --color-surface: oklch(100% 0 0);
+  --color-sunken: oklch(97.4% 0.003 260);
+  --color-line: oklch(92.4% 0.004 260);
+  --color-line-strong: oklch(87% 0.006 260);
+
+  /* texto */
+  --color-ink: oklch(21% 0.012 260);
+  --color-ink-muted: oklch(48% 0.011 260);
+  --color-ink-faint: oklch(64% 0.009 260);
+
+  /* acento */
+  --color-accent: oklch(54% 0.176 268);
+  --color-accent-hover: oklch(48% 0.176 268);
+  --color-accent-soft: oklch(96% 0.028 268);
+
+  /* semaforo: verde cobrado/positivo, ambar pendiente, rojo vencido/negativo */
+  --color-good: oklch(56% 0.132 152);
+  --color-good-soft: oklch(96.2% 0.035 152);
+  --color-warn: oklch(66% 0.145 72);
+  --color-warn-soft: oklch(96.5% 0.05 82);
+  --color-bad: oklch(56% 0.196 22);
+  --color-bad-soft: oklch(96.4% 0.03 22);
+  --color-idle: oklch(93.5% 0.003 260);
+
+  --radius-card: 0.625rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Toda cifra que se lea en columna. */
+  .tnum {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  /* Cabeceras de tabla: pequeñas, en versalita, sin gritar. */
+  .th {
+    font-size: 0.6875rem;
+    font-weight: 550;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+}

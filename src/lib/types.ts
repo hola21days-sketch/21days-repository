@@ -11,6 +11,8 @@ export type Profile = {
   initials: string;
   color: string;
   role: Role;
+  /** Falso cuando alguien deja el equipo: desaparece de la app sin perder su historial. */
+  active: boolean;
 };
 
 export type BoardColumn = {

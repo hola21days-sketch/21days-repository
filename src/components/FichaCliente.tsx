@@ -11,6 +11,9 @@ type Props = {
   enReport: number;
   onSaved: (cambios: Partial<ClientDetails>) => void;
   onClose: () => void;
+  /** Borrar un canal es cosa de administradores. */
+  puedeBorrar: boolean;
+  onBorrar: () => void;
 };
 
 const MESES = [
@@ -39,7 +42,15 @@ function desdeCuando(fecha: string | null): string {
  * al mes lleva. Se abre pulsando su nombre en la cabecera y se guarda al vuelo,
  * para tener el contexto a mano sin salir del tablero.
  */
-export default function FichaCliente({ client, enCurso, enReport, onSaved, onClose }: Props) {
+export default function FichaCliente({
+  client,
+  enCurso,
+  enReport,
+  onSaved,
+  onClose,
+  puedeBorrar,
+  onBorrar,
+}: Props) {
   const [editando, setEditando] = useState(false);
   const [borrador, setBorrador] = useState({
     description: client.description,
@@ -162,6 +173,11 @@ export default function FichaCliente({ client, enCurso, enReport, onSaved, onClo
             <button type="button" className="btn btn--ghost" onClick={() => setEditando(false)}>
               Cancelar
             </button>
+            {puedeBorrar && (
+              <button type="button" className="btn ficha__borrar" onClick={onBorrar}>
+                Borrar el canal
+              </button>
+            )}
           </div>
         </div>
       ) : (

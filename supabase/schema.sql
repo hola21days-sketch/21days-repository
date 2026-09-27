@@ -869,3 +869,25 @@ create policy messages_insert on public.messages
 
 alter table public.clients
   add column if not exists slack_channel text not null default '';
+
+-- ============================================================================
+-- 14. Bajas del equipo y borrado de canales
+-- ----------------------------------------------------------------------------
+-- Marcar a alguien como inactivo lo saca de la app (listas, responsables,
+-- menciones, mensajes directos) sin borrar su historial, que cuelga de su
+-- perfil con borrado en cascada.
+-- ============================================================================
+alter table public.profiles
+  add column if not exists active boolean not null default true;
+
+drop policy if exists profiles_update on public.profiles;
+create policy profiles_update on public.profiles
+  for update to authenticated
+  using (id = auth.uid() or public.is_admin())
+  with check (id = auth.uid() or public.is_admin());
+
+-- Borrar un canal se lleva por delante su tablero, su chat y sus tareas, así
+-- que queda reservado a administradores.
+drop policy if exists clients_delete on public.clients;
+create policy clients_delete on public.clients
+  for delete to authenticated using (public.is_admin());

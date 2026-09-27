@@ -48,7 +48,7 @@ export default async function BitacoraPage() {
   }
 
   const [profiles, clients, members, columns, cards, assignees, reads, chatState] = await Promise.all([
-    supabase.from("profiles").select("*").order("full_name"),
+    supabase.from("profiles").select("*").eq("active", true).order("full_name"),
     supabase.from("clients").select("*").eq("archived", false).order("position").order("name"),
     supabase.from("client_members").select("*"),
     supabase.from("board_columns").select("*").order("position"),

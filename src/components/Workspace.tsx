@@ -691,6 +691,38 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     return null;
   }
 
+  /**
+   * Borra un canal entero. Se lleva por delante su tablero, su chat y sus
+   * tareas, así que se pide confirmación escribiendo el nombre.
+   */
+  async function deleteClient(clientId: string) {
+    const cliente = clients.find((c) => c.id === clientId);
+    if (!cliente) return;
+    const escrito = prompt(
+      `Esto borra el canal "${cliente.name}" con TODO lo suyo: tablero, tarjetas, chat, ` +
+        `archivos adjuntos y tareas. No tiene vuelta atrás.\n\n` +
+        `Escribe el nombre del canal para confirmarlo:`,
+    );
+    if (escrito === null) return;
+    if (escrito.trim().toLowerCase() !== cliente.name.trim().toLowerCase()) {
+      alert("El nombre no coincide. No se ha borrado nada.");
+      return;
+    }
+    const { error } = await supabase.from("clients").delete().eq("id", clientId);
+    if (error) {
+      alert(
+        `No se ha podido borrar: ${error.message}\n\n` +
+          `Borrar canales es cosa de administradores.`,
+      );
+      return;
+    }
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+    setFichaAbierta(false);
+    if (activeId === clientId) {
+      setActiveId((prev) => clients.find((c) => c.id !== prev)?.id ?? null);
+    }
+  }
+
   async function toggleMembership() {
     if (!activeId) return;
     const mine = members.some((m) => m.client_id === activeId && m.profile_id === me.id);
@@ -798,6 +830,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                       )
                     }
                     onClose={() => setFichaAbierta(false)}
+                    puedeBorrar={me.role === "admin"}
+                    onBorrar={() => void deleteClient(activeClient.id)}
                   />
                 )}
               </div>

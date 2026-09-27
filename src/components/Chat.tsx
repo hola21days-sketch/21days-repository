@@ -114,6 +114,7 @@ export default function Chat({
   const [programando, setProgramando] = useState(false);
   const [transcripciones, setTranscripciones] = useState<Record<string, Transcript>>({});
   const [transcribiendo, setTranscribiendo] = useState<string | null>(null);
+  const [filtroPersona, setFiltroPersona] = useState("");
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -296,6 +297,28 @@ export default function Chat({
     setProgramando(false);
   }
 
+  /** Quién ha escrito en este canal, contando a la gente traída de Slack. */
+  const autores = useMemo(() => {
+    const cuenta = new Map<string, number>();
+    for (const m of messages) {
+      const nombre = m.author_id
+        ? (profileById[m.author_id]?.full_name ?? "")
+        : m.external_author;
+      if (nombre) cuenta.set(nombre, (cuenta.get(nombre) ?? 0) + 1);
+    }
+    return [...cuenta.entries()].sort((a, b) => b[1] - a[1]);
+  }, [messages, profileById]);
+
+  const visibles = useMemo(() => {
+    if (!filtroPersona) return messages;
+    return messages.filter((m) => {
+      const nombre = m.author_id
+        ? (profileById[m.author_id]?.full_name ?? "")
+        : m.external_author;
+      return nombre === filtroPersona;
+    });
+  }, [messages, filtroPersona, profileById]);
+
   let lastDay = "";
 
   return (
@@ -402,15 +425,41 @@ export default function Chat({
 
       {aviso && <p className="callbar__aviso">{aviso}</p>}
 
+      {autores.length > 1 && (
+        <div className="chat__gente">
+          <button
+            type="button"
+            className={filtroPersona === "" ? "chat__quien is-on" : "chat__quien"}
+            onClick={() => setFiltroPersona("")}
+          >
+            Todos <span>{messages.length}</span>
+          </button>
+          {autores.map(([nombre, n]) => (
+            <button
+              key={nombre}
+              type="button"
+              className={filtroPersona === nombre ? "chat__quien is-on" : "chat__quien"}
+              onClick={() => setFiltroPersona(filtroPersona === nombre ? "" : nombre)}
+            >
+              <Stamp label={initialsOf(nombre)} color={stampColor(nombre)} />
+              {nombre} <span>{n}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="chat__log" ref={logRef}>
         {loading && <div className="empty">Cargando la conversación…</div>}
+        {!loading && messages.length > 0 && visibles.length === 0 && (
+          <div className="empty">{filtroPersona} no ha escrito nada en este canal.</div>
+        )}
         {!loading && messages.length === 0 && (
           <div className="empty">
             Aún no habéis hablado de este cliente. Escribe lo primero — solo lo ve el equipo.
           </div>
         )}
         {!loading &&
-          messages.map((m) => {
+          visibles.map((m) => {
             const day = dayLabel(m.created_at);
             const showDivider = day !== lastDay;
             lastDay = day;

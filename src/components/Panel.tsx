@@ -4,54 +4,56 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
-import { destaca, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
-import type { BoardColumn, Card, ClientTask, Prioridad, Profile } from "@/lib/types";
+import { etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import type { BoardColumn, ClientTask, Prioridad, Profile } from "@/lib/types";
 
-type ClienteDePanel = {
-  id: string;
-  name: string;
-  kind: string;
-  priority: Prioridad;
+type ClienteDePanel = { id: string; name: string; kind: string; priority: Prioridad };
+
+type Avance = {
+  client_id: string;
+  month: string;
+  phase_key: string;
+  done: boolean;
+  done_by: string | null;
 };
 
 type Props = {
   clients: ClienteDePanel[];
-  cards: Card[];
   columns: BoardColumn[];
-  doneColumnIds: Set<string>;
   profileById: Record<string, Profile>;
+  me: Profile;
   onAbrirCliente: (clientId: string) => void;
   onPrioridadCliente: (clientId: string, priority: Prioridad) => void;
 };
 
-/** Un objetivo del listado: viene de una tarjeta del tablero o de una tarea. */
-type Objetivo = {
-  id: string;
-  clientId: string;
-  clientName: string;
-  texto: string;
-  fase: string;
-  due: string | null;
-  priority: Prioridad;
-  asignados: Profile[];
-  origen: "tablero" | "tarea";
-};
+/** El día 1 del mes que se está mirando, que es como se guarda el avance. */
+function primeroDeMes(salto: number): string {
+  const d = new Date();
+  const m = new Date(d.getFullYear(), d.getMonth() + salto, 1);
+  return `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}-01`;
+}
 
-/** Hoy en formato AAAA-MM-DD, que es como se guardan las entregas. */
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+function nombreDeMes(iso: string): string {
+  const [y, m] = iso.split("-").map(Number);
+  return `${MESES[m - 1]} de ${y}`;
+}
+
 function hoyISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Domingo de esta semana (la semana va de lunes a domingo). */
 function finDeSemanaISO(): string {
   const d = new Date();
-  const restan = 7 - ((d.getDay() + 6) % 7) - 1;
-  d.setDate(d.getDate() + restan);
+  d.setDate(d.getDate() + (6 - ((d.getDay() + 6) % 7)));
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Último día de este mes. */
 function finDeMesISO(): string {
   const d = new Date();
   const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0);
@@ -59,152 +61,147 @@ function finDeMesISO(): string {
 }
 
 /**
- * Panel de clientes: todo lo que hay abierto, de un vistazo.
+ * Panel de clientes: el estado de todas las cuentas en una pantalla.
  * ---------------------------------------------------------------------------
- * Arriba, qué hay que cerrar hoy, esta semana y este mes, con los atrasos
- * primero. Abajo, una tarjeta por cliente con su prioridad, lo que lleva en
- * producción y lo que tiene pendiente. Las cifras salen del tablero y de las
- * listas de tareas: no hay nada que mantener a mano.
+ * Arriba, la rejilla del mes: una fila por cliente y una casilla por fase
+ * (Idear, Grabar, Editar, Programar, Report). Marcarla deja constancia de
+ * quién la dio por hecha. Debajo, los pendientes de todos los clientes
+ * agrupados por prioridad, con su responsable y su fecha de entrega.
  */
 export default function Panel({
   clients,
-  cards,
   columns,
-  doneColumnIds,
   profileById,
+  me,
   onAbrirCliente,
   onPrioridadCliente,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
+  const [avance, setAvance] = useState<Avance[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [ventana, setVentana] = useState<"hoy" | "semana" | "mes">("semana");
+  const [salto, setSalto] = useState(0);
+  const [ventana, setVentana] = useState<"hoy" | "semana" | "mes" | "todo">("semana");
+
+  const mes = primeroDeMes(salto);
+
+  /** Las fases salen de las columnas, que son iguales para todos los clientes. */
+  const fases = useMemo(() => {
+    const vistas = new Map<string, string>();
+    for (const c of [...columns].sort((a, b) => a.position - b.position)) {
+      if (!vistas.has(c.key)) vistas.set(c.key, c.label);
+    }
+    return [...vistas.entries()].map(([key, label]) => ({ key, label }));
+  }, [columns]);
 
   const cargar = useCallback(async () => {
-    const { data } = await supabase.from("client_tasks").select("*").eq("done", false);
-    setTasks((data ?? []) as ClientTask[]);
+    const [t, a] = await Promise.all([
+      supabase.from("client_tasks").select("*").eq("done", false),
+      supabase.from("client_month_progress").select("*").eq("month", mes),
+    ]);
+    setTasks((t.data ?? []) as ClientTask[]);
+    setAvance((a.data ?? []) as Avance[]);
     setCargando(false);
-  }, [supabase]);
+  }, [supabase, mes]);
 
   useEffect(() => {
     void cargar();
   }, [cargar]);
 
+  const hecho = useCallback(
+    (clientId: string, phase: string) =>
+      avance.find((a) => a.client_id === clientId && a.phase_key === phase),
+    [avance],
+  );
+
+  async function marcar(clientId: string, phase: string, valor: boolean) {
+    const fila: Avance = {
+      client_id: clientId,
+      month: mes,
+      phase_key: phase,
+      done: valor,
+      done_by: valor ? me.id : null,
+    };
+    setAvance((prev) => [
+      ...prev.filter((a) => !(a.client_id === clientId && a.phase_key === phase)),
+      fila,
+    ]);
+    await supabase.from("client_month_progress").upsert(
+      { ...fila, done_at: valor ? new Date().toISOString() : null },
+      { onConflict: "client_id,month,phase_key" },
+    );
+  }
+
+  const hoy = hoyISO();
+  const topes = { hoy, semana: finDeSemanaISO(), mes: finDeMesISO(), todo: "9999-12-31" };
+
   const nombreDeCliente = useMemo(
     () => Object.fromEntries(clients.map((c) => [c.id, c.name])),
     [clients],
   );
-  const faseDeColumna = useMemo(
-    () => Object.fromEntries(columns.map((c) => [c.id, c.label])),
-    [columns],
-  );
 
-  /** Todo lo que sigue abierto, venga del tablero o de la lista de tareas. */
-  const objetivos = useMemo<Objetivo[]>(() => {
-    const deTablero: Objetivo[] = cards
-      .filter((c) => !doneColumnIds.has(c.column_id))
-      .map((c) => ({
-        id: `card-${c.id}`,
-        clientId: c.client_id,
-        clientName: nombreDeCliente[c.client_id] ?? "Cliente",
-        texto: c.title,
-        fase: faseDeColumna[c.column_id] ?? "",
-        due: c.due_date,
-        priority: c.priority,
-        asignados: c.assignees.map((id) => profileById[id]).filter(Boolean),
-        origen: "tablero",
-      }));
-
-    const deTareas: Objetivo[] = tasks.map((t) => ({
-      id: `task-${t.id}`,
-      clientId: t.client_id,
-      clientName: nombreDeCliente[t.client_id] ?? "Cliente",
-      texto: t.text,
-      fase: "Tarea",
-      due: t.due_date,
-      priority: t.priority,
-      asignados: t.assignee_id && profileById[t.assignee_id] ? [profileById[t.assignee_id]] : [],
-      origen: "tarea",
-    }));
-
-    return [...deTablero, ...deTareas].sort(
-      (a, b) =>
-        pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
-        (a.due ?? "9999-99-99").localeCompare(b.due ?? "9999-99-99") ||
-        a.clientName.localeCompare(b.clientName),
-    );
-  }, [cards, tasks, doneColumnIds, nombreDeCliente, faseDeColumna, profileById]);
-
-  const hoy = hoyISO();
-  const topes = { hoy, semana: finDeSemanaISO(), mes: finDeMesISO() };
-
-  const atrasados = objetivos.filter((o) => o.due && o.due < hoy);
-  const enPlazo = objetivos.filter((o) => o.due && o.due >= hoy && o.due <= topes[ventana]);
-  const sinFecha = objetivos.filter((o) => !o.due);
-
-  const urgentes = objetivos.filter((o) => o.priority === "urgente");
-
-  /** Cifras de cada cliente, para su tarjeta del panel. */
-  const porCliente = useMemo(
+  /** Los pendientes de todos los clientes, ya ordenados. */
+  const pendientes = useMemo(
     () =>
-      clients
-        .map((c) => {
-          const suyos = objetivos.filter((o) => o.clientId === c.id);
-          return {
-            ...c,
-            abiertos: suyos.length,
-            urgentes: suyos.filter((o) => o.priority === "urgente").length,
-            importantes: suyos.filter((o) => o.priority === "importante").length,
-            atrasados: suyos.filter((o) => o.due && o.due < hoy).length,
-            estaSemana: suyos.filter((o) => o.due && o.due >= hoy && o.due <= topes.semana).length,
-            tareas: suyos.filter((o) => o.origen === "tarea").length,
-          };
-        })
+      tasks
+        .filter((t) => !t.due_date || t.due_date <= topes[ventana] || t.due_date < hoy)
         .sort(
           (a, b) =>
             pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
-            b.atrasados - a.atrasados ||
-            b.urgentes - a.urgentes ||
-            a.name.localeCompare(b.name),
+            (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99"),
         ),
-    [clients, objetivos, hoy, topes.semana],
+    [tasks, ventana, topes, hoy],
   );
 
-  function listaDeObjetivos(items: Objetivo[], vacio: string) {
-    if (items.length === 0) return <p className="panel__vacio">{vacio}</p>;
+  const porPrioridad = useMemo(
+    () =>
+      PRIORIDADES.map((p) => ({
+        ...p,
+        items: pendientes.filter((t) => t.priority === p.key),
+      })).filter((g) => g.items.length > 0),
+    [pendientes],
+  );
+
+  const clientesOrdenados = useMemo(
+    () =>
+      [...clients].sort(
+        (a, b) => pesoPrioridad(a.priority) - pesoPrioridad(b.priority) || a.name.localeCompare(b.name),
+      ),
+    [clients],
+  );
+
+  const atrasadas = tasks.filter((t) => t.due_date && t.due_date < hoy).length;
+  const urgentes = tasks.filter((t) => t.priority === "urgente").length;
+  const marcadas = avance.filter((a) => a.done).length;
+  const totalCasillas = clients.length * fases.length;
+
+  function filaDeTarea(t: ClientTask) {
+    const quien = t.assignee_id ? profileById[t.assignee_id] : null;
     return (
-      <ul className="panel__objetivos">
-        {items.map((o) => (
-          <li key={o.id}>
-            <button type="button" className="panel__objetivo" onClick={() => onAbrirCliente(o.clientId)}>
-              <Stamp label={initialsOf(o.clientName)} color={stampColor(o.clientId)} />
-              <span className="panel__objetivo-cuerpo">
-                <span className="panel__objetivo-texto">{o.texto}</span>
-                <span className="panel__objetivo-meta">
-                  {o.clientName} · {o.fase}
-                </span>
-              </span>
-              {destaca(o.priority) && (
-                <span className={`prio prio--${o.priority}`}>
-                  {o.priority === "urgente" ? "Urgente" : "Importante"}
-                </span>
-              )}
-              {o.asignados.length > 0 && (
-                <span className="avatar-stack">
-                  {o.asignados.map((p) => (
-                    <Stamp key={p.id} label={p.initials} color={p.color} title={p.full_name} />
-                  ))}
-                </span>
-              )}
-              {o.due && (
-                <span className={isOverdue(o.due) ? "panel__due is-overdue" : "panel__due"}>
-                  {formatDue(o.due)}
-                </span>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <li key={t.id}>
+        <button type="button" className="panel__objetivo" onClick={() => onAbrirCliente(t.client_id)}>
+          <Stamp label={initialsOf(nombreDeCliente[t.client_id] ?? "?")} color={stampColor(t.client_id)} />
+          <span className="panel__objetivo-cuerpo">
+            <span className="panel__objetivo-texto">{t.text}</span>
+            <span className="panel__objetivo-meta">{nombreDeCliente[t.client_id] ?? "Cliente"}</span>
+          </span>
+          {quien ? (
+            <span className="panel__quien">
+              <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+              {quien.full_name.split(" ")[0]}
+            </span>
+          ) : (
+            <span className="panel__quien is-libre">Sin asignar</span>
+          )}
+          {t.due_date ? (
+            <span className={isOverdue(t.due_date) ? "panel__due is-overdue" : "panel__due"}>
+              {formatDue(t.due_date)}
+            </span>
+          ) : (
+            <span className="panel__due is-vacio">Sin fecha</span>
+          )}
+        </button>
+      </li>
     );
   }
 
@@ -212,127 +209,138 @@ export default function Panel({
     <section className="panel">
       <div className="panel__cifras">
         <div className="panel__cifra">
-          <span className="stat__num">{objetivos.length}</span>
-          <span className="stat__label">abiertos en total</span>
+          <span className="stat__num">
+            {marcadas}
+            <small>/{totalCasillas}</small>
+          </span>
+          <span className="stat__label">fases hechas este mes</span>
         </div>
-        <div className={atrasados.length > 0 ? "panel__cifra is-alerta" : "panel__cifra"}>
-          <span className="stat__num">{atrasados.length}</span>
+        <div className="panel__cifra">
+          <span className="stat__num">{tasks.length}</span>
+          <span className="stat__label">tareas abiertas</span>
+        </div>
+        <div className={atrasadas > 0 ? "panel__cifra is-alerta" : "panel__cifra"}>
+          <span className="stat__num">{atrasadas}</span>
           <span className="stat__label">con la entrega pasada</span>
         </div>
         <div className="panel__cifra">
-          <span className="stat__num">{urgentes.length}</span>
-          <span className="stat__label">marcados como urgentes</span>
-        </div>
-        <div className="panel__cifra">
-          <span className="stat__num">{clients.length}</span>
-          <span className="stat__label">clientes activos</span>
+          <span className="stat__num">{urgentes}</span>
+          <span className="stat__label">urgentes</span>
         </div>
       </div>
 
       <div className="panel__bloque">
         <div className="panel__cabecera">
-          <h2 className="panel__titulo">Objetivos</h2>
-          <div className="report__switch">
-            {(["hoy", "semana", "mes"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                className={ventana === v ? "tab is-active" : "tab"}
-                onClick={() => setVentana(v)}
-              >
-                {v === "hoy" ? "Para hoy" : v === "semana" ? "Esta semana" : "Este mes"}
-              </button>
-            ))}
+          <h2 className="panel__titulo">Avance de {nombreDeMes(mes)}</h2>
+          <div className="report__nav">
+            <button type="button" className="btn" onClick={() => setSalto((s) => s - 1)}>
+              ←
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setSalto((s) => Math.min(0, s + 1))}
+              disabled={salto >= 0}
+            >
+              →
+            </button>
           </div>
         </div>
 
         {cargando && <p className="panel__vacio">Cargando…</p>}
 
         {!cargando && (
-          <>
-            {atrasados.length > 0 && (
-              <>
-                <div className="drawer__label">Atrasados · {atrasados.length}</div>
-                {listaDeObjetivos(atrasados, "")}
-              </>
-            )}
-
-            <div className="drawer__label" style={{ marginTop: atrasados.length > 0 ? "1rem" : 0 }}>
-              {ventana === "hoy"
-                ? "Para hoy"
-                : ventana === "semana"
-                  ? "Hasta el domingo"
-                  : "Hasta final de mes"}{" "}
-              · {enPlazo.length}
-            </div>
-            {listaDeObjetivos(
-              enPlazo,
-              ventana === "hoy"
-                ? "Nada con entrega para hoy."
-                : "Nada con entrega en este plazo.",
-            )}
-
-            {sinFecha.length > 0 && (
-              <>
-                <div className="drawer__label" style={{ marginTop: "1rem" }}>
-                  Sin fecha · {sinFecha.length}
-                </div>
-                {listaDeObjetivos(sinFecha, "")}
-              </>
-            )}
-          </>
+          <div className="panel__rejillawrap">
+            <table className="rejilla">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Prioridad</th>
+                  {fases.map((f) => (
+                    <th key={f.key}>{f.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {clientesOrdenados.map((c) => (
+                  <tr key={c.id}>
+                    <th scope="row">
+                      <button type="button" className="rejilla__cliente" onClick={() => onAbrirCliente(c.id)}>
+                        <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
+                        <span>
+                          <span className="rejilla__nombre">{c.name}</span>
+                          <span className="rejilla__tipo">{c.kind}</span>
+                        </span>
+                      </button>
+                    </th>
+                    <td>
+                      <select
+                        className={`input-inline rejilla__prio prio--${c.priority}`}
+                        value={c.priority}
+                        onChange={(e) => onPrioridadCliente(c.id, e.target.value as Prioridad)}
+                        aria-label={`Prioridad de ${c.name}`}
+                      >
+                        {PRIORIDADES.map((p) => (
+                          <option key={p.key} value={p.key}>
+                            {p.texto}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    {fases.map((f) => {
+                      const a = hecho(c.id, f.key);
+                      const quien = a?.done_by ? profileById[a.done_by] : null;
+                      return (
+                        <td key={f.key} className={a?.done ? "rejilla__casilla is-hecha" : "rejilla__casilla"}>
+                          <label title={quien ? `Marcado por ${quien.full_name}` : `${f.label} de ${c.name}`}>
+                            <input
+                              type="checkbox"
+                              checked={!!a?.done}
+                              onChange={(e) => void marcar(c.id, f.key, e.target.checked)}
+                            />
+                            {quien && <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />}
+                          </label>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <div className="panel__bloque">
-        <h2 className="panel__titulo">Clientes</h2>
-        <div className="panel__rejilla">
-          {porCliente.map((c) => (
-            <article key={c.id} className="panel__cliente">
-              <header className="panel__cliente-cab">
-                <button type="button" className="panel__cliente-nombre" onClick={() => onAbrirCliente(c.id)}>
-                  <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
-                  <span>
-                    <span className="panel__cliente-titulo">{c.name}</span>
-                    <span className="panel__cliente-tipo">{c.kind}</span>
-                  </span>
-                </button>
-              </header>
-
-              <select
-                className="input-inline panel__cliente-prio"
-                value={c.priority}
-                onChange={(e) => onPrioridadCliente(c.id, e.target.value as Prioridad)}
-                aria-label={`Prioridad de ${c.name}`}
+        <div className="panel__cabecera">
+          <h2 className="panel__titulo">Pendientes por prioridad</h2>
+          <div className="report__switch">
+            {(["hoy", "semana", "mes", "todo"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={ventana === v ? "tab is-active" : "tab"}
+                onClick={() => setVentana(v)}
               >
-                {PRIORIDADES.map((p) => (
-                  <option key={p.key} value={p.key}>
-                    {p.texto}
-                  </option>
-                ))}
-              </select>
-
-              <dl className="panel__cliente-datos">
-                <div>
-                  <dt>Abiertos</dt>
-                  <dd>{c.abiertos}</dd>
-                </div>
-                <div className={c.atrasados > 0 ? "is-alerta" : undefined}>
-                  <dt>Atrasados</dt>
-                  <dd>{c.atrasados}</dd>
-                </div>
-                <div>
-                  <dt>Esta semana</dt>
-                  <dd>{c.estaSemana}</dd>
-                </div>
-                <div>
-                  <dt>Urgentes</dt>
-                  <dd>{c.urgentes}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
+                {v === "hoy" ? "Hoy" : v === "semana" ? "Esta semana" : v === "mes" ? "Este mes" : "Todo"}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {!cargando && porPrioridad.length === 0 && (
+          <p className="panel__vacio">No hay nada pendiente en este plazo.</p>
+        )}
+
+        {porPrioridad.map((g) => (
+          <div key={g.key} className="panel__grupo">
+            <div className="panel__grupo-cab">
+              <span className={`prio prio--${g.key}`}>{etiqueta(g.key)}</span>
+              <span className="count-chip">{g.items.length}</span>
+            </div>
+            <ul className="panel__objetivos">{g.items.map(filaDeTarea)}</ul>
+          </div>
+        ))}
       </div>
     </section>
   );

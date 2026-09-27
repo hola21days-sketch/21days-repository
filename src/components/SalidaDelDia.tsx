@@ -6,6 +6,9 @@ import type { Profile, WorkSession } from "@/lib/types";
 
 type ClienteBreve = { id: string; name: string };
 
+/** Lo que se puede haber estado haciendo. Son las fases del tablero de siempre. */
+const TAREAS = ["Idear", "Grabar", "Editar", "Programar", "Report", "Reunión", "Otros"];
+
 type Props = {
   me: Profile;
   clients: ClienteBreve[];
@@ -17,10 +20,11 @@ type Props = {
 
 type Linea = {
   clientId: string;
+  /** Qué se ha hecho: editar, grabar, programar… */
+  fase: string;
   minutos: number;
-  /** Medido por el cronómetro (no se toca) o añadido a mano al salir. */
+  /** Medido por el cronómetro (no se toca) o apuntado a mano al salir. */
   medido: boolean;
-  fases: string[];
 };
 
 function reloj(min: number): string {
@@ -47,7 +51,8 @@ export default function SalidaDelDia({
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState("");
-  const [nuevosMinutos, setNuevosMinutos] = useState(30);
+  const [nuevaFase, setNuevaFase] = useState("Editar");
+  const [nuevosMinutos, setNuevosMinutos] = useState(60);
   const [error, setError] = useState<string | null>(null);
 
   const nombreDe = useMemo(
@@ -67,47 +72,42 @@ export default function SalidaDelDia({
         .order("started_at");
 
       const ahora = Date.now();
-      const porCliente = new Map<string, { minutos: number; fases: Set<string> }>();
+      const agrupado = new Map<string, number>();
       for (const s of (data ?? []) as WorkSession[]) {
         const ini = new Date(s.started_at).getTime();
         const fin = s.ended_at ? new Date(s.ended_at).getTime() : ahora;
         const min = Math.max(0, (fin - ini) / 60000);
-        const fila = porCliente.get(s.client_id) ?? { minutos: 0, fases: new Set<string>() };
-        fila.minutos += min;
-        if (s.column_label) fila.fases.add(s.column_label);
-        porCliente.set(s.client_id, fila);
+        const clave = `${s.client_id}|${s.column_label || "Otros"}`;
+        agrupado.set(clave, (agrupado.get(clave) ?? 0) + min);
       }
 
       setLineas(
-        [...porCliente.entries()]
-          .sort((a, b) => b[1].minutos - a[1].minutos)
-          .map(([clientId, f]) => ({
-            clientId,
-            minutos: Math.round(f.minutos),
-            medido: true,
-            fases: [...f.fases],
-          })),
+        [...agrupado.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([clave, min]) => {
+            const [clientId, fase] = clave.split("|");
+            return { clientId, fase, minutos: Math.round(min), medido: true };
+          }),
       );
       setCargando(false);
     })();
   }, [supabase, me.id]);
 
   const apuntado = lineas.reduce((a, l) => a + l.minutos, 0);
-  const sinRepartir = Math.max(0, Math.round(minutosFichados) - apuntado);
 
   function añadir() {
     if (!nuevoCliente || nuevosMinutos <= 0) return;
     setLineas((prev) => {
-      const yaEsta = prev.find((l) => l.clientId === nuevoCliente && !l.medido);
+      const yaEsta = prev.find(
+        (l) => l.clientId === nuevoCliente && l.fase === nuevaFase && !l.medido,
+      );
       if (yaEsta) {
-        return prev.map((l) =>
-          l === yaEsta ? { ...l, minutos: l.minutos + nuevosMinutos } : l,
-        );
+        return prev.map((l) => (l === yaEsta ? { ...l, minutos: l.minutos + nuevosMinutos } : l));
       }
-      return [...prev, { clientId: nuevoCliente, minutos: nuevosMinutos, medido: false, fases: [] }];
+      return [...prev, { clientId: nuevoCliente, fase: nuevaFase, minutos: nuevosMinutos, medido: false }];
     });
     setNuevoCliente("");
-    setNuevosMinutos(30);
+    setNuevosMinutos(60);
   }
 
   /**
@@ -126,7 +126,7 @@ export default function SalidaDelDia({
           card_id: null,
           client_id: l.clientId,
           column_key: "",
-          column_label: "Apuntado al salir",
+          column_label: l.fase,
           profile_id: me.id,
           started_at: inicio.toISOString(),
           ended_at: fin.toISOString(),
@@ -143,9 +143,8 @@ export default function SalidaDelDia({
     onConfirmar();
   }
 
-  const disponibles = clients.filter(
-    (c) => !lineas.some((l) => l.clientId === c.id && !l.medido),
-  );
+  // Se puede repetir cliente con otra tarea, así que siempre salen todos.
+  const disponibles = clients;
 
   return (
     <div className="salida" role="dialog" aria-label="Antes de salir">
@@ -154,7 +153,8 @@ export default function SalidaDelDia({
           <div>
             <h2 className="salida__titulo">Antes de salir</h2>
             <p className="salida__sub">
-              Con qué clientes has estado hoy. Lo que tenías cronometrado ya está puesto.
+              ¿Qué has hecho hoy? Apunta qué has hecho, de qué cliente y cuánto rato. Con eso
+              se cierra tu jornada.
             </p>
           </div>
           <button type="button" className="ficha__cerrar" onClick={onCancelar} aria-label="Cerrar">
@@ -168,8 +168,8 @@ export default function SalidaDelDia({
           <>
             {lineas.length === 0 && (
               <p className="salida__vacio">
-                Hoy no has puesto ningún cronómetro. Apunta aquí abajo con quién has estado y
-                cuánto, aunque sea aproximado.
+                Apunta aquí abajo qué has hecho hoy: la tarea, el cliente y el rato. Puedes
+                añadir tantas líneas como quieras, y aunque sea aproximado vale.
               </p>
             )}
 
@@ -179,9 +179,7 @@ export default function SalidaDelDia({
                   <li key={`${l.clientId}-${l.medido}-${i}`}>
                     <span className="salida__cliente">
                       {nombreDe[l.clientId] ?? "Cliente"}
-                      {l.fases.length > 0 && (
-                        <span className="salida__fases">{l.fases.join(" · ")}</span>
-                      )}
+                      <span className="salida__fases">{l.fase}</span>
                     </span>
                     {l.medido ? (
                       <span className="salida__tiempo" title="Medido con el cronómetro">
@@ -221,21 +219,32 @@ export default function SalidaDelDia({
 
             <div className="salida__total">
               <span>
-                Apuntado <b>{reloj(apuntado)}</b> de <b>{reloj(minutosFichados)}</b> fichados
+                Total del día: <b>{reloj(apuntado)}</b>
               </span>
-              {sinRepartir > 10 && (
-                <span className="salida__resto">{reloj(sinRepartir)} sin repartir</span>
-              )}
+              {apuntado === 0 && <span className="salida__resto">Falta apuntar algo</span>}
             </div>
 
             {disponibles.length > 0 && (
               <div className="salida__añadir">
                 <select
                   className="input-inline"
+                  value={nuevaFase}
+                  onChange={(e) => setNuevaFase(e.target.value)}
+                  aria-label="Qué has hecho"
+                >
+                  {TAREAS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-inline"
                   value={nuevoCliente}
                   onChange={(e) => setNuevoCliente(e.target.value)}
+                  aria-label="De qué cliente"
                 >
-                  <option value="">Añadir un cliente…</option>
+                  <option value="">de qué cliente…</option>
                   {disponibles.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -271,7 +280,7 @@ export default function SalidaDelDia({
                 onClick={() => void confirmar()}
                 disabled={guardando}
               >
-                {guardando ? "Guardando…" : "Confirmar y fichar la salida"}
+                {guardando ? "Guardando…" : "Guardar y salir"}
               </button>
               <button type="button" className="btn btn--ghost" onClick={onCancelar}>
                 Cancelar

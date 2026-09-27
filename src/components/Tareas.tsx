@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue } from "@/lib/format";
-import { destaca, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import { destaca, etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
@@ -106,7 +106,7 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
           />
           {destaca(t.priority) && (
             <span className={`prio prio--${t.priority}`} title={`Prioridad: ${t.priority}`}>
-              {t.priority === "urgente" ? "Urgente" : "Importante"}
+              {etiqueta(t.priority)}
             </span>
           )}
           <button type="button" className="task__text" onClick={() => setAbierta(abierto ? null : t.id)}>

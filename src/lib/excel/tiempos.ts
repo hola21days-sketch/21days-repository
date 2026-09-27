@@ -48,7 +48,6 @@ export type DatosDeTiempo = {
   sessions: WorkSession[];
   clientNames: Record<string, string>;
   profileById: Record<string, Profile>;
-  cardTitles: Record<string, string>;
   periodo: "semana" | "mes";
   textoPeriodo: string;
   desde: Date;
@@ -66,7 +65,7 @@ export type DatosDeTiempo = {
  */
 export async function exportarTiempos(d: DatosDeTiempo) {
   const {
-    sessions, clientNames, profileById, cardTitles,
+    sessions, clientNames, profileById,
     periodo, textoPeriodo, desde, hasta, ahora, generadoPor,
   } = d;
 
@@ -437,7 +436,146 @@ export async function exportarTiempos(d: DatosDeTiempo) {
     ],
   });
 
-  // ================================================================ 5. Detalle
+  // ===================================================== 5. Qué ha hecho cada uno
+  // Es la hoja que se mira de verdad: una fila por persona, día, cliente y
+  // tarea, con el rato dedicado. Sale de lo que cada uno apunta al terminar
+  // la jornada.
+  const quehace = libro.addWorksheet("Qué ha hecho cada uno", {
+    pageSetup: { paperSize: 9, orientation: "landscape", fitToPage: true },
+  });
+  f = portada(quehace, {
+    titulo: "Qué ha hecho cada uno",
+    periodo: cabeceraPeriodo,
+    pie,
+  });
+
+  const porPersonaDiaTarea = new Map<string, number>();
+  for (const s of sessions) {
+    const clave = [
+      s.profile_id,
+      localDay(s.started_at),
+      s.client_id,
+      s.column_label || "Otros",
+    ].join("|");
+    porPersonaDiaTarea.set(clave, (porPersonaDiaTarea.get(clave) ?? 0) + minutosDe(s, ahora));
+  }
+
+  f = tabla(quehace, f, {
+    columnas: [
+      { titulo: "Persona", ancho: 24 },
+      { titulo: "Fecha", ancho: 13 },
+      { titulo: "Día", ancho: 12 },
+      { titulo: "Cliente", ancho: 26 },
+      { titulo: "Qué ha hecho", ancho: 18 },
+      { titulo: "Horas", formato: HORAS, alinear: "right", ancho: 12, barra: true },
+      { titulo: "Tiempo", ancho: 12, alinear: "right" },
+    ],
+    filas: [...porPersonaDiaTarea.entries()]
+      .map(([clave, min]) => {
+        const [profileId, dia, clientId, fase] = clave.split("|");
+        return { profileId, dia, clientId, fase, min };
+      })
+      .sort(
+        (a, b) =>
+          (profileById[a.profileId]?.full_name ?? "").localeCompare(
+            profileById[b.profileId]?.full_name ?? "",
+          ) ||
+          a.dia.localeCompare(b.dia) ||
+          b.min - a.min,
+      )
+      .map(
+        (x) =>
+          [
+            profileById[x.profileId]?.full_name ?? "Alguien del equipo",
+            x.dia,
+            DIAS[new Date(`${x.dia}T12:00:00`).getDay()],
+            clientNames[x.clientId] ?? "Cliente borrado",
+            x.fase,
+            enHoras(x.min),
+            reloj(x.min),
+          ] as Valor[],
+      ),
+    congelar: true,
+    filtros: true,
+  });
+
+  // ======================================================== 6. Reparto por tarea
+  const tareas = libro.addWorksheet("Por tarea", {
+    pageSetup: { paperSize: 9, orientation: "landscape", fitToPage: true },
+  });
+  f = portada(tareas, {
+    titulo: "En qué se va el tiempo",
+    periodo: cabeceraPeriodo,
+    pie,
+  });
+
+  const personasOrden = ordenPersonas.map(([id]) => id);
+  const porTarea = new Map<string, Map<string, number>>();
+  for (const s of sessions) {
+    const fase = s.column_label || "Otros";
+    const fila = porTarea.get(fase) ?? new Map<string, number>();
+    fila.set(s.profile_id, (fila.get(s.profile_id) ?? 0) + minutosDe(s, ahora));
+    porTarea.set(fase, fila);
+  }
+
+  f = tabla(tareas, f, {
+    titulo: "Horas por tarea y persona",
+    columnas: [
+      { titulo: "Qué se ha hecho", ancho: 20 },
+      ...personasOrden.map((id) => ({
+        titulo: profileById[id]?.full_name ?? "Alguien",
+        formato: HORAS,
+        alinear: "right" as const,
+        ancho: 15,
+      })),
+      { titulo: "Total", formato: HORAS, alinear: "right", barra: true, ancho: 14 },
+    ],
+    filas: [...porTarea.entries()]
+      .map(([fase, fila]) => ({
+        fase,
+        fila,
+        total: [...fila.values()].reduce((a, b) => a + b, 0),
+      }))
+      .sort((a, b) => b.total - a.total)
+      .map(
+        (x) =>
+          [
+            x.fase,
+            ...personasOrden.map((id) => enHoras(x.fila.get(id) ?? 0)),
+            enHoras(x.total),
+          ] as Valor[],
+      ),
+    totales: [
+      "Total",
+      ...personasOrden.map((id) => enHoras(personas.get(id)?.total ?? 0)),
+      enHoras(total),
+    ],
+  });
+
+  f = tabla(tareas, f, {
+    titulo: "Horas por cliente y tarea",
+    columnas: [
+      { titulo: "Cliente", ancho: 26 },
+      { titulo: "Qué se ha hecho", ancho: 20 },
+      { titulo: "Horas", formato: HORAS, alinear: "right", barra: true, ancho: 14 },
+      { titulo: "% del cliente", formato: PORCEN, alinear: "right", ancho: 14 },
+    ],
+    filas: ordenClientes.flatMap(([id, c]) =>
+      Object.entries(c.fases)
+        .sort((a, b) => b[1] - a[1])
+        .map(
+          ([fase, min]) =>
+            [
+              clientNames[id] ?? "Cliente borrado",
+              fase,
+              enHoras(min),
+              c.total > 0 ? min / c.total : 0,
+            ] as Valor[],
+        ),
+    ),
+  });
+
+  // ================================================================ 7. Detalle
   const detalle = libro.addWorksheet("Detalle", {
     pageSetup: { paperSize: 9, orientation: "landscape", fitToPage: true },
   });
@@ -449,12 +587,10 @@ export async function exportarTiempos(d: DatosDeTiempo) {
       { titulo: "Día", ancho: 12 },
       { titulo: "Persona", ancho: 24 },
       { titulo: "Cliente", ancho: 24 },
-      { titulo: "Fase", ancho: 16 },
-      { titulo: "Tarea", ancho: 38 },
+      { titulo: "Qué ha hecho", ancho: 18 },
       { titulo: "Inicio", ancho: 9, alinear: "center" },
       { titulo: "Fin", ancho: 9, alinear: "center" },
       { titulo: "Horas", formato: HORAS, alinear: "right", ancho: 12, barra: true },
-      { titulo: "Estado", ancho: 12 },
     ],
     filas: [...sessions]
       .sort((a, b) => a.started_at.localeCompare(b.started_at))
@@ -465,12 +601,10 @@ export async function exportarTiempos(d: DatosDeTiempo) {
             DIAS[new Date(s.started_at).getDay()],
             profileById[s.profile_id]?.full_name ?? "Alguien del equipo",
             clientNames[s.client_id] ?? "Cliente borrado",
-            s.column_label || "Sin fase",
-            s.card_id ? (cardTitles[s.card_id] ?? "") : "—",
+            s.column_label || "Otros",
             hora(s.started_at),
             s.ended_at ? hora(s.ended_at) : "",
             enHoras(minutosDe(s, ahora)),
-            s.ended_at ? "Cerrado" : "En marcha",
           ] as Valor[],
       ),
     congelar: true,

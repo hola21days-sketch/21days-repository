@@ -1617,6 +1617,117 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .salida__botones { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
 /* ==========================================================================
+   Enlaces dentro de los mensajes
+   ========================================================================== */
+.enlace {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+.enlace:hover { text-decoration-thickness: 2px; }
+
+/* ==========================================================================
+   Rejilla del panel: avance del mes y reparto del equipo
+   ========================================================================== */
+.panel__rejillawrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 9px; }
+.rejilla {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 0.86rem;
+}
+.rejilla th, .rejilla td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: middle;
+}
+.rejilla thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rejilla tbody tr:hover { background: var(--bg); }
+.rejilla tbody tr.is-mirando { background: var(--accent-soft); }
+.rejilla__cliente {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.rejilla__nombre { display: block; font-weight: 600; white-space: nowrap; }
+.rejilla__nombre em { font-style: normal; color: var(--accent); font-weight: 500; }
+.rejilla__tipo {
+  display: block;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.rejilla__prio { font-size: 0.74rem; padding: 0.1rem 0.3rem; min-width: 110px; }
+.rejilla__casilla { text-align: center; }
+.rejilla__casilla label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.rejilla__casilla input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent); }
+.rejilla__casilla.is-hecha { background: var(--accent-soft); }
+.rejilla__num { text-align: center; font-variant-numeric: tabular-nums; }
+.is-rojo { color: var(--danger); }
+
+.panel__grupo { margin-bottom: 1rem; }
+.panel__grupo-cab { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.35rem; }
+.panel__quien {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  flex: none;
+  white-space: nowrap;
+}
+.panel__quien.is-libre { color: var(--ink-faint); font-style: italic; }
+.panel__due.is-vacio { color: var(--ink-faint); font-style: italic; }
+.panel__objetivo--fijo { cursor: default; }
+.panel__objetivo--fijo input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  flex: none;
+}
+.panel__objetivo-abrir {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.panel__objetivo-meta { display: flex; align-items: center; gap: 0.3rem; }
+.panel__prio { font-size: 0.74rem; padding: 0.12rem 0.3rem; flex: none; min-width: 120px; }
+.panel__fecha { font-size: 0.76rem; padding: 0.12rem 0.3rem; flex: none; width: 140px; }
+.panel__fecha.is-overdue { border-color: var(--danger); color: var(--danger); }
+.stat__num small { font-size: 0.55em; color: var(--ink-faint); font-weight: 400; }
+.punch__salir { width: 100%; margin-top: 0.2rem; }
+
+/* ==========================================================================
    Responsive — al final a propósito: estas reglas tienen la misma
    especificidad que las de arriba y deben ganar por orden de cascada.
    ========================================================================== */

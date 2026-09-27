@@ -31,7 +31,15 @@ export function pesoPrioridad(p: Prioridad | null | undefined): number {
   return ORDEN[p ?? "normal"] ?? 2;
 }
 
-/** Solo lo que pide atención se pinta; lo normal no necesita etiqueta. */
+/**
+ * Todas las prioridades llevan etiqueta, no solo las altas: si solo se pinta
+ * lo urgente, no se distingue lo normal de lo que puede esperar.
+ */
 export function destaca(p: Prioridad): boolean {
-  return p === "urgente" || p === "importante";
+  return p !== null && p !== undefined;
+}
+
+/** El texto corto que va dentro de la etiqueta. */
+export function etiqueta(p: Prioridad): string {
+  return TEXTO_PRIORIDAD[p] ?? "Normal";
 }

@@ -18,10 +18,9 @@ usuario y datos persistentes.
 
 - **Índice de clientes** — con el número de encargos abiertos y un punto rojo cuando hay mensajes
   del equipo sin leer.
-- **Tablero por cliente** — columnas *Idear · Grabar · Editar · Programar · Report*, tarjetas que
-  se arrastran de una a otra, con referencia propia (`F001`, `F002`…), etiquetas, fecha de entrega
-  y responsables. Las entregas pasadas se marcan en rojo.
-- **Detalle del encargo** — descripción, checklist, responsables, fecha y comentarios del equipo.
+- **Avance del mes** — en el panel de clientes, una rejilla con una fila por cliente y una casilla
+  por fase (*Idear · Grabar · Editar · Programar · Report*). Marcarla deja constancia de quién la
+  dio por hecha. Sustituye al tablero de tarjetas, que ya no existe.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente, con
   **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
   idénticos (sin recomprimir ni recortar resolución). Los grandes se suben por partes, con
@@ -45,14 +44,18 @@ usuario y datos persistentes.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.
-- **Panel de clientes** — la primera parada: cuánto hay abierto, cuánto va con retraso y qué está
-  marcado como urgente, más el listado de objetivos con entrega **para hoy, esta semana o este
-  mes**. Debajo, una tarjeta por cliente con su prioridad y sus cifras.
+- **Panel de clientes** — la primera parada: la rejilla del mes y, debajo, todos los pendientes
+  agrupados **por prioridad**, con su responsable y su fecha de entrega, filtrables por hoy, esta
+  semana, este mes o todo.
+- **Tareas del equipo** — el reparto en una tabla: cuántas lleva cada persona, cuántas son
+  urgentes, cuántas van con retraso y cuál es su próxima entrega. Al pulsar en alguien se ven sus
+  tareas, y desde ahí se cambia la prioridad, la fecha o se dan por hechas.
 - **Prioridades** — cada encargo, cada tarea y cada cliente se marcan como *Urgente*,
   *Importante*, *Normal* o *Puede esperar*. Las listas se ordenan solas por prioridad y, a
   igualdad, por fecha de entrega.
-- **Reparto del día al salir** — al fichar la salida sale el reparto de la jornada por cliente, ya
-  relleno con lo que midieron los cronómetros. Solo hay que añadir a mano lo que faltara.
+- **Jornada** — no se ficha la entrada. Al terminar se pulsa *Terminar la jornada* y se apunta qué
+  se ha hecho: la tarea (editar, grabar, programar…), el cliente y el rato. Eso es lo que alimenta
+  los informes.
 - **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase
   (p. ej. *Editar de X: 4h 20m*), el total por persona y quién está trabajando en cada cosa en
   este momento.
@@ -261,8 +264,7 @@ src/
     Rail.tsx              Índice de clientes y fichaje
     Fichaje.tsx           Entrada, pausa, regreso y salida
     Informes.tsx          Tiempo por cliente, fase y persona
-    Board.tsx             Tablero y arrastre de tarjetas
-    CardDrawer.tsx        Detalle del encargo
+    MiPanel.tsx           Lo mío y el reparto del equipo
     Chat.tsx              Chat del equipo, adjuntos, transcripciones y Meet
     FichaCliente.tsx      Ficha y contexto de cada cliente
     Panel.tsx             Resumen de todos los clientes y objetivos

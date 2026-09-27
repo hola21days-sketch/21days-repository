@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Rail from "./Rail";
 import type { Vista } from "./Rail";
-import Board from "./Board";
 import Chat from "./Chat";
-import CardDrawer from "./CardDrawer";
 import NewClientDialog from "./NewClientDialog";
 import Resumen from "./Resumen";
 import FichaCliente from "./FichaCliente";
 import Informes from "./Informes";
 import Panel from "./Panel";
+import MiPanel from "./MiPanel";
 import Tareas from "./Tareas";
 import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
@@ -81,9 +80,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   );
 
   const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
-  const [tab, setTab] = useState<"board" | "chat" | "tareas">("board");
+  const [tab, setTab] = useState<"chat" | "tareas">("tareas");
   const [railOpen, setRailOpen] = useState(false);
-  const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [newClientOpen, setNewClientOpen] = useState(false);
 
   const [messagesByClient, setMessagesByClient] = useState<Record<string, Message[]>>({});
@@ -96,7 +94,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
   const [fichaAbierta, setFichaAbierta] = useState(false);
-  const [openSessions, setOpenSessions] = useState<WorkSession[]>([]);
 
   /**
    * Mensajes directos sin leer. Se cuenta aquí arriba para que el aviso del
@@ -218,30 +215,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   }, [supabase]);
 
   // ------------------------------------------------------------ cronómetros
-  const refreshSessions = useCallback(async () => {
-    const { data } = await supabase.from("work_sessions").select("*").is("ended_at", null);
-    if (data) setOpenSessions(data as WorkSession[]);
-  }, [supabase]);
-
-  useEffect(() => {
-    void refreshSessions();
-  }, [refreshSessions]);
-
-  const myOpenSession = useMemo(
-    () => openSessions.find((s) => s.profile_id === me.id) ?? null,
-    [openSessions, me.id],
-  );
 
   /** Quién está ahora mismo en cada tarjeta, para marcarlo en el tablero. */
-  const workingByCard = useMemo(() => {
-    const mapa: Record<string, Profile[]> = {};
-    for (const s of openSessions) {
-      const quien = profileById[s.profile_id];
-      if (!quien || !s.card_id) continue;
-      mapa[s.card_id] = [...(mapa[s.card_id] ?? []), quien];
-    }
-    return mapa;
-  }, [openSessions, profileById]);
 
   const cardTitles = useMemo(
     () => Object.fromEntries(cards.map((c) => [c.id, c.title])) as Record<string, string>,
@@ -252,24 +227,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     () => Object.fromEntries(clients.map((c) => [c.id, c.name])) as Record<string, string>,
     [clients],
   );
-
-  async function startWork(cardId: string) {
-    const { error } = await supabase.rpc("start_work", { p_card_id: cardId });
-    if (error) {
-      alert("No se ha podido arrancar el cronómetro. Vuelve a intentarlo.");
-      return;
-    }
-    await refreshSessions();
-  }
-
-  async function stopWork() {
-    const { error } = await supabase.rpc("stop_work");
-    if (error) {
-      alert("No se ha podido parar el cronómetro. Vuelve a intentarlo.");
-      return;
-    }
-    await refreshSessions();
-  }
 
   // --------------------------------------------------------------- realtime
   const mergeAttachments = useCallback((files: Attachment[]) => {
@@ -334,7 +291,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         },
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "work_sessions" }, () => {
-        void refreshSessions();
       })
       .on(
         "postgres_changes",
@@ -367,7 +323,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       void supabase.removeChannel(channel);
     };
-  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage, mergeAttachments, refreshSessions]);
+  }, [supabase, scheduleCardRefresh, refreshClients, upsertMessage, mergeAttachments]);
 
   // ------------------------------------------------------------------- chat
   // Clientes cuyo chat ya está cargado. En una ref y no en el estado para que
@@ -586,93 +542,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   }
 
   // --------------------------------------------------------------- tarjetas
-  async function addCard(columnId: string, title: string) {
-    if (!activeId) return;
-    const inColumn = cards.filter((c) => c.column_id === columnId);
-    const position = (inColumn.at(-1)?.position ?? 0) + 1;
-    const { data, error } = await supabase
-      .from("cards")
-      .insert({ client_id: activeId, column_id: columnId, title, position, created_by: me.id })
-      .select("*")
-      .single();
-    if (error || !data) {
-      alert("No se ha podido crear la tarjeta.");
-      return;
-    }
-    setCards((prev) => [...prev, { ...(data as CardRow), assignees: [] }]);
-  }
-
-  async function moveCard(cardId: string, columnId: string) {
-    const card = cards.find((c) => c.id === cardId);
-    if (!card || card.column_id === columnId) return;
-    const inColumn = cards.filter((c) => c.column_id === columnId);
-    const position = (inColumn.at(-1)?.position ?? 0) + 1;
-
-    const previous = cards;
-    setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, column_id: columnId, position } : c)));
-
-    const { error } = await supabase.from("cards").update({ column_id: columnId, position }).eq("id", cardId);
-    if (error) {
-      setCards(previous);
-      alert("No se ha podido mover la tarjeta.");
-    }
-  }
-
-  async function patchCard(cardId: string, patch: Partial<Card>) {
-    const previous = cards;
-    setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, ...patch } : c)));
-
-    const { assignees, ...dbPatch } = patch;
-    void assignees;
-    if (Object.keys(dbPatch).length === 0) return;
-
-    const { error } = await supabase.from("cards").update(dbPatch).eq("id", cardId);
-    if (error) {
-      setCards(previous);
-      alert("No se ha podido guardar el cambio.");
-    }
-  }
-
-  async function toggleAssignee(cardId: string, profileId: string) {
-    const card = cards.find((c) => c.id === cardId);
-    if (!card) return;
-    const has = card.assignees.includes(profileId);
-
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === cardId
-          ? {
-              ...c,
-              assignees: has
-                ? c.assignees.filter((id) => id !== profileId)
-                : [...c.assignees, profileId],
-            }
-          : c,
-      ),
-    );
-
-    if (has) {
-      await supabase
-        .from("card_assignees")
-        .delete()
-        .eq("card_id", cardId)
-        .eq("profile_id", profileId);
-    } else {
-      await supabase.from("card_assignees").insert({ card_id: cardId, profile_id: profileId });
-    }
-  }
-
-  async function deleteCard(cardId: string) {
-    const previous = cards;
-    setCards((prev) => prev.filter((c) => c.id !== cardId));
-    setOpenCardId(null);
-    const { error } = await supabase.from("cards").delete().eq("id", cardId);
-    if (error) {
-      setCards(previous);
-      alert("No se ha podido borrar la tarjeta.");
-    }
-  }
-
   // --------------------------------------------------------------- clientes
   async function createClientRecord(name: string, kind: string, prefix: string) {
     const { data, error } = await supabase.rpc("create_client", {
@@ -685,7 +554,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     const created = data as ClientRow | null;
     if (created?.id) {
       setActiveId(created.id);
-      setTab("board");
+      setTab("tareas");
     }
     setNewClientOpen(false);
     return null;
@@ -738,8 +607,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       await supabase.from("client_members").insert({ client_id: activeId, profile_id: me.id });
     }
   }
-
-  const openCard = openCardId ? (cards.find((c) => c.id === openCardId) ?? null) : null;
   const iAmMember = !!activeId && members.some((m) => m.client_id === activeId && m.profile_id === me.id);
 
   return (
@@ -802,7 +669,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                         ? "Mensajes directos"
                         : vista === "panel"
                           ? "Panel de clientes"
-                          : BRAND.company}
+                          : vista === "mias"
+                            ? "Tareas del equipo"
+                            : BRAND.company}
                   </div>
                 )}
                 <div className="main__kind">
@@ -812,7 +681,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                       ? "Conversaciones privadas del equipo"
                       : vista === "panel"
                         ? "Qué hay abierto y qué toca cerrar antes"
-                        : (activeClient?.kind ?? "Sin cliente seleccionado")}
+                        : vista === "mias"
+                          ? "Qué lleva cada uno y para cuándo"
+                          : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
 
                 {fichaAbierta && activeClient && vista === "cliente" && (
@@ -838,12 +709,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             </div>
             {activeClient && vista === "cliente" && (
               <nav className="tabs">
-                <button
-                  className={tab === "board" ? "tab is-active" : "tab"}
-                  onClick={() => setTab("board")}
-                >
-                  Tablero
-                </button>
                 <button
                   className={tab === "chat" ? "tab is-active" : "tab"}
                   onClick={() => setTab("chat")}
@@ -897,7 +762,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           <Informes
             clientNames={clientNames}
             profileById={profileById}
-            cardTitles={cardTitles}
             me={me}
           />
         )}
@@ -910,18 +774,30 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               kind: c.kind,
               priority: c.priority,
             }))}
-            cards={cards}
             columns={columns}
-            doneColumnIds={doneColumnIds}
             profileById={profileById}
+            me={me}
             onAbrirCliente={(id) => {
               setActiveId(id);
               setVista("cliente");
-              setTab("board");
+              setTab("tareas");
             }}
             onPrioridadCliente={(id, priority) => {
               setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
               void supabase.from("clients").update({ priority }).eq("id", id);
+            }}
+          />
+        )}
+
+        {vista === "mias" && (
+          <MiPanel
+            me={me}
+            profiles={profiles}
+            clientNames={clientNames}
+            onAbrirCliente={(id) => {
+              setActiveId(id);
+              setVista("cliente");
+              setTab("tareas");
             }}
           />
         )}
@@ -935,19 +811,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             Todavía no hay ningún cliente en la bitácora. Añade el primero con el botón <b>+</b> del
             panel de la izquierda.
           </div>
-        )}
-
-
-        {vista === "cliente" && activeClient && tab === "board" && (
-          <Board
-            columns={activeColumns}
-            cards={activeCards}
-            profileById={profileById}
-            onOpenCard={setOpenCardId}
-            onMoveCard={moveCard}
-            onAddCard={addCard}
-            workingByCard={workingByCard}
-          />
         )}
 
         {vista === "cliente" && activeClient && tab === "chat" && (
@@ -986,24 +849,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           />
         )}
       </main>
-
-      {vista === "cliente" && openCard && activeClient && (
-        <CardDrawer
-          card={openCard}
-          clientName={activeClient.name}
-          profiles={profiles}
-          profileById={profileById}
-          me={me}
-          onClose={() => setOpenCardId(null)}
-          onPatch={patchCard}
-          onToggleAssignee={toggleAssignee}
-          onDelete={deleteCard}
-          myOpenSession={myOpenSession}
-          workingHere={(workingByCard[openCard.id] ?? []).filter((p) => p.id !== me.id)}
-          onStartWork={startWork}
-          onStopWork={stopWork}
-        />
-      )}
 
       {newClientOpen && (
         <NewClientDialog onCancel={() => setNewClientOpen(false)} onCreate={createClientRecord} />

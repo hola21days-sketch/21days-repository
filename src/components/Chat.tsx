@@ -5,6 +5,7 @@ import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { dayLabel, formatSize, formatTime, initialsOf, stampColor } from "@/lib/format";
 import { MAX_BYTES, MAX_MB } from "@/lib/subir";
+import { conEnlaces } from "@/lib/enlaces";
 import type { Attachment, Meeting, Message, Profile, Transcript } from "@/lib/types";
 
 type Props = {
@@ -69,9 +70,9 @@ function tieneVoz(mime: string) {
   return mime.startsWith("video/") || mime.startsWith("audio/");
 }
 
-/** Pinta el texto resaltando las menciones (@Nombre). */
+/** Pinta el texto con las menciones resaltadas y los enlaces pulsables. */
 function conMenciones(body: string, nombres: string[]) {
-  if (nombres.length === 0) return body;
+  if (nombres.length === 0) return conEnlaces(body);
   const patron = new RegExp(`@(${nombres.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
   const trozos = body.split(patron);
   return trozos.map((t, i) =>
@@ -80,7 +81,7 @@ function conMenciones(body: string, nombres: string[]) {
         @{t}
       </span>
     ) : (
-      <span key={i}>{t}</span>
+      <span key={i}>{conEnlaces(t, String(i))}</span>
     ),
   );
 }

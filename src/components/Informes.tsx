@@ -8,7 +8,6 @@ import type { Profile, WorkSession } from "@/lib/types";
 type Props = {
   clientNames: Record<string, string>;
   profileById: Record<string, Profile>;
-  cardTitles: Record<string, string>;
   me: Profile;
 };
 
@@ -66,7 +65,7 @@ export function comoHoras(minutos: number): string {
  * Sale de los cronómetros de las tarjetas. Los tramos abiertos se cuentan
  * hasta este momento, así que la semana en curso ya se ve mientras avanza.
  */
-export default function Informes({ clientNames, profileById, cardTitles, me }: Props) {
+export default function Informes({ clientNames, profileById, me }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [periodo, setPeriodo] = useState<Periodo>("semana");
   const [salto, setSalto] = useState(0);
@@ -146,7 +145,6 @@ export default function Informes({ clientNames, profileById, cardTitles, me }: P
         sessions,
         clientNames,
         profileById,
-        cardTitles,
         periodo,
         textoPeriodo: texto,
         desde,
@@ -226,7 +224,7 @@ export default function Informes({ clientNames, profileById, cardTitles, me }: P
                   <span className="report__nowbody">
                     <b>{quien?.full_name ?? "Alguien"}</b> · {clientNames[s.client_id] ?? "Cliente"} ·{" "}
                     {s.column_label || "Sin fase"}
-                    <span className="report__nowtask">{s.card_id ? (cardTitles[s.card_id] ?? "") : ""}</span>
+                    <span className="report__nowtask">{s.column_label || ""}</span>
                   </span>
                   <span className="report__nowtime">{comoHoras(minutosDe(s, ahora))}</span>
                 </li>

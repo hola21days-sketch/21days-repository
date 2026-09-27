@@ -891,3 +891,30 @@ create policy profiles_update on public.profiles
 drop policy if exists clients_delete on public.clients;
 create policy clients_delete on public.clients
   for delete to authenticated using (public.is_admin());
+
+-- ============================================================================
+-- 15. Avance mensual por fase
+-- ----------------------------------------------------------------------------
+-- El tablero de tarjetas desaparece: en su lugar, cada cliente tiene una
+-- casilla por fase y mes. Marcarla significa "esto ya está hecho este mes", y
+-- queda constancia de quién lo dio por hecho.
+-- ============================================================================
+create table if not exists public.client_month_progress (
+  client_id  uuid not null references public.clients(id) on delete cascade,
+  month      date not null,
+  phase_key  text not null,
+  done       boolean not null default false,
+  done_by    uuid references public.profiles(id) on delete set null,
+  done_at    timestamptz,
+  note       text not null default '',
+  primary key (client_id, month, phase_key)
+);
+
+create index if not exists client_month_progress_mes_idx
+  on public.client_month_progress (month, client_id);
+
+alter table public.client_month_progress enable row level security;
+
+drop policy if exists client_month_progress_all on public.client_month_progress;
+create policy client_month_progress_all on public.client_month_progress
+  for all to authenticated using (true) with check (true);

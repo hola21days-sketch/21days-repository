@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import { dayLabel, formatSize, formatTime } from "@/lib/format";
+import { dayLabel, formatSize, formatTime, initialsOf, stampColor } from "@/lib/format";
 import { MAX_BYTES, MAX_MB } from "@/lib/subir";
 import type { Attachment, Meeting, Message, Profile, Transcript } from "@/lib/types";
 
@@ -414,22 +414,29 @@ export default function Chat({
             const day = dayLabel(m.created_at);
             const showDivider = day !== lastDay;
             lastDay = day;
-            const author = profileById[m.author_id];
+            const author = m.author_id ? profileById[m.author_id] : undefined;
+            // Lo traído de Slack no tiene cuenta aquí: se enseña el nombre tal cual.
+            const nombre = author?.full_name ?? m.external_author ?? "Alguien del equipo";
             const adjuntos = attachmentsByMessage[m.id] ?? [];
-            const mio = m.author_id === me.id;
+            const mio = m.author_id === me.id && m.source === "app";
             return (
               <div key={m.id}>
                 {showDivider && <div className="chat__divider">{day}</div>}
                 <div className={pendingIds.has(m.id) ? "msg is-pending" : "msg"}>
                   <Stamp
-                    label={author?.initials ?? "··"}
-                    color={author?.color ?? "var(--ink-muted)"}
-                    title={author?.full_name}
+                    label={author?.initials ?? initialsOf(nombre)}
+                    color={author?.color ?? stampColor(m.external_author || m.id)}
+                    title={nombre}
                   />
                   <div className="msg__body">
                     <div className="msg__head">
-                      <span className="msg__author">{author?.full_name ?? "Alguien del equipo"}</span>
+                      <span className="msg__author">{nombre}</span>
                       <span className="msg__time">{formatTime(m.created_at)}</span>
+                      {m.source === "slack" && (
+                        <span className="msg__origen" title="Traído del histórico de Slack">
+                          Slack
+                        </span>
+                      )}
                       {m.edited_at && <span className="msg__time">· editado</span>}
                       {mio && !pendingIds.has(m.id) && editando !== m.id && (
                         <span className="msg__acciones">

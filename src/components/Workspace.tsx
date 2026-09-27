@@ -463,6 +463,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       created_at: new Date().toISOString(),
       edited_at: null,
       mentions,
+      source: "app",
+      external_author: "",
     };
     setPendingIds((prev) => new Set(prev).add(tempId));
     setMessagesByClient((prev) => ({ ...prev, [clientId]: [...(prev[clientId] ?? []), optimistic] }));

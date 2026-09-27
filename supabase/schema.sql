@@ -841,3 +841,31 @@ create index if not exists client_tasks_prioridad_idx
 -- Al fichar la salida se puede apuntar tiempo de un cliente que no estaba
 -- cronometrado en ninguna tarjeta, así que card_id puede quedar vacío.
 alter table public.work_sessions alter column card_id drop not null;
+
+-- ============================================================================
+-- 13. Histórico traído de Slack
+-- ----------------------------------------------------------------------------
+-- Los mensajes importados no tienen autor dentro de la app (mucha gente de
+-- Slack no tiene cuenta aquí), así que se guarda el nombre tal cual y
+-- author_id queda vacío. `external_ts` es la marca de tiempo de Slack y evita
+-- duplicados si la importación se repite.
+-- ============================================================================
+alter table public.messages
+  alter column author_id drop not null,
+  add column if not exists source          text not null default 'app',
+  add column if not exists external_author text not null default '',
+  add column if not exists external_ts     text;
+
+create unique index if not exists messages_slack_unico
+  on public.messages (client_id, external_ts) where external_ts is not null;
+
+drop policy if exists messages_insert on public.messages;
+create policy messages_insert on public.messages
+  for insert to authenticated
+  with check (
+    (author_id = auth.uid() and source = 'app')
+    or (author_id is null and source <> 'app' and public.is_admin())
+  );
+
+alter table public.clients
+  add column if not exists slack_channel text not null default '';

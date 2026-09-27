@@ -65,7 +65,10 @@ export type Client = {
 export type Message = {
   id: string;
   client_id: string;
-  author_id: string;
+  /** Vacío en lo importado de Slack: ahí el autor va en `external_author`. */
+  author_id: string | null;
+  source: string;
+  external_author: string;
   body: string;
   created_at: string;
   edited_at: string | null;

@@ -861,6 +861,15 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 .file__meta { font-size: 0.68rem; color: var(--ink-faint); }
 .file__down { font-size: 0.72rem; color: var(--accent-ink); flex: none; }
+.msg__origen {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0 0.32rem;
+}
 .file__progress { font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.3rem; }
 
 .composer__files {

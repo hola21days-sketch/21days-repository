@@ -1,3 +1,7 @@
+import type { Prioridad } from "./prioridad";
+
+export type { Prioridad };
+
 export type Role = "member" | "admin";
 
 export type Profile = {
@@ -42,6 +46,7 @@ export type Card = {
   position: number;
   created_by: string | null;
   assignees: string[];
+  priority: Prioridad;
 };
 
 export type Client = {
@@ -54,6 +59,7 @@ export type Client = {
   members: string[];
   openCount: number;
   unread: boolean;
+  priority: Prioridad;
 };
 
 export type Message = {
@@ -120,6 +126,7 @@ export type ClientTask = {
   assignee_id: string | null;
   notes: string;
   due_date: string | null;
+  priority: Prioridad;
   created_at: string;
 };
 
@@ -135,7 +142,8 @@ export type Meeting = {
 
 export type WorkSession = {
   id: string;
-  card_id: string;
+  /** Vacío cuando el tiempo se apuntó a mano al fichar la salida. */
+  card_id: string | null;
   client_id: string;
   column_key: string;
   column_label: string;
@@ -177,4 +185,5 @@ export type ClientDetails = {
   videos_per_month: number;
   contact: string;
   meet_url: string;
+  priority: Prioridad;
 };

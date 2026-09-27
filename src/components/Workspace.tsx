@@ -10,6 +10,7 @@ import NewClientDialog from "./NewClientDialog";
 import Resumen from "./Resumen";
 import FichaCliente from "./FichaCliente";
 import Informes from "./Informes";
+import Panel from "./Panel";
 import Tareas from "./Tareas";
 import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
@@ -17,7 +18,7 @@ import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { ErrorDeSubida, MAX_MB, subirArchivo } from "@/lib/subir";
-import type { Attachment, BoardColumn, Card, Message, Profile, WorkSession } from "@/lib/types";
+import type { Attachment, BoardColumn, Card, Message, Prioridad, Profile, WorkSession } from "@/lib/types";
 
 type ClientRow = {
   id: string;
@@ -32,6 +33,7 @@ type ClientRow = {
   videos_per_month: number;
   contact: string;
   meet_url: string;
+  priority: Prioridad;
 };
 type MemberRow = { client_id: string; profile_id: string };
 type AssigneeRow = { card_id: string; profile_id: string };
@@ -235,7 +237,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     const mapa: Record<string, Profile[]> = {};
     for (const s of openSessions) {
       const quien = profileById[s.profile_id];
-      if (!quien) continue;
+      if (!quien || !s.card_id) continue;
       mapa[s.card_id] = [...(mapa[s.card_id] ?? []), quien];
     }
     return mapa;
@@ -764,7 +766,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                       ? "Informes"
                       : vista === "dm"
                         ? "Mensajes directos"
-                        : BRAND.company}
+                        : vista === "panel"
+                          ? "Panel de clientes"
+                          : BRAND.company}
                   </div>
                 )}
                 <div className="main__kind">
@@ -772,7 +776,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                     ? "Tiempo por cliente y fase"
                     : vista === "dm"
                       ? "Conversaciones privadas del equipo"
-                      : (activeClient?.kind ?? "Sin cliente seleccionado")}
+                      : vista === "panel"
+                        ? "Qué hay abierto y qué toca cerrar antes"
+                        : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
 
                 {fichaAbierta && activeClient && vista === "cliente" && (
@@ -857,6 +863,30 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             profileById={profileById}
             cardTitles={cardTitles}
             me={me}
+          />
+        )}
+
+        {vista === "panel" && (
+          <Panel
+            clients={clients.map((c) => ({
+              id: c.id,
+              name: c.name,
+              kind: c.kind,
+              priority: c.priority,
+            }))}
+            cards={cards}
+            columns={columns}
+            doneColumnIds={doneColumnIds}
+            profileById={profileById}
+            onAbrirCliente={(id) => {
+              setActiveId(id);
+              setVista("cliente");
+              setTab("board");
+            }}
+            onPrioridadCliente={(id, priority) => {
+              setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
+              void supabase.from("clients").update({ priority }).eq("id", id);
+            }}
           />
         )}
 

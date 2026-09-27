@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
+import { PRIORIDADES } from "@/lib/prioridad";
 import { commentStamp, formatDue, isOverdue } from "@/lib/format";
 import { comoHoras } from "./Informes";
 import {
@@ -291,6 +292,24 @@ export default function CardDrawer({
               {card.assignees.length === 0
                 ? "Sin asignar"
                 : card.assignees.map((id) => profileById[id]?.full_name).filter(Boolean).join(", ")}
+            </div>
+          </div>
+
+          <div className="drawer__section">
+            <div className="drawer__label">Prioridad</div>
+            <div className="chip-row">
+              {PRIORIDADES.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  className={
+                    card.priority === p.key ? `prio prio--${p.key} is-on` : "prio prio--off"
+                  }
+                  onClick={() => onPatch(card.id, { priority: p.key })}
+                >
+                  {p.texto}
+                </button>
+              ))}
             </div>
           </div>
 

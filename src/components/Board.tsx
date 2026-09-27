@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Stamp from "./Stamp";
 import { formatDue, isOverdue } from "@/lib/format";
+import { destaca } from "@/lib/prioridad";
 import { LABEL_TEXT, type BoardColumn, type Card, type Profile } from "@/lib/types";
 
 type Props = {
@@ -92,6 +93,11 @@ export default function Board({
                     )}
                   </div>
                   <p className="card__title">{cd.title}</p>
+                  {destaca(cd.priority) && (
+                    <span className={`prio prio--${cd.priority}`}>
+                      {cd.priority === "urgente" ? "Urgente" : "Importante"}
+                    </span>
+                  )}
                   {cd.labels.length > 0 && (
                     <div className="chip-row">
                       {cd.labels.map((l) => (

@@ -466,7 +466,7 @@ export async function exportarTiempos(d: DatosDeTiempo) {
             profileById[s.profile_id]?.full_name ?? "Alguien del equipo",
             clientNames[s.client_id] ?? "Cliente borrado",
             s.column_label || "Sin fase",
-            cardTitles[s.card_id] ?? "",
+            s.card_id ? (cardTitles[s.card_id] ?? "") : "—",
             hora(s.started_at),
             s.ended_at ? hora(s.ended_at) : "",
             enHoras(minutosDe(s, ahora)),

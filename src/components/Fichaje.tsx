@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatTime } from "@/lib/format";
+import SalidaDelDia from "./SalidaDelDia";
 import type { Profile, Punch, PunchKind } from "@/lib/types";
 
 /** Estado en el que está la jornada de hoy, según el último fichaje. */
@@ -43,11 +44,19 @@ const ETIQUETA: Record<Estado, string> = {
   pausa: "En pausa",
 };
 
-export default function Fichaje({ me, profiles }: { me: Profile; profiles: Profile[] }) {
+type Props = {
+  me: Profile;
+  profiles: Profile[];
+  /** Para poder repartir la jornada entre clientes al salir. */
+  clients: { id: string; name: string }[];
+};
+
+export default function Fichaje({ me, profiles, clients }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const profileId = me.id;
   const [punches, setPunches] = useState<Punch[]>([]);
   const [exportando, setExportando] = useState(false);
+  const [despidiendo, setDespidiendo] = useState(false);
   const [busy, setBusy] = useState<PunchKind | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ahora, setAhora] = useState(() => Date.now());
@@ -132,6 +141,19 @@ export default function Fichaje({ me, profiles }: { me: Profile; profiles: Profi
 
   return (
     <section className="punch" aria-label="Fichaje">
+      {despidiendo && (
+        <SalidaDelDia
+          me={me}
+          clients={clients}
+          minutosFichados={minutos}
+          onCancelar={() => setDespidiendo(false)}
+          onConfirmar={async () => {
+            setDespidiendo(false);
+            await fichar("salida");
+          }}
+        />
+      )}
+
       <div className="rail__section-label" style={{ padding: "0 0 0.35rem" }}>
         <span>Fichar</span>
         <span className={`punch__state punch__state--${estado}`}>{ETIQUETA[estado]}</span>
@@ -146,7 +168,11 @@ export default function Fichaje({ me, profiles }: { me: Profile; profiles: Profi
             type="button"
             className={b.kind === "salida" ? "btn punch__btn punch__btn--out" : "btn punch__btn"}
             disabled={!b.activo || busy !== null}
-            onClick={() => void fichar(b.kind)}
+            onClick={() => {
+              // La salida pasa antes por el reparto del día; el resto ficha directo.
+              if (b.kind === "salida") setDespidiendo(true);
+              else void fichar(b.kind);
+            }}
           >
             {busy === b.kind ? "…" : b.texto}
           </button>

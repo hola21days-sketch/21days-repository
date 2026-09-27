@@ -813,3 +813,31 @@ update public.profiles p
    and exists (
      select 1 from public.admin_emails a where lower(a.email) = lower(p.email)
    );
+
+-- ============================================================================
+-- 12. Prioridades y reparto del día
+-- ============================================================================
+
+-- Cuatro niveles, con un orden fijo: lo urgente manda sobre lo importante.
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'prioridad') then
+    create type public.prioridad as enum ('urgente', 'importante', 'normal', 'baja');
+  end if;
+end;
+$$;
+
+alter table public.cards
+  add column if not exists priority public.prioridad not null default 'normal';
+alter table public.client_tasks
+  add column if not exists priority public.prioridad not null default 'normal';
+alter table public.clients
+  add column if not exists priority public.prioridad not null default 'normal';
+
+create index if not exists cards_prioridad_idx on public.cards (client_id, priority, due_date);
+create index if not exists client_tasks_prioridad_idx
+  on public.client_tasks (client_id, priority, due_date);
+
+-- Al fichar la salida se puede apuntar tiempo de un cliente que no estaba
+-- cronometrado en ninguna tarjeta, así que card_id puede quedar vacío.
+alter table public.work_sessions alter column card_id drop not null;

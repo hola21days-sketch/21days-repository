@@ -226,7 +226,7 @@ export default function Informes({ clientNames, profileById, cardTitles, me }: P
                   <span className="report__nowbody">
                     <b>{quien?.full_name ?? "Alguien"}</b> · {clientNames[s.client_id] ?? "Cliente"} ·{" "}
                     {s.column_label || "Sin fase"}
-                    <span className="report__nowtask">{cardTitles[s.card_id] ?? ""}</span>
+                    <span className="report__nowtask">{s.card_id ? (cardTitles[s.card_id] ?? "") : ""}</span>
                   </span>
                   <span className="report__nowtime">{comoHoras(minutosDe(s, ahora))}</span>
                 </li>

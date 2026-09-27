@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue } from "@/lib/format";
-import type { ClientTask, Profile } from "@/lib/types";
+import { destaca, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
   clientId: string;
@@ -79,7 +80,16 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
     await supabase.from("client_tasks").delete().eq("id", task.id);
   }
 
-  const pendientes = tasks.filter((t) => !t.done);
+  // Lo urgente arriba; a igualdad de prioridad, manda la fecha de entrega y
+  // después el orden en que se escribieron.
+  const pendientes = tasks
+    .filter((t) => !t.done)
+    .sort(
+      (a, b) =>
+        pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
+        (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999") ||
+        a.position - b.position,
+    );
   const hechas = tasks.filter((t) => t.done);
 
   function fila(t: ClientTask) {
@@ -94,6 +104,11 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
             onChange={() => void guardar(t, { done: !t.done })}
             aria-label={t.text}
           />
+          {destaca(t.priority) && (
+            <span className={`prio prio--${t.priority}`} title={`Prioridad: ${t.priority}`}>
+              {t.priority === "urgente" ? "Urgente" : "Importante"}
+            </span>
+          )}
           <button type="button" className="task__text" onClick={() => setAbierta(abierto ? null : t.id)}>
             {t.text}
           </button>
@@ -130,6 +145,21 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
                   {profiles.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.full_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="task__field">
+                <span>Prioridad</span>
+                <select
+                  className="input-inline"
+                  value={t.priority}
+                  onChange={(e) => void guardar(t, { priority: e.target.value as Prioridad })}
+                >
+                  {PRIORIDADES.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.texto}
                     </option>
                   ))}
                 </select>

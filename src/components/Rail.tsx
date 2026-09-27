@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/brand";
 import { initialsOf, stampColor } from "@/lib/format";
 import type { Profile } from "@/lib/types";
 
-export type Vista = "cliente" | "informes" | "dm";
+export type Vista = "cliente" | "informes" | "dm" | "panel";
 
 export type RailClient = {
   id: string;
@@ -58,6 +58,14 @@ export default function Rail({
           ✕
         </button>
       </div>
+
+      <button
+        type="button"
+        className={vista === "panel" ? "rail__nav is-active" : "rail__nav"}
+        onClick={() => onVista(vista === "panel" ? "cliente" : "panel")}
+      >
+        Panel de clientes
+      </button>
 
       <div className="rail__section-label">
         <span>Clientes activos</span>
@@ -122,7 +130,7 @@ export default function Rail({
       )}
 
       <div className="rail__punch">
-        <Fichaje me={me} profiles={profiles} />
+        <Fichaje me={me} profiles={profiles} clients={clients} />
       </div>
 
       <div className="rail__footer">

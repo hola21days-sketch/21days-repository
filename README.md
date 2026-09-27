@@ -45,6 +45,14 @@ usuario y datos persistentes.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.
+- **Panel de clientes** — la primera parada: cuánto hay abierto, cuánto va con retraso y qué está
+  marcado como urgente, más el listado de objetivos con entrega **para hoy, esta semana o este
+  mes**. Debajo, una tarjeta por cliente con su prioridad y sus cifras.
+- **Prioridades** — cada encargo, cada tarea y cada cliente se marcan como *Urgente*,
+  *Importante*, *Normal* o *Puede esperar*. Las listas se ordenan solas por prioridad y, a
+  igualdad, por fecha de entrega.
+- **Reparto del día al salir** — al fichar la salida sale el reparto de la jornada por cliente, ya
+  relleno con lo que midieron los cronómetros. Solo hay que añadir a mano lo que faltara.
 - **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase
   (p. ej. *Editar de X: 4h 20m*), el total por persona y quién está trabajando en cada cosa en
   este momento.
@@ -257,11 +265,14 @@ src/
     CardDrawer.tsx        Detalle del encargo
     Chat.tsx              Chat del equipo, adjuntos, transcripciones y Meet
     FichaCliente.tsx      Ficha y contexto de cada cliente
+    Panel.tsx             Resumen de todos los clientes y objetivos
+    SalidaDelDia.tsx      Reparto de la jornada al fichar la salida
     MensajesDirectos.tsx  Conversaciones privadas entre compañeros
     Logo.tsx              Logotipo de 21days agency
   lib/
     excel/                Los libros de Excel: estilo común, tiempos y fichajes
     subir.ts              Subida por partes de archivos grandes, con avance
+    prioridad.ts          Los cuatro niveles de prioridad y su orden
     supabase/             Clientes de Supabase (navegador, servidor, middleware)
     brand.ts              Nombre, bajada y logo de la marca
     types.ts, format.ts   Tipos y formateo de fechas

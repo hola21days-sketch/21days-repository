@@ -52,7 +52,9 @@ export default function Rail({
   onBorrarCliente,
 }: Props) {
   // Menú del botón derecho sobre un canal.
-  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!menu) return;
@@ -92,11 +94,15 @@ export default function Rail({
           <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
           <div className="client-item__body">
             <div className="client-item__name">{c.name}</div>
-            <div className="client-item__kind">{destacado ? "Todo el equipo" : c.kind}</div>
+            <div className="client-item__kind">
+              {destacado ? "Todo el equipo" : c.kind}
+            </div>
           </div>
           <div className="client-item__meta">
             {!destacado && <span className="count-chip">{c.openCount}</span>}
-            {c.unread && <span className="unread-dot" aria-label="Mensajes sin leer" />}
+            {c.unread && (
+              <span className="unread-dot" aria-label="Mensajes sin leer" />
+            )}
           </div>
         </button>
       </li>
@@ -113,29 +119,61 @@ export default function Rail({
           </div>
           <div className="rail__brand-sub">{BRAND.tagline}</div>
         </div>
-        <button type="button" className="rail__close" onClick={onClose} aria-label="Cerrar el listado">
+        <button
+          type="button"
+          className="rail__close"
+          onClick={onClose}
+          aria-label="Cerrar el listado"
+        >
           ✕
         </button>
       </div>
 
-      <button
-        type="button"
-        className={vista === "panel" ? "rail__nav is-active" : "rail__nav"}
-        onClick={() => onVista(vista === "panel" ? "cliente" : "panel")}
-      >
-        Panel de clientes
-      </button>
+      <nav className="rail__atajos">
+        <button
+          type="button"
+          className={vista === "panel" ? "rail__nav is-active" : "rail__nav"}
+          onClick={() => onVista(vista === "panel" ? "cliente" : "panel")}
+        >
+          Panel de clientes
+        </button>
 
-      <button
-        type="button"
-        className={vista === "mias" ? "rail__nav is-active" : "rail__nav"}
-        onClick={() => onVista(vista === "mias" ? "cliente" : "mias")}
-      >
-        Tareas del equipo
-      </button>
+        <button
+          type="button"
+          className={vista === "mias" ? "rail__nav is-active" : "rail__nav"}
+          onClick={() => onVista(vista === "mias" ? "cliente" : "mias")}
+        >
+          Tareas del equipo
+        </button>
+
+        <button
+          type="button"
+          className={vista === "dm" ? "rail__nav is-active" : "rail__nav"}
+          onClick={() => onVista(vista === "dm" ? "cliente" : "dm")}
+        >
+          Mensajes directos
+          {dmUnread > 0 && <span className="count-chip">{dmUnread}</span>}
+        </button>
+
+        {me.role === "admin" && (
+          <button
+            type="button"
+            className={
+              vista === "informes" ? "rail__nav is-active" : "rail__nav"
+            }
+            onClick={() =>
+              onVista(vista === "informes" ? "cliente" : "informes")
+            }
+          >
+            Informes de tiempo
+          </button>
+        )}
+      </nav>
 
       {internos.length > 0 && (
-        <ul className="rail__list rail__list--equipo">{internos.map((c) => entrada(c, true))}</ul>
+        <ul className="rail__list rail__list--equipo">
+          {internos.map((c) => entrada(c, true))}
+        </ul>
       )}
 
       <div className="rail__section-label">
@@ -143,7 +181,11 @@ export default function Rail({
         <button
           type="button"
           className="btn btn--ghost"
-          style={{ padding: "0.1rem 0.35rem", fontSize: "0.85rem", lineHeight: 1 }}
+          style={{
+            padding: "0.1rem 0.35rem",
+            fontSize: "0.85rem",
+            lineHeight: 1,
+          }}
           onClick={onNewClient}
           title="Añadir cliente"
           aria-label="Añadir cliente"
@@ -154,47 +196,45 @@ export default function Rail({
 
       <ul className="rail__list">
         {externos.length === 0 && (
-          <li style={{ padding: "0.6rem", fontSize: "0.82rem", color: "var(--ink-faint)" }}>
+          <li
+            style={{
+              padding: "0.6rem",
+              fontSize: "0.82rem",
+              color: "var(--ink-faint)",
+            }}
+          >
             Todavía no hay clientes. Añade el primero con el botón +.
           </li>
         )}
         {externos.map((c) => entrada(c))}
       </ul>
 
-      <button
-        type="button"
-        className={vista === "dm" ? "rail__nav is-active" : "rail__nav"}
-        onClick={() => onVista(vista === "dm" ? "cliente" : "dm")}
-      >
-        Mensajes directos
-        {dmUnread > 0 && <span className="count-chip">{dmUnread}</span>}
-      </button>
-
-      {me.role === "admin" && (
-        <button
-          type="button"
-          className={vista === "informes" ? "rail__nav is-active" : "rail__nav"}
-          onClick={() => onVista(vista === "informes" ? "cliente" : "informes")}
-        >
-          Informes de tiempo
-        </button>
-      )}
-
       <div className="rail__punch">
         <Fichaje me={me} profiles={profiles} clients={clients} />
       </div>
 
       <div className="rail__footer">
-        <Stamp label={me.initials || initialsOf(me.full_name)} color={me.color} />
+        <Stamp
+          label={me.initials || initialsOf(me.full_name)}
+          color={me.color}
+        />
         <span className="rail__footer-name">{me.full_name} · conectado</span>
         <form action="/auth/salir" method="post">
-          <button type="submit" className="btn btn--ghost" style={{ fontSize: "0.74rem" }}>
+          <button
+            type="submit"
+            className="btn btn--ghost"
+            style={{ fontSize: "0.74rem" }}
+          >
             Salir
           </button>
         </form>
       </div>
       {menu && (
-        <div className="menu-canal" style={{ top: menu.y, left: menu.x }} role="menu">
+        <div
+          className="menu-canal"
+          style={{ top: menu.y, left: menu.x }}
+          role="menu"
+        >
           <button
             type="button"
             onClick={() => {

@@ -115,7 +115,7 @@ a { color: var(--accent-ink); }
   min-width: 0;
 }
 .rail__brand {
-  padding: 1.1rem 1.1rem 0.9rem;
+  padding: 0.7rem 0.9rem 0.6rem;
   border-bottom: 1px solid var(--rule);
   display: flex;
   align-items: flex-start;
@@ -124,19 +124,19 @@ a { color: var(--accent-ink); }
 }
 .rail__brand-mark {
   font-family: var(--font-display);
-  font-size: 1.32rem;
+  font-size: 1.12rem;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 .rail__brand-mark span { color: var(--accent); }
 .rail__brand-sub {
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   color: var(--ink-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 0.28rem;
+  margin-top: 0.15rem;
 }
-.rail__logo { display: block; max-height: 28px; width: auto; margin-bottom: 0.5rem; }
+.rail__logo { display: block; max-height: 22px; width: auto; margin-bottom: 0.35rem; }
 .rail__close {
   display: none;
   border: 1px solid var(--rule);
@@ -159,10 +159,11 @@ a { color: var(--accent-ink); }
 .rail__list {
   list-style: none;
   margin: 0;
-  padding: 0 0.5rem;
+  padding: 0 0.5rem 0.4rem;
   overflow-y: auto;
   flex: 1;
 }
+.rail__list--equipo { flex: none; padding-bottom: 0; }
 .client-item {
   width: 100%;
   display: flex;
@@ -235,7 +236,7 @@ a { color: var(--accent-ink); }
 /* Fichaje, al pie del rail */
 .rail__punch {
   border-top: 1px solid var(--rule);
-  padding: 0.7rem 1.1rem 0.5rem;
+  padding: 0.5rem 0.9rem 0.4rem;
   flex: none;
 }
 .punch__state {
@@ -966,18 +967,29 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 
 /* ============ Informes ============ */
+.rail__atajos {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+}
 .rail__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   border: none;
-  border-top: 1px solid var(--rule);
   background: none;
   text-align: left;
-  padding: 0.6rem 1.1rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
   font-size: 0.8rem;
   color: var(--ink-muted);
   cursor: pointer;
   flex: none;
 }
-.rail__nav:hover { background: var(--surface-alt); }
+.rail__nav:hover { background: var(--bg); color: var(--ink); }
 .rail__nav.is-active { color: var(--accent-ink); font-weight: 600; background: var(--accent-soft); }
 
 .report { flex: 1; overflow-y: auto; padding: 1.1rem 1.4rem 1.6rem; }
@@ -1730,7 +1742,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 /* ==========================================================================
    Canal del equipo, menú del botón derecho y parte del día
    ========================================================================== */
-.rail__list--equipo { margin-bottom: 0.2rem; }
+.rail__list--equipo { margin: 0; padding: 0.35rem 0.5rem 0; }
 .client-item--equipo {
   border: 1px solid var(--accent);
   background: var(--accent-soft);

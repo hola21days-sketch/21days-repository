@@ -282,6 +282,22 @@ supabase/
   functions/transcribir/  Función de borde: voz a texto y traducción
 ```
 
+### Dar de baja a alguien
+
+Cuando alguien deja el equipo **no se borra su cuenta**: su historial (mensajes, fichajes,
+cronómetros) cuelga de su perfil con borrado en cascada, así que eliminarlo se lo llevaría por
+delante. Se le marca como inactivo, que lo saca de todas las listas de la app, y se le bloquea la
+entrada:
+
+```sql
+update public.profiles set active = false where lower(email) = 'correo@ejemplo.com';
+update auth.users set banned_until = 'infinity' where lower(email) = 'correo@ejemplo.com';
+delete from auth.sessions
+ where user_id in (select id from auth.users where lower(email) = 'correo@ejemplo.com');
+```
+
+Para readmitir a alguien, `active = true` y `banned_until = null`.
+
 ### Quién es administrador
 
 Los administradores son los únicos que ven los *Informes de tiempo* y el fichaje de todo el

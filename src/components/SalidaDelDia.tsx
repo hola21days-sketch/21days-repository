@@ -50,7 +50,7 @@ export default function SalidaDelDia({
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [nuevoCliente, setNuevoCliente] = useState("");
+  const [nuevosClientes, setNuevosClientes] = useState<string[]>([]);
   const [nuevaFase, setNuevaFase] = useState("Editar");
   const [nuevosMinutos, setNuevosMinutos] = useState(60);
   const [error, setError] = useState<string | null>(null);
@@ -95,19 +95,36 @@ export default function SalidaDelDia({
 
   const apuntado = lineas.reduce((a, l) => a + l.minutos, 0);
 
+  /**
+   * Añade una línea por cada cliente marcado. Es lo normal: una tarde editando
+   * suele repartirse entre dos o tres cuentas, y así se apunta de una vez.
+   */
   function añadir() {
-    if (!nuevoCliente || nuevosMinutos <= 0) return;
+    if (nuevosClientes.length === 0 || nuevosMinutos <= 0) return;
     setLineas((prev) => {
-      const yaEsta = prev.find(
-        (l) => l.clientId === nuevoCliente && l.fase === nuevaFase && !l.medido,
-      );
-      if (yaEsta) {
-        return prev.map((l) => (l === yaEsta ? { ...l, minutos: l.minutos + nuevosMinutos } : l));
+      let siguiente = [...prev];
+      for (const clientId of nuevosClientes) {
+        const yaEsta = siguiente.find(
+          (l) => l.clientId === clientId && l.fase === nuevaFase && !l.medido,
+        );
+        if (yaEsta) {
+          siguiente = siguiente.map((l) =>
+            l === yaEsta ? { ...l, minutos: l.minutos + nuevosMinutos } : l,
+          );
+        } else {
+          siguiente = [...siguiente, { clientId, fase: nuevaFase, minutos: nuevosMinutos, medido: false }];
+        }
       }
-      return [...prev, { clientId: nuevoCliente, fase: nuevaFase, minutos: nuevosMinutos, medido: false }];
+      return siguiente;
     });
-    setNuevoCliente("");
+    setNuevosClientes([]);
     setNuevosMinutos(60);
+  }
+
+  function alternar(clientId: string) {
+    setNuevosClientes((prev) =>
+      prev.includes(clientId) ? prev.filter((x) => x !== clientId) : [...prev, clientId],
+    );
   }
 
   /**
@@ -224,52 +241,66 @@ export default function SalidaDelDia({
               {apuntado === 0 && <span className="salida__resto">Falta apuntar algo</span>}
             </div>
 
-            {disponibles.length > 0 && (
-              <div className="salida__añadir">
-                <select
-                  className="input-inline"
-                  value={nuevaFase}
-                  onChange={(e) => setNuevaFase(e.target.value)}
-                  aria-label="Qué has hecho"
-                >
-                  {TAREAS.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="input-inline"
-                  value={nuevoCliente}
-                  onChange={(e) => setNuevoCliente(e.target.value)}
-                  aria-label="De qué cliente"
-                >
-                  <option value="">de qué cliente…</option>
-                  {disponibles.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className="input-inline salida__min"
-                  type="number"
-                  min={5}
-                  step={5}
-                  value={nuevosMinutos}
-                  onChange={(e) => setNuevosMinutos(Number(e.target.value) || 0)}
-                  aria-label="Minutos"
-                />
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={añadir}
-                  disabled={!nuevoCliente || nuevosMinutos <= 0}
-                >
-                  Añadir
-                </button>
+            <div className="salida__nueva">
+              <div className="salida__fila1">
+                <label className="salida__campo">
+                  <span>Qué has hecho</span>
+                  <select
+                    className="input-inline"
+                    value={nuevaFase}
+                    onChange={(e) => setNuevaFase(e.target.value)}
+                  >
+                    {TAREAS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="salida__campo salida__campo--corto">
+                  <span>Cuánto rato</span>
+                  <input
+                    className="input-inline"
+                    type="number"
+                    min={5}
+                    step={15}
+                    value={nuevosMinutos}
+                    onChange={(e) => setNuevosMinutos(Number(e.target.value) || 0)}
+                  />
+                </label>
               </div>
-            )}
+
+              <div className="salida__campo">
+                <span>De qué clientes (puedes marcar varios)</span>
+                <div className="salida__clientes">
+                  {disponibles.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={
+                        nuevosClientes.includes(c.id)
+                          ? "salida__cliente-chip is-on"
+                          : "salida__cliente-chip"
+                      }
+                      onClick={() => alternar(c.id)}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={añadir}
+                disabled={nuevosClientes.length === 0 || nuevosMinutos <= 0}
+              >
+                {nuevosClientes.length > 1
+                  ? `Añadir a ${nuevosClientes.length} clientes`
+                  : "Añadir"}
+              </button>
+            </div>
 
             {error && <div className="notice notice--error">{error}</div>}
 

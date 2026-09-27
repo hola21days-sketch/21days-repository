@@ -32,7 +32,9 @@ type ClientRow = {
   videos_per_month: number;
   contact: string;
   meet_url: string;
+  drive_url: string;
   priority: Prioridad;
+  internal: boolean;
 };
 type MemberRow = { client_id: string; profile_id: string };
 type AssigneeRow = { card_id: string; profile_id: string };
@@ -183,6 +185,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         id: c.id,
         name: c.name,
         kind: c.kind,
+        internal: c.internal,
         openCount: cards.filter((cd) => cd.client_id === c.id && !doneColumnIds.has(cd.column_id))
           .length,
         unread: isUnread(c.id),
@@ -206,7 +209,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       supabase.from("clients").select("*").eq("archived", false).order("position").order("name"),
       supabase.from("client_members").select("*"),
       supabase.from("board_columns").select("*").order("position"),
-      supabase.from("profiles").select("*").order("full_name"),
+      supabase.from("profiles").select("*").eq("active", true).order("full_name"),
     ]);
     if (clientsRes.data) setClients(clientsRes.data as ClientRow[]);
     if (membersRes.data) setMembers(membersRes.data as MemberRow[]);
@@ -628,6 +631,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           setRailOpen(false);
         }}
         onClose={() => setRailOpen(false)}
+        puedeBorrar={me.role === "admin"}
+        onBorrarCliente={(id) => void deleteClient(id)}
         vista={vista}
         dmUnread={dmUnread}
         onVista={(v) => {
@@ -739,6 +744,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           )}
 
           <div className="main__actions">
+            {activeClient && vista === "cliente" && activeClient.drive_url && (
+              <a
+                className="btn"
+                href={activeClient.drive_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Abrir la carpeta de Drive de este cliente"
+              >
+                Entrar al Drive
+              </a>
+            )}
             {activeClient && vista === "cliente" && (
               <button
                 type="button"
@@ -768,12 +784,14 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
         {vista === "panel" && (
           <Panel
-            clients={clients.map((c) => ({
-              id: c.id,
-              name: c.name,
-              kind: c.kind,
-              priority: c.priority,
-            }))}
+            clients={clients
+              .filter((c) => !c.internal)
+              .map((c) => ({
+                id: c.id,
+                name: c.name,
+                kind: c.kind,
+                priority: c.priority,
+              }))}
             columns={columns}
             profileById={profileById}
             me={me}

@@ -34,6 +34,11 @@ usuario y datos persistentes.
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Carpeta de Drive** — botón *Entrar al Drive* en la cabecera de cada cliente y dentro de su
+  ficha. Cada canal guarda su propia carpeta; los que no la tengan puesta apuntan a la carpeta
+  general de clientes.
+- **Canal del equipo** — los canales internos salen destacados arriba del listado y no cuentan
+  como clientes en el panel.
 - **Ficha del cliente** — se abre pulsando su nombre arriba: descripción, desde cuándo es cliente
   (y cuánto lleva con nosotros), temporada, vídeos al mes, contacto y cómo va ahora mismo el
   tablero. Se edita ahí mismo.

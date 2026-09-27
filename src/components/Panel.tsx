@@ -26,11 +26,9 @@ type Props = {
   onPrioridadCliente: (clientId: string, priority: Prioridad) => void;
 };
 
-/** El día 1 del mes que se está mirando, que es como se guarda el avance. */
-function primeroDeMes(salto: number): string {
-  const d = new Date();
-  const m = new Date(d.getFullYear(), d.getMonth() + salto, 1);
-  return `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}-01`;
+/** El día 1 de un mes, que es como se guarda el avance. */
+function primeroDeMes(anyo: number, mes: number): string {
+  return `${anyo}-${String(mes + 1).padStart(2, "0")}-01`;
 }
 
 const MESES = [
@@ -80,10 +78,12 @@ export default function Panel({
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [avance, setAvance] = useState<Avance[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [salto, setSalto] = useState(0);
+  const [anyo, setAnyo] = useState(() => new Date().getFullYear());
+  const [mesElegido, setMesElegido] = useState(() => new Date().getMonth());
   const [ventana, setVentana] = useState<"hoy" | "semana" | "mes" | "todo">("semana");
 
-  const mes = primeroDeMes(salto);
+  const mes = primeroDeMes(anyo, mesElegido);
+  const esteMes = new Date().getFullYear() === anyo && new Date().getMonth() === mesElegido;
 
   /** Las fases salen de las columnas, que son iguales para todos los clientes. */
   const fases = useMemo(() => {
@@ -231,19 +231,48 @@ export default function Panel({
 
       <div className="panel__bloque">
         <div className="panel__cabecera">
-          <h2 className="panel__titulo">Avance de {nombreDeMes(mes)}</h2>
+          <h2 className="panel__titulo">Avance del mes</h2>
           <div className="report__nav">
-            <button type="button" className="btn" onClick={() => setSalto((s) => s - 1)}>
-              ←
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => setSalto((s) => Math.min(0, s + 1))}
-              disabled={salto >= 0}
+            <select
+              className="input-inline"
+              value={mesElegido}
+              onChange={(e) => setMesElegido(Number(e.target.value))}
+              aria-label="Mes"
             >
-              →
-            </button>
+              {MESES.map((m, i) => (
+                <option key={m} value={i}>
+                  {m[0].toUpperCase() + m.slice(1)}
+                </option>
+              ))}
+            </select>
+            <select
+              className="input-inline"
+              value={anyo}
+              onChange={(e) => setAnyo(Number(e.target.value))}
+              aria-label="Año"
+            >
+              {[anyo - 1, anyo, anyo + 1]
+                .filter((a, i, xs) => xs.indexOf(a) === i)
+                .sort()
+                .map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+            </select>
+            {!esteMes && (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => {
+                  const hoy = new Date();
+                  setAnyo(hoy.getFullYear());
+                  setMesElegido(hoy.getMonth());
+                }}
+              >
+                Ir a este mes
+              </button>
+            )}
           </div>
         </div>
 

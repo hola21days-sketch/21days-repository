@@ -58,6 +58,7 @@ export default function FichaCliente({
     season: client.season,
     videos_per_month: client.videos_per_month,
     contact: client.contact,
+    drive_url: client.drive_url,
   });
   const [guardando, setGuardando] = useState(false);
 
@@ -77,6 +78,7 @@ export default function FichaCliente({
       season: borrador.season.trim(),
       videos_per_month: Number(borrador.videos_per_month) || 0,
       contact: borrador.contact.trim(),
+      drive_url: borrador.drive_url.trim(),
     };
     const supabase = createClient();
     await supabase.from("clients").update(cambios).eq("id", client.id);
@@ -93,6 +95,16 @@ export default function FichaCliente({
           <div className="ficha__tipo">{client.kind}</div>
         </div>
         <div className="ficha__acciones">
+          {!editando && client.drive_url && (
+            <a
+              className="btn btn--primary"
+              href={client.drive_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Entrar al Drive
+            </a>
+          )}
           {!editando && (
             <button type="button" className="btn btn--ghost" onClick={() => setEditando(true)}>
               Editar ficha
@@ -150,6 +162,16 @@ export default function FichaCliente({
               />
             </label>
           </div>
+
+          <label>
+            <span>Carpeta de Drive</span>
+            <input
+              className="input-inline"
+              placeholder="https://drive.google.com/drive/folders/…"
+              value={borrador.drive_url}
+              onChange={(e) => setBorrador({ ...borrador, drive_url: e.target.value })}
+            />
+          </label>
 
           <label>
             <span>Contacto</span>

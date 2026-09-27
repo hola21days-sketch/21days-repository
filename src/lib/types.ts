@@ -190,5 +190,7 @@ export type ClientDetails = {
   videos_per_month: number;
   contact: string;
   meet_url: string;
+  drive_url: string;
   priority: Prioridad;
+  internal: boolean;
 };

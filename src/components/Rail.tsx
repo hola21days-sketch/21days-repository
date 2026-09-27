@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Stamp from "./Stamp";
 import Logo from "./Logo";
 import Fichaje from "./Fichaje";
@@ -13,6 +14,8 @@ export type RailClient = {
   id: string;
   name: string;
   kind: string;
+  /** Los canales del equipo van aparte, arriba y destacados. */
+  internal: boolean;
   openCount: number;
   unread: boolean;
 };
@@ -29,6 +32,8 @@ type Props = {
   vista: Vista;
   onVista: (v: Vista) => void;
   dmUnread: number;
+  puedeBorrar: boolean;
+  onBorrarCliente: (id: string) => void;
 };
 
 export default function Rail({
@@ -43,7 +48,61 @@ export default function Rail({
   vista,
   onVista,
   dmUnread,
+  puedeBorrar,
+  onBorrarCliente,
 }: Props) {
+  // Menú del botón derecho sobre un canal.
+  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const cerrar = () => setMenu(null);
+    window.addEventListener("click", cerrar);
+    window.addEventListener("scroll", cerrar, true);
+    return () => {
+      window.removeEventListener("click", cerrar);
+      window.removeEventListener("scroll", cerrar, true);
+    };
+  }, [menu]);
+
+  const internos = clients.filter((c) => c.internal);
+  const externos = clients.filter((c) => !c.internal);
+
+  /** Una entrada del listado, con su menú del botón derecho. */
+  function entrada(c: RailClient, destacado = false) {
+    const clases = [
+      "client-item",
+      c.id === activeId && vista === "cliente" ? "is-active" : "",
+      destacado ? "client-item--equipo" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return (
+      <li key={c.id}>
+        <button
+          type="button"
+          className={clases}
+          onClick={() => onSelect(c.id)}
+          onContextMenu={(e) => {
+            if (!puedeBorrar) return;
+            e.preventDefault();
+            setMenu({ id: c.id, x: e.clientX, y: e.clientY });
+          }}
+        >
+          <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
+          <div className="client-item__body">
+            <div className="client-item__name">{c.name}</div>
+            <div className="client-item__kind">{destacado ? "Todo el equipo" : c.kind}</div>
+          </div>
+          <div className="client-item__meta">
+            {!destacado && <span className="count-chip">{c.openCount}</span>}
+            {c.unread && <span className="unread-dot" aria-label="Mensajes sin leer" />}
+          </div>
+        </button>
+      </li>
+    );
+  }
+
   return (
     <aside className={open ? "rail rail--open" : "rail"} id="rail">
       <div className="rail__brand">
@@ -75,6 +134,10 @@ export default function Rail({
         Tareas del equipo
       </button>
 
+      {internos.length > 0 && (
+        <ul className="rail__list rail__list--equipo">{internos.map((c) => entrada(c, true))}</ul>
+      )}
+
       <div className="rail__section-label">
         <span>Clientes activos</span>
         <button
@@ -90,32 +153,12 @@ export default function Rail({
       </div>
 
       <ul className="rail__list">
-        {clients.length === 0 && (
+        {externos.length === 0 && (
           <li style={{ padding: "0.6rem", fontSize: "0.82rem", color: "var(--ink-faint)" }}>
             Todavía no hay clientes. Añade el primero con el botón +.
           </li>
         )}
-        {clients.map((c) => (
-          <li key={c.id}>
-            <button
-              type="button"
-              className={
-                c.id === activeId && vista === "cliente" ? "client-item is-active" : "client-item"
-              }
-              onClick={() => onSelect(c.id)}
-            >
-              <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
-              <div className="client-item__body">
-                <div className="client-item__name">{c.name}</div>
-                <div className="client-item__kind">{c.kind}</div>
-              </div>
-              <div className="client-item__meta">
-                <span className="count-chip">{c.openCount}</span>
-                {c.unread && <span className="unread-dot" aria-label="Mensajes sin leer" />}
-              </div>
-            </button>
-          </li>
-        ))}
+        {externos.map((c) => entrada(c))}
       </ul>
 
       <button
@@ -150,6 +193,20 @@ export default function Rail({
           </button>
         </form>
       </div>
+      {menu && (
+        <div className="menu-canal" style={{ top: menu.y, left: menu.x }} role="menu">
+          <button
+            type="button"
+            onClick={() => {
+              const id = menu.id;
+              setMenu(null);
+              onBorrarCliente(id);
+            }}
+          >
+            Borrar canal
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

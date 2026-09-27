@@ -918,3 +918,13 @@ alter table public.client_month_progress enable row level security;
 drop policy if exists client_month_progress_all on public.client_month_progress;
 create policy client_month_progress_all on public.client_month_progress
   for all to authenticated using (true) with check (true);
+
+-- ============================================================================
+-- 16. Carpeta de Drive y canales internos
+-- ============================================================================
+alter table public.clients
+  add column if not exists drive_url text not null default '',
+  add column if not exists internal  boolean not null default false;
+
+-- Un canal marcado como interno es del equipo, no un cliente: no sale en el
+-- panel de clientes y se muestra destacado arriba del listado.

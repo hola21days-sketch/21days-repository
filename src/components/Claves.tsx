@@ -332,34 +332,39 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                     )}
                   </span>
 
-                  {c.url && (
-                    <a className="clave__ir" href={c.url} target="_blank" rel="noopener noreferrer">
-                      Abrir
-                    </a>
-                  )}
+                  {/* Enlace y botones juntos en su propio grupo: en el móvil
+                      la fila se apila y así estos caen en una línea suya en vez
+                      de una debajo de otra. */}
+                  <span className="clave__acciones-fila">
+                    {c.url && (
+                      <a className="clave__ir" href={c.url} target="_blank" rel="noopener noreferrer">
+                        Abrir
+                      </a>
+                    )}
 
-                  {/* El botón de editar va a la vista y con su nombre: pulsar
-                      el del servicio también abre, pero eso no se adivina. */}
-                  {puedeEditar && (
-                    <>
-                      <button
-                        type="button"
-                        className="clave__editar"
-                        onClick={() => (abierta ? cerrarEditor() : abrirEditor(c))}
-                      >
-                        {abierta ? "Cerrar" : "Editar"}
-                      </button>
-                      {guardado === c.id && <span className="clave__ok">guardado</span>}
-                      <button
-                        type="button"
-                        className="checklist__remove"
-                        onClick={() => void quitar(c)}
-                        aria-label={`Borrar ${c.service}`}
-                      >
-                        ✕
-                      </button>
-                    </>
-                  )}
+                    {/* El botón de editar va a la vista y con su nombre: pulsar
+                        el del servicio también abre, pero eso no se adivina. */}
+                    {puedeEditar && (
+                      <>
+                        <button
+                          type="button"
+                          className="clave__editar"
+                          onClick={() => (abierta ? cerrarEditor() : abrirEditor(c))}
+                        >
+                          {abierta ? "Cerrar" : "Editar"}
+                        </button>
+                        {guardado === c.id && <span className="clave__ok">guardado</span>}
+                        <button
+                          type="button"
+                          className="checklist__remove"
+                          onClick={() => void quitar(c)}
+                          aria-label={`Borrar ${c.service}`}
+                        >
+                          ✕
+                        </button>
+                      </>
+                    )}
+                  </span>
                 </div>
 
                 {(c.notes || quien) && !abierta && (

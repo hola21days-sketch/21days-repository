@@ -1978,6 +1978,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   background: var(--bg);
 }
 .clave__fila { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.clave__acciones-fila { display: flex; align-items: center; gap: 0.45rem; margin-left: auto; }
 .clave__servicio {
   border: none;
   background: none;
@@ -2247,4 +2248,137 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .panel__rejilla { grid-template-columns: 1fr; }
   .ficha__fila { grid-template-columns: 1fr; }
   .callbar__aviso { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* ==========================================================================
+   Móvil — que se use con el pulgar y sin trampas
+   --------------------------------------------------------------------------
+   Va después de todo lo demás a propósito: mismas especificidades, gana el
+   orden de la cascada. En escritorio no cambia nada, porque todo está dentro
+   de la consulta de medios.
+
+   Los cuatro problemas que arregla, por orden de molestia:
+     1. La página se movía de lado. Ahora lo que no cabe se desplaza dentro de
+        su propia caja (una tabla, una fila de botones), nunca la página.
+     2. iOS hace zoom al tocar un campo cuya letra mide menos de 16px, y luego
+        te deja la pantalla torcida. Todos los campos pasan a 16px.
+     3. Botones de 20px de alto que no se aciertan con el dedo.
+     4. El notch y la barra de gestos tapaban la primera y la última línea.
+   ========================================================================== */
+@media (max-width: 780px) {
+  /* --- Nada se sale de la pantalla ------------------------------------- */
+  html, body { overflow-x: hidden; }
+  .app { width: 100%; max-width: 100vw; overflow-x: hidden; }
+  .main { max-width: 100vw; }
+  img, video { max-width: 100%; height: auto; }
+
+  /* --- Campos a 16px: es el umbral por debajo del cual iOS hace zoom --- */
+  input, select, textarea, .input-inline, .composer__input {
+    font-size: 16px;
+  }
+  .input-inline { padding: 0.45rem 0.55rem; }
+
+  /* --- Que se acierte con el dedo -------------------------------------- */
+  .btn { padding: 0.55rem 0.9rem; font-size: 0.86rem; }
+  .btn--icon { width: 38px; height: 38px; }
+  .rail-toggle { width: 38px; height: 38px; }
+  input[type="checkbox"] { width: 20px; height: 20px; }
+  .task__row input[type="checkbox"],
+  .rejilla__casilla input { width: 22px; height: 22px; }
+  .checklist__remove, .clave__ojo, .clave__copiar, .clave__editar, .task__accion {
+    min-height: 32px;
+  }
+
+  /* --- El notch arriba y la barra de gestos abajo ----------------------- */
+  .rail.rail--open {
+    overflow-y: auto;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .composer { padding-bottom: calc(0.9rem + env(safe-area-inset-bottom)); }
+
+  /* --- Cabecera: el título manda, los botones se desplazan -------------- */
+  .main__header { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 0.9rem 0; }
+  .main__title { font-size: 1.15rem; }
+  .main__actions {
+    width: 100%;
+    overflow-x: auto;
+    gap: 0.45rem;
+    padding-bottom: 0.3rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .main__actions::-webkit-scrollbar { display: none; }
+  .tabs {
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-top: 0.4rem;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; padding: 0.55rem 0.05rem 0.6rem; }
+
+  /* --- Tablas: se desplazan solas y la primera columna se queda fija ---- */
+  .panel__rejillawrap, .report__tablewrap {
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  .rejilla { font-size: 0.8rem; min-width: 540px; }
+  .rejilla th, .rejilla td { padding: 0.35rem 0.45rem; }
+  /* La columna del nombre acompaña al desplazamiento: sin ella no se sabe de
+     qué cliente es la fila que estás marcando. */
+  .rejilla tbody th, .rejilla thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface);
+    box-shadow: 1px 0 0 var(--rule);
+  }
+  .rejilla__cliente { min-width: 128px; }
+  .rejilla__nombre { font-size: 0.8rem; }
+
+  /* --- Claves: una ficha por clave, no una fila imposible --------------- */
+  .clave__fila { display: grid; gap: 0.3rem; }
+  .clave__servicio, .clave__servicio.is-fijo { min-width: 0; font-size: 0.95rem; }
+  .clave__usuario, .clave__secreta { min-width: 0; flex-wrap: wrap; }
+  .clave__secreta code { word-break: break-all; }
+  .clave__acciones-fila { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .clave__editor { grid-template-columns: 1fr; }
+  .claves__campo { min-width: 0; flex-basis: 100%; }
+  .claves__todas { margin-left: 0; }
+
+  /* --- Tareas y objetivos: se apilan en vez de apretarse ---------------- */
+  .panel__objetivo { flex-wrap: wrap; gap: 0.4rem; }
+  .panel__objetivo-cuerpo { flex-basis: 100%; }
+  .panel__objetivo-texto { white-space: normal; }
+  .panel__prio, .panel__fecha { flex: 1; min-width: 120px; }
+  .task__text { white-space: normal; }
+  .task__estado { margin-left: 0; }
+  .task__estado--panel { margin-left: 0; }
+  .marcha__fila { flex-wrap: wrap; }
+  .marcha__texto { flex-basis: 100%; white-space: normal; }
+
+  /* --- Chat --------------------------------------------------------------*/
+  .chat__log { padding: 0.8rem 0.9rem; }
+  .composer { padding-left: 0.9rem; padding-right: 0.9rem; }
+  .msg__cuerpo, .msg__texto { word-break: break-word; overflow-wrap: anywhere; }
+
+  /* --- Ventanas emergentes --------------------------------------------- */
+  .modal { padding: 0.6rem; }
+  .modal__panel { width: 100%; max-height: 88dvh; overflow-y: auto; }
+  .ficha { width: 94vw; max-height: 88dvh; overflow-y: auto; }
+  .drawer { width: 100vw; }
+
+  /* --- Bloques con menos margen lateral, que la pantalla es estrecha ---- */
+  .panel, .tasks, .report, .claves { padding-left: 0.9rem; padding-right: 0.9rem; }
+}
+
+/* Móviles pequeños (iPhone SE y compañía): un punto menos de todo. */
+@media (max-width: 420px) {
+  .main__title { font-size: 1.05rem; }
+  .panel__titulo { font-size: 1rem; }
+  .rejilla { min-width: 480px; }
+  .panel, .tasks, .report, .claves { padding-left: 0.7rem; padding-right: 0.7rem; }
+  .chat__log { padding-left: 0.7rem; padding-right: 0.7rem; }
+  .composer { padding-left: 0.7rem; padding-right: 0.7rem; }
 }

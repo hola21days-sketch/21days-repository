@@ -39,6 +39,10 @@ usuario y datos persistentes.
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
   acabar se pulsa **Terminar proceso**. En *Tareas del equipo*, lo primero es **En marcha ahora
   mismo**: quién está con qué, en qué cliente y desde cuándo.
+- **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
+  pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del
+  botón ☰, las tablas se desplazan de lado con la columna del nombre fija, los campos no provocan
+  el zoom de iOS y se respetan el notch y la barra de gestos.
 - **Claves de acceso** — pestaña *Claves* dentro de cada cliente: Instagram, TikTok, Metricool,
   ManyChat, Google Ads, WordPress, Klaviyo… con su usuario, su contraseña, el enlace y notas. Salen
   tapadas: se enseñan de una en una, todas de golpe con *Ver todas*, o se copian sin verlas. Las lee

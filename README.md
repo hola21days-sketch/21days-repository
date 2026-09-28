@@ -39,6 +39,10 @@ usuario y datos persistentes.
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
   acabar se pulsa **Terminar proceso**. En *Tareas del equipo*, lo primero es **En marcha ahora
   mismo**: quién está con qué, en qué cliente y desde cuándo.
+- **Lo que queda a medias** — al cerrar la jornada, un cuarto paso opcional para apuntar lo que se
+  ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
+  con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
+  recado para que nadie empiece a ciegas.
 - **Mi agenda** — *Mi agenda*, en el panel izquierdo: lo de cada uno que no es trabajo, con su
   fecha y sus apuntes. **Solo la ve quien la escribe**, y no por estar escondida: la base de datos
   únicamente deja leer y escribir las filas propias, tenga el perfil que tenga. No sale en el panel

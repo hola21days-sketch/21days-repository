@@ -65,6 +65,12 @@ export default function SalidaDelDia({ me, clients, onConfirmar, onCancelar }: P
   const [elegidos, setElegidos] = useState<string[]>([]);
   const [minutos, setMinutos] = useState(60);
 
+  // Lo que queda a medias. No es una tarea: es el recado que uno se deja a sí
+  // mismo y al equipo para que mañana nadie empiece a ciegas.
+  const [avisos, setAvisos] = useState<{ id: string; clientId: string | null; texto: string }[]>([]);
+  const [avisoTexto, setAvisoTexto] = useState("");
+  const [avisoCliente, setAvisoCliente] = useState("");
+
   const nombreDe = useMemo(
     () => Object.fromEntries(clients.map((c) => [c.id, c.name])),
     [clients],
@@ -133,6 +139,16 @@ export default function SalidaDelDia({ me, clients, onConfirmar, onCancelar }: P
     setBusca("");
   }
 
+  function añadirAviso() {
+    const t = avisoTexto.trim();
+    if (!t) return;
+    setAvisos((prev) => [
+      ...prev,
+      { id: `aviso-${Date.now()}`, clientId: avisoCliente || null, texto: t },
+    ]);
+    setAvisoTexto("");
+  }
+
   /**
    * Lo apuntado a mano se guarda como un tramo cerrado más, para que los
    * informes de tiempo salgan de un único sitio y no haya dos verdades.
@@ -160,6 +176,23 @@ export default function SalidaDelDia({ me, clients, onConfirmar, onCancelar }: P
         return;
       }
     }
+    // Los avisos se guardan aunque no haya horas apuntadas: alguien puede
+    // cerrar el día sin repartir tiempo pero con cosas a medias.
+    if (avisos.length > 0) {
+      const { error: falloAvisos } = await supabase.from("daily_notes").insert(
+        avisos.map((a) => ({
+          profile_id: me.id,
+          client_id: a.clientId,
+          text: a.texto,
+        })),
+      );
+      if (falloAvisos) {
+        setGuardando(false);
+        setError("Las horas se han guardado, pero los avisos no. Vuelve a intentarlo.");
+        return;
+      }
+    }
+
     setGuardando(false);
     onConfirmar();
   }
@@ -341,6 +374,78 @@ export default function SalidaDelDia({ me, clients, onConfirmar, onCancelar }: P
                       : `${elegidos.length} clientes`
                   }`}
             </button>
+          </div>
+
+          {/* Paso final: lo que queda a medias. Opcional, pero es lo que hace
+              que mañana el equipo sepa por dónde iba cada uno. */}
+          <div className="parte__paso">
+            <div className="parte__paso-cab">
+              <span className="parte__num">4</span>
+              <div>
+                <h3 className="parte__paso-tit">¿Algo se ha quedado a medias?</h3>
+                <p className="parte__paso-sub">
+                  Opcional. Lo que escribas aquí lo ve todo el equipo mañana, con tu nombre y el
+                  cliente, para que nadie empiece a ciegas.
+                </p>
+              </div>
+            </div>
+
+            {avisos.length > 0 && (
+              <ul className="parte__avisos">
+                {avisos.map((a) => (
+                  <li key={a.id} className="parte__aviso">
+                    {a.clientId && (
+                      <span className="parte__aviso-cliente">{nombreDe[a.clientId]}</span>
+                    )}
+                    <span className="parte__aviso-texto">{a.texto}</span>
+                    <button
+                      type="button"
+                      className="checklist__remove"
+                      onClick={() => setAvisos((prev) => prev.filter((x) => x.id !== a.id))}
+                      aria-label="Quitar este aviso"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="parte__aviso-nuevo">
+              <select
+                className="input-inline"
+                value={avisoCliente}
+                onChange={(e) => setAvisoCliente(e.target.value)}
+                aria-label="De qué cliente"
+              >
+                <option value="">Sin cliente</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="input-inline parte__aviso-campo"
+                placeholder="El montaje está a medio exportar, falta que Aina apruebe el guion…"
+                value={avisoTexto}
+                onChange={(e) => setAvisoTexto(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    añadirAviso();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn"
+                onClick={añadirAviso}
+                disabled={!avisoTexto.trim()}
+              >
+                Apuntar
+              </button>
+            </div>
           </div>
 
           {error && <div className="notice notice--error">{error}</div>}

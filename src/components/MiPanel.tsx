@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
 import { pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import { conEnlaces } from "@/lib/enlaces";
-import type { ClientTask, Prioridad, Profile } from "@/lib/types";
+import type { ClientTask, DailyNote, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
   me: Profile;
@@ -59,6 +59,7 @@ function hoyISO(): string {
 export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
+  const [avisos, setAvisos] = useState<DailyNote[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mirando, setMirando] = useState<string>(me.id);
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
@@ -89,6 +90,16 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       .select("*")
       .or(`done.eq.false,done_at.gte.${desde.toISOString()}`);
     setTasks((data ?? []) as ClientTask[]);
+
+    // Lo que se quedó a medias: lo pendiente de las dos últimas semanas.
+    const { data: notas } = await supabase
+      .from("daily_notes")
+      .select("*")
+      .eq("done", false)
+      .gte("day", desde.toISOString().slice(0, 10))
+      .order("day", { ascending: false });
+    setAvisos((notas ?? []) as DailyNote[]);
+
     setCargando(false);
   }, [supabase]);
 
@@ -105,6 +116,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     const canal = supabase
       .channel("tareas-equipo")
       .on("postgres_changes", { event: "*", schema: "public", table: "client_tasks" }, () => {
+        void cargar();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "daily_notes" }, () => {
         void cargar();
       })
       .subscribe();
@@ -144,6 +158,15 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     const done_at = done ? new Date().toISOString() : null;
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done, done_at } : t)));
     await supabase.from("client_tasks").update({ done, done_at }).eq("id", task.id);
+  }
+
+  /** Darlo por resuelto lo quita de la lista: ya no hay nada que avisar. */
+  async function resolver(a: DailyNote) {
+    setAvisos((prev) => prev.filter((x) => x.id !== a.id));
+    await supabase
+      .from("daily_notes")
+      .update({ done: true, done_at: new Date().toISOString(), done_by: me.id })
+      .eq("id", a.id);
   }
 
   async function borrar(ids: string[]) {
@@ -321,6 +344,48 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
 
   return (
     <section className="panel">
+      {avisos.length > 0 && (
+        <div className="panel__bloque">
+          <div className="panel__cabecera">
+            <h2 className="panel__titulo">Se quedó a medias</h2>
+            <span className="count-chip">{avisos.length}</span>
+          </div>
+          <p className="panel__pista">
+            Lo que cada uno apuntó al cerrar su jornada. Cuando esté retomado, dale a{" "}
+            <b>Resuelto</b> y desaparece de aquí.
+          </p>
+          <ul className="medias">
+            {avisos.map((a) => {
+              const quien = profileById[a.profile_id];
+              return (
+                <li key={a.id} className="medias__fila">
+                  {quien && (
+                    <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+                  )}
+                  <span className="medias__quien">
+                    {quien ? quien.full_name.split(" ")[0] : "Alguien"}
+                  </span>
+                  <span className="medias__texto">{conEnlaces(a.text, a.id)}</span>
+                  {a.client_id && (
+                    <button
+                      type="button"
+                      className="marcha__cliente"
+                      onClick={() => onAbrirCliente(a.client_id as string)}
+                    >
+                      {clientNames[a.client_id] ?? "cliente"}
+                    </button>
+                  )}
+                  <span className="medias__dia">{comoDia(a.day, hoy)}</span>
+                  <button type="button" className="task__accion" onClick={() => void resolver(a)}>
+                    Resuelto
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div className="panel__bloque">
         <div className="panel__cabecera">
           <h2 className="panel__titulo">En marcha ahora mismo</h2>

@@ -1041,3 +1041,47 @@ create policy personal_notes_todo on public.personal_notes
   for all to authenticated
   using (profile_id = auth.uid())
   with check (profile_id = auth.uid());
+
+-- ============================================================================
+-- 22. Lo que queda a medias al cerrar la jornada
+-- ----------------------------------------------------------------------------
+-- No es una tarea: es el recado que uno se deja a sí mismo y al equipo —«el
+-- montaje de Kreps está a medio exportar», «falta que Aina apruebe el guion»—
+-- para que al día siguiente nadie empiece a ciegas. Lo ve todo el equipo, cada
+-- uno escribe los suyos, y cualquiera puede darlo por resuelto: si lo retoma
+-- otra persona, pasa a ser suyo.
+-- ============================================================================
+create table if not exists public.daily_notes (
+  id         uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  client_id  uuid references public.clients(id) on delete set null,
+  day        date not null default (now() at time zone 'Europe/Madrid')::date,
+  kind       text not null default 'a_medias'
+             check (kind in ('a_medias', 'bloqueo', 'nota')),
+  text       text not null,
+  done       boolean not null default false,
+  done_at    timestamptz,
+  done_by    uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists daily_notes_dia_idx on public.daily_notes (done, day desc);
+create index if not exists daily_notes_cliente_idx on public.daily_notes (client_id, done);
+
+alter table public.daily_notes enable row level security;
+
+drop policy if exists daily_notes_select on public.daily_notes;
+create policy daily_notes_select on public.daily_notes
+  for select to authenticated using (true);
+
+drop policy if exists daily_notes_insert on public.daily_notes;
+create policy daily_notes_insert on public.daily_notes
+  for insert to authenticated with check (profile_id = auth.uid());
+
+drop policy if exists daily_notes_update on public.daily_notes;
+create policy daily_notes_update on public.daily_notes
+  for update to authenticated using (true) with check (true);
+
+drop policy if exists daily_notes_delete on public.daily_notes;
+create policy daily_notes_delete on public.daily_notes
+  for delete to authenticated using (profile_id = auth.uid() or public.is_admin());

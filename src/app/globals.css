@@ -2445,3 +2445,51 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .explica__texto, .nota__leer { font-size: 0.95rem; }
   .panel__filtros-sep { display: none; }
 }
+
+/* ==========================================================================
+   Lo que se quedó a medias al cerrar la jornada
+   ========================================================================== */
+.medias { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.medias__fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--amber, var(--rule));
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.medias__quien { flex: none; font-weight: 700; font-size: 0.85rem; }
+.medias__texto { flex: 1; min-width: 0; font-size: 0.88rem; overflow-wrap: anywhere; }
+.medias__dia { flex: none; font-size: 0.72rem; color: var(--ink-faint); white-space: nowrap; }
+
+/* El paso 4 del parte del día */
+.parte__avisos { list-style: none; margin: 0 0 0.5rem; padding: 0; display: grid; gap: 0.3rem; }
+.parte__aviso {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: var(--surface-alt);
+  font-size: 0.85rem;
+}
+.parte__aviso-cliente {
+  flex: none;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.parte__aviso-texto { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.parte__aviso-nuevo { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+.parte__aviso-campo { flex: 1; min-width: 180px; }
+
+@media (max-width: 780px) {
+  .medias__fila { flex-wrap: wrap; }
+  .medias__texto { flex-basis: 100%; }
+  .parte__aviso-nuevo > * { flex-basis: 100%; }
+}

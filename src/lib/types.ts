@@ -140,6 +140,20 @@ export type ClientTask = {
   created_at: string;
 };
 
+/** Lo que alguien dejó a medias al cerrar su jornada. Lo ve todo el equipo. */
+export type DailyNote = {
+  id: string;
+  profile_id: string;
+  client_id: string | null;
+  day: string;
+  kind: "a_medias" | "bloqueo" | "nota";
+  text: string;
+  done: boolean;
+  done_at: string | null;
+  done_by: string | null;
+  created_at: string;
+};
+
 /** Una anotación de la agenda personal. Solo la ve quien la escribió. */
 export type PersonalNote = {
   id: string;

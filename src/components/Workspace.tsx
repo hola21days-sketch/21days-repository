@@ -954,6 +954,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           <Tareas
             key={activeClient.id}
             clientId={activeClient.id}
+            me={me}
             profiles={profiles}
             profileById={profileById}
             onCount={setPendingTasks}

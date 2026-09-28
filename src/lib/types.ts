@@ -133,6 +133,10 @@ export type ClientTask = {
   due_date: string | null;
   priority: Prioridad;
   done_at: string | null;
+  /** Cuándo alguien le dio a «Iniciar tarea». Null si todavía no la ha cogido nadie. */
+  started_at: string | null;
+  /** Quién la tiene entre manos. Se conserva al terminarla, como registro. */
+  started_by: string | null;
   created_at: string;
 };
 

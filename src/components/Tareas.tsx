@@ -9,10 +9,21 @@ import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
   clientId: string;
+  me: Profile;
   profiles: Profile[];
   profileById: Record<string, Profile>;
   onCount?: (n: number) => void;
 };
+
+/** «Lleva 1 h 20 min», para la etiqueta de una tarea en proceso. */
+function desdeCuando(inicio: string): string {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(inicio).getTime()) / 60000));
+  if (minutos < 1) return "acaba de empezar";
+  if (minutos < 60) return `lleva ${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  return resto === 0 ? `lleva ${horas} h` : `lleva ${horas} h ${resto} min`;
+}
 
 /**
  * Lista de pendientes propia de cada cliente.
@@ -21,7 +32,7 @@ type Props = {
  * Grabar…) y esto es la lista suelta de recados de ese canal. Cada tarea puede
  * abrirse para poner quién la hace, las indicaciones y para cuándo.
  */
-export default function Tareas({ clientId, profiles, profileById, onCount }: Props) {
+export default function Tareas({ clientId, me, profiles, profileById, onCount }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [draft, setDraft] = useState("");
@@ -124,6 +135,28 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
     if (error) setError("No se ha podido guardar el cambio.");
   }
 
+  /**
+   * Coge la tarea: pasa a «en proceso» con tu nombre, para que el resto vea a
+   * qué estás. Si no tenía responsable, te lo pones de paso.
+   */
+  function empezar(task: ClientTask) {
+    void guardar(task, {
+      started_at: new Date().toISOString(),
+      started_by: me.id,
+      assignee_id: task.assignee_id ?? me.id,
+    });
+  }
+
+  /** Terminar el proceso es darla por hecha. El inicio se guarda como registro. */
+  function terminar(task: ClientTask) {
+    void guardar(task, { done: true, done_at: new Date().toISOString() });
+  }
+
+  /** Si se ha cogido por error, se suelta sin dejar rastro de que estaba en marcha. */
+  function soltar(task: ClientTask) {
+    void guardar(task, { started_at: null, started_by: null });
+  }
+
   async function quitar(task: ClientTask) {
     setTasks((prev) => prev.filter((t) => t.id !== task.id));
     await supabase.from("client_tasks").delete().eq("id", task.id);
@@ -131,10 +164,12 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
 
   // Lo urgente arriba; a igualdad de prioridad, manda la fecha de entrega y
   // después el orden en que se escribieron.
+  // Lo que está en marcha, primero: es lo que se está haciendo ahora mismo.
   const pendientes = tasks
     .filter((t) => !t.done)
     .sort(
       (a, b) =>
+        Number(!!b.started_at) - Number(!!a.started_at) ||
         pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
         (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999") ||
         a.position - b.position,
@@ -144,11 +179,17 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
   function fila(t: ClientTask) {
     const responsable = t.assignee_id ? profileById[t.assignee_id] : null;
     const abierto = abierta === t.id;
+    const enProceso = !t.done && !!t.started_at;
+    const quienLaLleva = t.started_by ? profileById[t.started_by] : null;
     return (
       <li
         key={t.id}
         id={`tarea-${t.id}`}
-        className={[t.done ? "task is-done" : "task", reciente === t.id ? "is-nueva" : ""]
+        className={[
+          t.done ? "task is-done" : "task",
+          reciente === t.id ? "is-nueva" : "",
+          enProceso ? "is-en-proceso" : "",
+        ]
           .filter(Boolean)
           .join(" ")}
       >
@@ -181,6 +222,46 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
           )}
           {t.due_date && <span className="task__due">{formatDue(t.due_date)}</span>}
           {t.notes && !abierto && <span className="task__flag" title="Tiene indicaciones">✎</span>}
+
+          {/* Iniciar · en proceso · terminar. Lo que está en marcha se ve desde
+              lejos, y con el nombre de quien la lleva. */}
+          {enProceso && (
+            <span
+              className="task__proceso"
+              title={t.started_at ? `Empezada ${desdeCuando(t.started_at)}` : undefined}
+            >
+              En proceso
+              {quienLaLleva && ` · ${quienLaLleva.full_name.split(" ")[0]}`}
+              {t.started_at && ` · ${desdeCuando(t.started_at)}`}
+            </span>
+          )}
+
+          {!t.done && !enProceso && (
+            <button type="button" className="task__accion" onClick={() => empezar(t)}>
+              Iniciar tarea
+            </button>
+          )}
+
+          {enProceso && (
+            <>
+              <button
+                type="button"
+                className="task__accion task__accion--fin"
+                onClick={() => terminar(t)}
+              >
+                Terminar proceso
+              </button>
+              <button
+                type="button"
+                className="task__accion task__accion--soltar"
+                onClick={() => soltar(t)}
+                title="La he cogido sin querer"
+              >
+                Soltar
+              </button>
+            </>
+          )}
+
           <button
             type="button"
             className="checklist__remove"

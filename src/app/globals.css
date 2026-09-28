@@ -2049,6 +2049,86 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--ink-faint);
 }
 .clave__ancho { grid-column: 1 / -1; }
+/* ==========================================================================
+   Tareas en proceso — iniciar, en marcha, terminar
+   ========================================================================== */
+.marcha { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.marcha__fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 8px;
+}
+.marcha__quien { flex: none; font-weight: 700; font-size: 0.85rem; }
+.marcha__texto {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.87rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.marcha__cliente {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.76rem;
+  color: var(--accent-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.marcha__rato { flex: none; font-size: 0.74rem; color: var(--ink-muted); white-space: nowrap; }
+
+.task.is-en-proceso {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.task__proceso {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  white-space: nowrap;
+}
+.task__accion {
+  flex: none;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 0.14rem 0.55rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.task__accion:hover { border-color: var(--accent); color: var(--accent-ink); }
+.task__accion--fin {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.task__accion--fin:hover {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+  color: var(--on-accent);
+}
+.task__accion--soltar { color: var(--ink-faint); }
+
 .claves__todas { margin-left: auto; flex: none; }
 .clave__sin { color: var(--ink-faint); font-size: 0.8rem; }
 .clave__editar {

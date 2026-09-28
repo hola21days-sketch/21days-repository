@@ -35,6 +35,10 @@ usuario y datos persistentes.
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Tareas en proceso** — dentro de un cliente, cada pendiente tiene **Iniciar tarea**. Mientras
+  está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
+  acabar se pulsa **Terminar proceso**. En *Tareas del equipo*, lo primero es **En marcha ahora
+  mismo**: quién está con qué, en qué cliente y desde cuándo.
 - **Claves de acceso** — pestaña *Claves* dentro de cada cliente: Instagram, TikTok, Metricool,
   ManyChat, Google Ads, WordPress, Klaviyo… con su usuario, su contraseña, el enlace y notas. Salen
   tapadas: se enseñan de una en una, todas de golpe con *Ver todas*, o se copian sin verlas. Las lee
@@ -289,6 +293,7 @@ src/
     SalidaDelDia.tsx      Reparto de la jornada al fichar la salida
     MensajesDirectos.tsx  Conversaciones privadas entre compañeros
     Logo.tsx              Logotipo de 21days agency
+  ../public/              Iconos y manifest para instalarla en el móvil
   lib/
     excel/                Los libros de Excel: estilo común, tiempos y fichajes
     subir.ts              Subida por partes de archivos grandes, con avance

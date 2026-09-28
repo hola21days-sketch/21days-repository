@@ -996,3 +996,18 @@ create policy client_credentials_update on public.client_credentials
 drop policy if exists client_credentials_delete on public.client_credentials;
 create policy client_credentials_delete on public.client_credentials
   for delete to authenticated using (public.is_admin());
+
+-- ============================================================================
+-- 20. Tareas en proceso
+-- ----------------------------------------------------------------------------
+-- Tres estados: pendiente, en proceso y hecha. Al pulsar «Iniciar tarea» se
+-- guarda quién la cogió y cuándo, así el equipo ve a qué está cada uno ahora
+-- mismo. El inicio se conserva al terminarla, como registro de cuánto llevó.
+-- ============================================================================
+alter table public.client_tasks
+  add column if not exists started_at timestamptz,
+  add column if not exists started_by uuid references public.profiles(id) on delete set null;
+
+create index if not exists client_tasks_en_proceso_idx
+  on public.client_tasks (started_by)
+  where started_at is not null and not done;

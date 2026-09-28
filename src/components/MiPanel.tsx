@@ -32,6 +32,16 @@ function comoDia(iso: string, hoy: string): string {
   return largo[0].toUpperCase() + largo.slice(1);
 }
 
+/** «lleva 1 h 20 min» desde que alguien inició la tarea. */
+function desdeCuando(inicio: string): string {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(inicio).getTime()) / 60000));
+  if (minutos < 1) return "acaba de empezar";
+  if (minutos < 60) return `lleva ${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  return resto === 0 ? `lleva ${horas} h` : `lleva ${horas} h ${resto} min`;
+}
+
 function hoyISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -53,6 +63,11 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [diasAbiertos, setDiasAbiertos] = useState<Set<string>>(() => new Set([hoyISO()]));
+
+  const profileById = useMemo(
+    () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
+    [profiles],
+  );
 
   /**
    * Se traen también las hechas de los últimos quince días: marcarlas no las
@@ -187,6 +202,19 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
 
   const sinAsignar = tasks.filter((t) => !t.assignee_id && !t.done);
 
+  /**
+   * Lo que se está haciendo en este momento: las tareas que alguien ha
+   * iniciado y todavía no ha terminado. Va lo primero del panel porque es la
+   * pregunta del día — ¿a qué está cada uno ahora mismo?
+   */
+  const enMarcha = useMemo(
+    () =>
+      tasks
+        .filter((t) => !t.done && t.started_at)
+        .sort((a, b) => (a.started_at ?? "").localeCompare(b.started_at ?? "")),
+    [tasks],
+  );
+
   const delElegido = useMemo(
     () => tasks.filter((t) => (mirando === "" ? !t.assignee_id : t.assignee_id === mirando)),
     [tasks, mirando],
@@ -231,6 +259,48 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
 
   return (
     <section className="panel">
+      <div className="panel__bloque">
+        <div className="panel__cabecera">
+          <h2 className="panel__titulo">En marcha ahora mismo</h2>
+          <span className="count-chip">{enMarcha.length}</span>
+        </div>
+        {enMarcha.length === 0 ? (
+          <p className="panel__vacio">
+            Nadie tiene ninguna tarea iniciada. Dentro de un cliente, en <b>Tareas</b>, se pulsa{" "}
+            <b>Iniciar tarea</b> y aparece aquí.
+          </p>
+        ) : (
+          <ul className="marcha">
+            {enMarcha.map((t) => {
+              const quien = t.started_by ? profileById[t.started_by] : null;
+              return (
+                <li key={t.id} className="marcha__fila">
+                  {quien ? (
+                    <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+                  ) : (
+                    <Stamp label="?" color={stampColor(t.id)} />
+                  )}
+                  <span className="marcha__quien">
+                    {quien ? quien.full_name.split(" ")[0] : "Alguien"}
+                  </span>
+                  <span className="marcha__texto">{t.text}</span>
+                  <button
+                    type="button"
+                    className="marcha__cliente"
+                    onClick={() => onAbrirCliente(t.client_id)}
+                  >
+                    {clientNames[t.client_id] ?? "cliente"}
+                  </button>
+                  {t.started_at && (
+                    <span className="marcha__rato">{desdeCuando(t.started_at)}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       <div className="panel__bloque">
         <div className="panel__cabecera">
           <h2 className="panel__titulo">Reparto del equipo</h2>

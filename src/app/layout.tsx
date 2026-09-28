@@ -5,6 +5,17 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: BRAND.company,
   description: `${BRAND.tagline} de ${BRAND.company}: tablero, chat interno y seguimiento de encargos, cliente a cliente.`,
+  // Con esto, «Añadir a pantalla de inicio» en el móvil deja un icono como el
+  // de cualquier app y se abre a pantalla completa, sin la barra del navegador.
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Bitácora", statusBarStyle: "default" },
+  icons: {
+    icon: [
+      { url: "/icono-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icono-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

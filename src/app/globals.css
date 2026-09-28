@@ -2074,6 +2074,19 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-size: 0.76rem;
   color: var(--ink-faint);
 }
+/* Guardar y Cancelar en su propia línea, al ancho completo del editor: son el
+   final del recorrido y tienen que verse sin buscarlos. */
+.clave__acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+.clave__ok {
+  flex: none;
+  font-size: 0.72rem;
+  color: var(--accent-ink);
+}
 
 .claves__nueva {
   margin-top: 1rem;

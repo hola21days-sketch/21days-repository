@@ -56,6 +56,14 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
   const [todasALaVista, setTodasALaVista] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
   const [editando, setEditando] = useState<string | null>(null);
+  /**
+   * Lo que se está escribiendo en el editor, aparte de la clave guardada. Nada
+   * se toca hasta pulsar Guardar: así se puede cambiar el usuario y la
+   * contraseña de una vez, y arrepentirse sin haber roto nada.
+   */
+  const [borrador, setBorrador] = useState({ ...VACIA });
+  const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState<string | null>(null);
   const [nueva, setNueva] = useState({ ...VACIA });
   const [añadiendo, setAñadiendo] = useState(false);
 
@@ -145,7 +153,47 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
     setNueva({ ...VACIA });
   }
 
-  async function guardar(c: Credencial, patch: Partial<Credencial>) {
+  /** Abre el editor de una clave con lo que hay ahora mismo dentro. */
+  function abrirEditor(c: Credencial) {
+    setEditando(c.id);
+    setBorrador({
+      service: c.service,
+      username: c.username,
+      secret: c.secret,
+      url: c.url,
+      notes: c.notes,
+    });
+    setError(null);
+  }
+
+  function cerrarEditor() {
+    setEditando(null);
+    setBorrador({ ...VACIA });
+  }
+
+  /** Guarda de golpe todo lo que se haya cambiado en el editor. */
+  async function guardarBorrador(c: Credencial) {
+    if (guardando) return;
+    if (!borrador.service.trim()) {
+      setError("El servicio no puede quedarse sin nombre.");
+      return;
+    }
+    setGuardando(true);
+    const ok = await guardar(c, {
+      service: borrador.service.trim(),
+      username: borrador.username.trim(),
+      secret: borrador.secret,
+      url: borrador.url.trim(),
+      notes: borrador.notes.trim(),
+    });
+    setGuardando(false);
+    if (!ok) return;
+    cerrarEditor();
+    setGuardado(c.id);
+    setTimeout(() => setGuardado((g) => (g === c.id ? null : g)), 2500);
+  }
+
+  async function guardar(c: Credencial, patch: Partial<Credencial>): Promise<boolean> {
     const cambios = { ...patch, updated_by: me.id, updated_at: new Date().toISOString() };
     setClaves((prev) => prev.map((x) => (x.id === c.id ? { ...x, ...cambios } : x)));
     // Se pide la fila de vuelta a propósito: si no eres administrador, la base
@@ -163,9 +211,10 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
           : "No se ha podido guardar: solo un administrador puede cambiar las claves.",
       );
       void cargar();
-      return;
+      return false;
     }
     setError(null);
+    return true;
   }
 
   async function quitar(c: Credencial) {
@@ -234,7 +283,7 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                     <button
                       type="button"
                       className="clave__servicio"
-                      onClick={() => setEditando(abierta ? null : c.id)}
+                      onClick={() => (abierta ? cerrarEditor() : abrirEditor(c))}
                       title="Editar"
                     >
                       {c.service}
@@ -296,10 +345,11 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                       <button
                         type="button"
                         className="clave__editar"
-                        onClick={() => setEditando(abierta ? null : c.id)}
+                        onClick={() => (abierta ? cerrarEditor() : abrirEditor(c))}
                       >
                         {abierta ? "Cerrar" : "Editar"}
                       </button>
+                      {guardado === c.id && <span className="clave__ok">guardado</span>}
                       <button
                         type="button"
                         className="checklist__remove"
@@ -324,31 +374,32 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                 )}
 
                 {abierta && puedeEditar && (
-                  <div className="clave__editor">
+                  <form
+                    className="clave__editor"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void guardarBorrador(c);
+                    }}
+                  >
                     <p className="clave__ayuda">
-                      Cambia lo que haga falta: la contraseña se ve mientras la editas y se guarda
-                      sola al salir del campo.
+                      Cambia lo que haga falta y pulsa <b>Guardar</b>. Hasta entonces no se toca
+                      nada, así que puedes cancelar sin miedo.
                     </p>
                     <label>
                       <span>Servicio</span>
                       <input
                         className="input-inline"
                         list="claves-servicios"
-                        defaultValue={c.service}
-                        onBlur={(e) =>
-                          e.target.value !== c.service && void guardar(c, { service: e.target.value })
-                        }
+                        value={borrador.service}
+                        onChange={(e) => setBorrador({ ...borrador, service: e.target.value })}
                       />
                     </label>
                     <label>
                       <span>Usuario</span>
                       <input
                         className="input-inline"
-                        defaultValue={c.username}
-                        onBlur={(e) =>
-                          e.target.value !== c.username &&
-                          void guardar(c, { username: e.target.value })
-                        }
+                        value={borrador.username}
+                        onChange={(e) => setBorrador({ ...borrador, username: e.target.value })}
                       />
                     </label>
                     <label>
@@ -361,35 +412,42 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                         type="text"
                         autoComplete="off"
                         spellCheck={false}
-                        defaultValue={c.secret}
-                        onBlur={(e) =>
-                          e.target.value !== c.secret && void guardar(c, { secret: e.target.value })
-                        }
+                        value={borrador.secret}
+                        onChange={(e) => setBorrador({ ...borrador, secret: e.target.value })}
                       />
                     </label>
                     <label>
                       <span>Enlace</span>
                       <input
                         className="input-inline"
-                        defaultValue={c.url}
+                        value={borrador.url}
                         placeholder="https://…"
-                        onBlur={(e) =>
-                          e.target.value !== c.url && void guardar(c, { url: e.target.value })
-                        }
+                        onChange={(e) => setBorrador({ ...borrador, url: e.target.value })}
                       />
                     </label>
                     <label className="clave__ancho">
                       <span>Notas</span>
                       <input
                         className="input-inline"
-                        defaultValue={c.notes}
+                        value={borrador.notes}
                         placeholder="Doble factor, quién la tiene, cuándo caduca…"
-                        onBlur={(e) =>
-                          e.target.value !== c.notes && void guardar(c, { notes: e.target.value })
-                        }
+                        onChange={(e) => setBorrador({ ...borrador, notes: e.target.value })}
                       />
                     </label>
-                  </div>
+                    <div className="clave__acciones">
+                      <button type="submit" className="btn btn--primary" disabled={guardando}>
+                        {guardando ? "Guardando…" : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={cerrarEditor}
+                        disabled={guardando}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
                 )}
               </li>
             );

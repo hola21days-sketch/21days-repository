@@ -281,6 +281,7 @@ a { color: var(--accent-ink); }
 }
 .rail__footer .stamp { width: 24px; height: 24px; font-size: 0.6rem; }
 .rail__footer-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail__footer { flex-wrap: wrap; }
 
 /* ============ Panel principal ============ */
 .main { display: flex; flex-direction: column; min-width: 0; }
@@ -2063,7 +2064,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 .task__estado--panel { margin: 0.2rem 0 0.5rem 1.9rem; }
 .rail__version {
-  display: block;
+  flex-basis: 100%;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--ink-faint);

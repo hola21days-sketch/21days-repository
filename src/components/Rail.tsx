@@ -222,14 +222,7 @@ export default function Rail({
           label={me.initials || initialsOf(me.full_name)}
           color={me.color}
         />
-        <span className="rail__footer-name">
-          {me.full_name} · conectado
-          {/* Qué versión estás viendo. Si algo «no aparece», lo primero es
-              mirar aquí: si el código es viejo, es cuestión de recargar. */}
-          <span className="rail__version" title="Versión publicada">
-            {versionPublicada()}
-          </span>
-        </span>
+        <span className="rail__footer-name">{me.full_name} · conectado</span>
         <form action="/auth/salir" method="post">
           <button
             type="submit"
@@ -239,6 +232,12 @@ export default function Rail({
             Salir
           </button>
         </form>
+        {/* Qué versión estás viendo. Si algo «no aparece», lo primero es mirar
+            aquí: si el código es viejo, es cuestión de recargar. Va en su propia
+            línea porque el hueco del nombre recorta lo que no cabe. */}
+        <span className="rail__version" title="Versión publicada">
+          {versionPublicada()}
+        </span>
       </div>
       {menu && (
         <div

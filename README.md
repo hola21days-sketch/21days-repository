@@ -39,6 +39,10 @@ usuario y datos persistentes.
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
   acabar se pulsa **Terminar proceso**. En *Tareas del equipo*, lo primero es **En marcha ahora
   mismo**: quién está con qué, en qué cliente y desde cuándo.
+- **Mi agenda** — *Mi agenda*, en el panel izquierdo: lo de cada uno que no es trabajo, con su
+  fecha y sus apuntes. **Solo la ve quien la escribe**, y no por estar escondida: la base de datos
+  únicamente deja leer y escribir las filas propias, tenga el perfil que tenga. No sale en el panel
+  del equipo ni en los informes.
 - **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
   pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del
   botón ☰, las tablas se desplazan de lado con la columna del nombre fija, los campos no provocan
@@ -291,6 +295,7 @@ src/
     Informes.tsx          Tiempo por cliente, fase y persona
     MiPanel.tsx           Lo mío y el reparto del equipo
     Claves.tsx            Claves de acceso de cada cliente
+    Agenda.tsx            Agenda personal, privada de cada uno
     Chat.tsx              Chat del equipo, adjuntos, transcripciones y Meet
     FichaCliente.tsx      Ficha y contexto de cada cliente
     Panel.tsx             Resumen de todos los clientes y objetivos

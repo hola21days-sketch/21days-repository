@@ -1011,3 +1011,33 @@ alter table public.client_tasks
 create index if not exists client_tasks_en_proceso_idx
   on public.client_tasks (started_by)
   where started_at is not null and not done;
+
+-- ============================================================================
+-- 21. Agenda personal
+-- ----------------------------------------------------------------------------
+-- Las cosas de cada uno que no son trabajo. Privada de verdad, no solo
+-- escondida en pantalla: la política solo deja ver y tocar las filas propias,
+-- así que ni un administrador lee las de otro desde la aplicación.
+-- ============================================================================
+create table if not exists public.personal_notes (
+  id         uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  text       text not null,
+  notes      text not null default '',
+  done       boolean not null default false,
+  done_at    timestamptz,
+  due_date   date,
+  position   integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists personal_notes_mias_idx
+  on public.personal_notes (profile_id, done, due_date);
+
+alter table public.personal_notes enable row level security;
+
+drop policy if exists personal_notes_todo on public.personal_notes;
+create policy personal_notes_todo on public.personal_notes
+  for all to authenticated
+  using (profile_id = auth.uid())
+  with check (profile_id = auth.uid());

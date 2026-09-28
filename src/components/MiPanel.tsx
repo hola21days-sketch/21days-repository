@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
-import { etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import { pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import { conEnlaces } from "@/lib/enlaces";
 import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
@@ -65,6 +66,10 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [diasAbiertos, setDiasAbiertos] = useState<Set<string>>(() => new Set([hoyISO()]));
   // Qué trozo de la lista se mira: lo de hoy, lo de la semana o todo.
   const [cuando, setCuando] = useState<"hoy" | "semana" | "todo">("todo");
+  // Por prioridad (lo urgente arriba) o por fecha (lo que vence antes arriba).
+  const [orden, setOrden] = useState<"prioridad" | "fecha">("prioridad");
+  // Qué tarea tiene la explicación desplegada.
+  const [desplegada, setDesplegada] = useState<string | null>(null);
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -234,18 +239,25 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
    * Lo pendiente de quien se esté mirando. Lo que ya está en marcha sube del
    * todo: es lo que se está haciendo ahora, antes que ninguna prioridad.
    */
-  const todasSuyas = useMemo(
-    () =>
-      delElegido
-        .filter((t) => !t.done)
-        .sort(
-          (a, b) =>
-            Number(!!b.started_at) - Number(!!a.started_at) ||
-            pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
-            (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99"),
-        ),
-    [delElegido],
-  );
+  const todasSuyas = useMemo(() => {
+    // Sin fecha va al final en los dos órdenes: lo que no tiene día no corre.
+    const sinFecha = "9999-99-99";
+    return delElegido
+      .filter((t) => !t.done)
+      .sort((a, b) => {
+        if (orden === "fecha") {
+          return (
+            (a.due_date ?? sinFecha).localeCompare(b.due_date ?? sinFecha) ||
+            pesoPrioridad(a.priority) - pesoPrioridad(b.priority)
+          );
+        }
+        return (
+          Number(!!b.started_at) - Number(!!a.started_at) ||
+          pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
+          (a.due_date ?? sinFecha).localeCompare(b.due_date ?? sinFecha)
+        );
+      });
+  }, [delElegido, orden]);
 
   /** Lo que vence hoy o antes, y lo que vence de aquí a siete días. */
   const finDeSemana = useMemo(() => {
@@ -275,10 +287,35 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     return [...mapa.entries()].sort((a, b) => b[0].localeCompare(a[0]));
   }, [hechas]);
 
-  const porPrioridad = PRIORIDADES.map((p) => ({
-    ...p,
-    items: suyas.filter((t) => t.priority === p.key),
-  })).filter((g) => g.items.length > 0);
+  /**
+   * Los bloques en que se parte la lista. Por prioridad salen Urgente,
+   * Importante…; por fecha sale un bloque por día de entrega, y al final lo
+   * que no tiene fecha puesta.
+   */
+  const grupos = useMemo(() => {
+    if (orden === "prioridad") {
+      return PRIORIDADES.map((p) => ({
+        clave: p.key as string,
+        titulo: p.texto,
+        chip: `prio prio--${p.key}`,
+        items: suyas.filter((t) => t.priority === p.key),
+      })).filter((g) => g.items.length > 0);
+    }
+    const mapa = new Map<string, ClientTask[]>();
+    for (const t of suyas) {
+      const dia = t.due_date ?? "";
+      mapa.set(dia, [...(mapa.get(dia) ?? []), t]);
+    }
+    return [...mapa.entries()]
+      // El grupo sin fecha se queda el último, pase lo que pase.
+      .sort(([a], [b]) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)))
+      .map(([dia, items]) => ({
+        clave: dia || "sin-fecha",
+        titulo: dia ? comoDia(dia, hoy) : "Sin fecha",
+        chip: dia && dia < hoy ? "prio prio--urgente" : "prio prio--hecha",
+        items,
+      }));
+  }, [orden, suyas, hoy]);
 
   const quienMiro = mirando === "" ? null : profiles.find((p) => p.id === mirando);
 
@@ -517,6 +554,24 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
               {texto} <span className="count-chip">{n}</span>
             </button>
           ))}
+
+          <span className="panel__filtros-sep" />
+
+          {(
+            [
+              ["prioridad", "Por prioridad"],
+              ["fecha", "Por fecha"],
+            ] as const
+          ).map(([clave, texto]) => (
+            <button
+              key={clave}
+              type="button"
+              className={orden === clave ? "chip is-activo" : "chip"}
+              onClick={() => setOrden(clave)}
+            >
+              {texto}
+            </button>
+          ))}
         </div>
 
         {cargando && <p className="panel__vacio">Cargando…</p>}
@@ -527,10 +582,10 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
           <p className="panel__vacio">Todo hecho. Abajo tienes lo cerrado estos días.</p>
         )}
 
-        {porPrioridad.map((g) => (
-          <div key={g.key} className="panel__grupo">
+        {grupos.map((g) => (
+          <div key={g.clave} className="panel__grupo">
             <div className="panel__grupo-cab">
-              <span className={`prio prio--${g.key}`}>{etiqueta(g.key)}</span>
+              <span className={g.chip}>{g.titulo}</span>
               <span className="count-chip">{g.items.length}</span>
             </div>
             <ul className="panel__objetivos">
@@ -551,12 +606,18 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       title="Dar por hecha"
                       aria-label={`Dar por hecha: ${t.text}`}
                     />
+                    {/* Pulsar la tarea despliega su explicación aquí mismo. Ir
+                        al canal del cliente es otro botón, abajo: al mirar tu
+                        lista lo que quieres es leer, no cambiar de pantalla. */}
                     <button
                       type="button"
                       className="panel__objetivo-cuerpo panel__objetivo-abrir"
                       onClick={() =>
-                        seleccion.size > 0 ? alternarSeleccion(t.id) : onAbrirCliente(t.client_id)
+                        seleccion.size > 0
+                          ? alternarSeleccion(t.id)
+                          : setDesplegada((d) => (d === t.id ? null : t.id))
                       }
+                      aria-expanded={desplegada === t.id}
                     >
                       <span className="panel__objetivo-texto">{t.text}</span>
                       <span className="panel__objetivo-meta">
@@ -593,6 +654,47 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       aria-label="Para cuándo"
                     />
                   </div>
+
+                  {desplegada === t.id && (
+                    <div className="explica">
+                      <div className="explica__cab">
+                        <span className="explica__cliente">
+                          {clientNames[t.client_id] ?? "Cliente"}
+                        </span>
+                        {t.due_date && (
+                          <span
+                            className={
+                              isOverdue(t.due_date) ? "panel__due is-overdue" : "panel__due"
+                            }
+                          >
+                            Para {formatDue(t.due_date)}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="explica__titulo">{t.text}</p>
+
+                      {t.notes ? (
+                        // Los enlaces salen pulsables y el texto respeta los
+                        // saltos de línea: es la explicación de la tarea, se
+                        // lee tal como se escribió.
+                        <div className="explica__texto">{conEnlaces(t.notes, t.id)}</div>
+                      ) : (
+                        <p className="explica__vacio">
+                          Esta tarea no tiene explicación. Se escribe desde el canal del cliente,
+                          en <b>Tareas</b>, pulsando sobre ella.
+                        </p>
+                      )}
+
+                      <button
+                        type="button"
+                        className="btn btn--ghost explica__ir"
+                        onClick={() => onAbrirCliente(t.client_id)}
+                      >
+                        Ir al canal de {clientNames[t.client_id] ?? "este cliente"} →
+                      </button>
+                    </div>
+                  )}
 
                   {/* Iniciar y terminar desde aquí mismo: este es el panel donde
                       cada uno mira lo suyo, no hace falta entrar al cliente. */}

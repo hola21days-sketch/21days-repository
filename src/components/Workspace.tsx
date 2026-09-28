@@ -10,6 +10,7 @@ import FichaCliente from "./FichaCliente";
 import Informes from "./Informes";
 import Panel from "./Panel";
 import MiPanel from "./MiPanel";
+import Agenda from "./Agenda";
 import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
@@ -742,7 +743,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                           ? "Panel de clientes"
                           : vista === "mias"
                             ? "Tareas del equipo"
-                            : BRAND.company}
+                            : vista === "agenda"
+                              ? "Mi agenda"
+                              : BRAND.company}
                   </div>
                 )}
                 <div className="main__kind">
@@ -754,7 +757,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                         ? "Qué hay abierto y qué toca cerrar antes"
                         : vista === "mias"
                           ? "Qué lleva cada uno y para cuándo"
-                          : (activeClient?.kind ?? "Sin cliente seleccionado")}
+                          : vista === "agenda"
+                            ? "Tus cosas, solo las ves tú"
+                            : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
 
                 {fichaAbierta && activeClient && vista === "cliente" && (
@@ -902,6 +907,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             }}
           />
         )}
+
+        {vista === "agenda" && <Agenda me={me} />}
 
         {vista === "dm" && (
           <MensajesDirectos me={me} profiles={profiles} onUnread={setDmUnread} />

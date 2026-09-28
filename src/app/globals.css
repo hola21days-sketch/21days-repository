@@ -2382,3 +2382,66 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .chat__log { padding-left: 0.7rem; padding-right: 0.7rem; }
   .composer { padding-left: 0.7rem; padding-right: 0.7rem; }
 }
+
+/* ==========================================================================
+   Explicación desplegada de una tarea, y agenda personal
+   ========================================================================== */
+.panel__filtros-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--rule);
+  margin: 0 0.25rem;
+}
+
+/* La explicación se lee, no se ojea: letra normal, saltos de línea
+   respetados y enlaces pulsables. */
+.explica {
+  margin: 0.35rem 0 0.6rem 0.4rem;
+  padding: 0.7rem 0.85rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.explica__cab {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
+}
+.explica__cliente {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.explica__titulo {
+  margin: 0 0 0.45rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.explica__texto,
+.nota__leer {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+.nota__leer {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}
+.explica__vacio { margin: 0; font-size: 0.85rem; color: var(--ink-faint); }
+.explica__ir { margin-top: 0.6rem; padding-left: 0; }
+
+@media (max-width: 780px) {
+  .explica { margin-left: 0; }
+  .explica__titulo { font-size: 1rem; }
+  .explica__texto, .nota__leer { font-size: 0.95rem; }
+  .panel__filtros-sep { display: none; }
+}

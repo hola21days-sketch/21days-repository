@@ -9,7 +9,7 @@ import { initialsOf, stampColor } from "@/lib/format";
 import { versionPublicada } from "@/lib/version";
 import type { Profile } from "@/lib/types";
 
-export type Vista = "cliente" | "informes" | "dm" | "panel" | "mias";
+export type Vista = "cliente" | "informes" | "dm" | "panel" | "mias" | "agenda";
 
 export type RailClient = {
   id: string;
@@ -148,6 +148,14 @@ export default function Rail({
           onClick={() => onVista(vista === "mias" ? "cliente" : "mias")}
         >
           Tareas del equipo
+        </button>
+
+        <button
+          type="button"
+          className={vista === "agenda" ? "rail__nav is-active" : "rail__nav"}
+          onClick={() => onVista(vista === "agenda" ? "cliente" : "agenda")}
+        >
+          Mi agenda
         </button>
 
         <button

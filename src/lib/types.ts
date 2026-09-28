@@ -140,6 +140,19 @@ export type ClientTask = {
   created_at: string;
 };
 
+/** Una anotación de la agenda personal. Solo la ve quien la escribió. */
+export type PersonalNote = {
+  id: string;
+  profile_id: string;
+  text: string;
+  notes: string;
+  done: boolean;
+  done_at: string | null;
+  due_date: string | null;
+  position: number;
+  created_at: string;
+};
+
 export type Meeting = {
   id: string;
   client_id: string;

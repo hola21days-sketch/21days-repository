@@ -82,6 +82,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [reads, setReads] = useState<Record<string, string>>(() =>
     Object.fromEntries(initial.reads.map((r) => [r.client_id, r.last_read_at])),
   );
+  /**
+   * Última vez que alguien puso o tocó una tarea en cada canal. Va junto con
+   * `lastMsgAt` para decidir si el canal sale en negrita: da igual si la
+   * novedad es un mensaje o una tarea, lo que importa es que hay algo nuevo.
+   */
+  const [lastTaskAt, setLastTaskAt] = useState<Record<string, string>>({});
 
   const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
   const [tab, setTab] = useState<"chat" | "tareas" | "claves">("tareas");
@@ -162,6 +168,24 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     [activeId, tab, lastMsgAt, reads],
   );
 
+  /**
+   * Si en este canal hay algo nuevo desde la última vez que se abrió: un
+   * mensaje o una tarea. Es lo que pone el canal en negrita en el listado.
+   */
+  const hayNovedades = useCallback(
+    (clientId: string) => {
+      if (clientId === activeId) return false;
+      const read = reads[clientId];
+      const nuevo = [lastMsgAt[clientId], lastTaskAt[clientId]]
+        .filter(Boolean)
+        .map((f) => new Date(f as string).getTime());
+      if (nuevo.length === 0) return false;
+      if (!read) return true;
+      return Math.max(...nuevo) > new Date(read).getTime();
+    },
+    [activeId, reads, lastMsgAt, lastTaskAt],
+  );
+
   // Se da por cerrado lo que llega a la última columna del tablero (hoy,
   // Report). Va por posición y no por nombre, para que siga valiendo si
   // algún día se renombran o se añaden columnas.
@@ -190,9 +214,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         internal: c.internal,
         openCount: cards.filter((cd) => cd.client_id === c.id && !doneColumnIds.has(cd.column_id))
           .length,
-        unread: isUnread(c.id),
+        unread: hayNovedades(c.id),
       })),
-    [clients, cards, doneColumnIds, isUnread],
+    [clients, cards, doneColumnIds, hayNovedades],
   );
 
   // ---------------------------------------------------------------- recargas
@@ -395,6 +419,46 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       vigente = false;
     };
   }, [activeId, supabase]);
+
+  /**
+   * Cuándo se movió por última vez una tarea en cada canal. Se pide una vez y
+   * después se va actualizando con lo que llegue por realtime.
+   */
+  useEffect(() => {
+    const resumir = (filas: { client_id: string; created_at: string }[]) => {
+      const mapa: Record<string, string> = {};
+      for (const f of filas) {
+        if (!mapa[f.client_id] || f.created_at > mapa[f.client_id]) mapa[f.client_id] = f.created_at;
+      }
+      setLastTaskAt(mapa);
+    };
+    void (async () => {
+      const { data } = await supabase.from("client_tasks").select("client_id, created_at");
+      if (data) resumir(data as { client_id: string; created_at: string }[]);
+    })();
+
+    const canal = supabase
+      .channel("novedades-tareas")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "client_tasks" },
+        (payload) => {
+          const fila = payload.new as { client_id: string; created_at: string };
+          setLastTaskAt((prev) => ({ ...prev, [fila.client_id]: fila.created_at }));
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [supabase]);
+
+  // Abrir el canal da lo de dentro por visto, sea la pestaña que sea: así la
+  // negrita se quita igual si la novedad era un mensaje o una tarea.
+  useEffect(() => {
+    if (!activeId || vista !== "cliente") return;
+    void markRead(activeId);
+  }, [activeId, vista, markRead]);
 
   useEffect(() => {
     if (!activeId || tab !== "chat") return;

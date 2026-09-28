@@ -43,6 +43,9 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [aLaVista, setALaVista] = useState<Set<string>>(new Set());
+  // Cuando hay que trabajar la cuenta de verdad, ir abriendo una a una es un
+  // engorro: este interruptor las enseña todas de golpe.
+  const [todasALaVista, setTodasALaVista] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
   const [editando, setEditando] = useState<string | null>(null);
   const [nueva, setNueva] = useState({ ...VACIA });
@@ -152,11 +155,24 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
         <div className="tasks__head">
           <h2 className="tasks__title">Claves de {clientName}</h2>
           <span className="count-chip">{claves.length}</span>
+          {claves.length > 0 && (
+            <button
+              type="button"
+              className="btn btn--ghost claves__todas"
+              onClick={() => {
+                setTodasALaVista((v) => !v);
+                setALaVista(new Set());
+              }}
+            >
+              {todasALaVista ? "Ocultar todas" : "Ver todas"}
+            </button>
+          )}
         </div>
 
         <p className="claves__aviso">
-          Las ve todo el equipo. Salen tapadas: púlsalas para enseñarlas, o cópialas sin verlas.
-          No las pegues en el chat ni en Slack.
+          Las ve todo el equipo. Salen tapadas: pulsa <b>Ver</b> en una, o <b>Ver todas</b> para
+          enseñarlas de golpe. Con <b>copiar</b> las pasas al portapapeles sin verlas. No las
+          pegues en el chat ni en Slack.
           {!puedeEditar && " Cambiarlas es cosa de un administrador."}
         </p>
 
@@ -173,7 +189,7 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
 
         <ul className="claves__lista">
           {claves.map((c) => {
-            const visible = aLaVista.has(c.id);
+            const visible = todasALaVista || aLaVista.has(c.id);
             const quien = c.updated_by ? profileById[c.updated_by] : null;
             const abierta = editando === c.id;
             return (
@@ -206,22 +222,30 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                   </span>
 
                   <span className="clave__secreta">
-                    <code>{visible ? c.secret || "—" : "••••••••••"}</code>
-                    <button
-                      type="button"
-                      className="clave__ojo"
-                      onClick={() => alternarVista(c.id)}
-                      aria-label={visible ? "Ocultar" : "Enseñar"}
-                    >
-                      {visible ? "Ocultar" : "Ver"}
-                    </button>
-                    <button
-                      type="button"
-                      className="clave__copiar"
-                      onClick={() => void copiar(c.secret, `s-${c.id}`)}
-                    >
-                      {copiado === `s-${c.id}` ? "copiado" : "copiar"}
-                    </button>
+                    {/* Si no hay contraseña apuntada se dice, en vez de enseñar
+                        puntitos que hacen pensar que sí la hay. */}
+                    {c.secret ? (
+                      <>
+                        <code>{visible ? c.secret : "••••••••••"}</code>
+                        <button
+                          type="button"
+                          className="clave__ojo"
+                          onClick={() => alternarVista(c.id)}
+                          aria-label={visible ? "Ocultar" : "Enseñar"}
+                        >
+                          {visible ? "Ocultar" : "Ver"}
+                        </button>
+                        <button
+                          type="button"
+                          className="clave__copiar"
+                          onClick={() => void copiar(c.secret, `s-${c.id}`)}
+                        >
+                          {copiado === `s-${c.id}` ? "copiado" : "copiar"}
+                        </button>
+                      </>
+                    ) : (
+                      <em className="clave__sin">sin contraseña apuntada</em>
+                    )}
                   </span>
 
                   {c.url && (
@@ -230,15 +254,26 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                     </a>
                   )}
 
+                  {/* El botón de editar va a la vista y con su nombre: pulsar
+                      el del servicio también abre, pero eso no se adivina. */}
                   {puedeEditar && (
-                    <button
-                      type="button"
-                      className="checklist__remove"
-                      onClick={() => void quitar(c)}
-                      aria-label={`Borrar ${c.service}`}
-                    >
-                      ✕
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="clave__editar"
+                        onClick={() => setEditando(abierta ? null : c.id)}
+                      >
+                        {abierta ? "Cerrar" : "Editar"}
+                      </button>
+                      <button
+                        type="button"
+                        className="checklist__remove"
+                        onClick={() => void quitar(c)}
+                        aria-label={`Borrar ${c.service}`}
+                      >
+                        ✕
+                      </button>
+                    </>
                   )}
                 </div>
 
@@ -255,6 +290,9 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
 
                 {abierta && puedeEditar && (
                   <div className="clave__editor">
+                    <p className="clave__ayuda">
+                      Cambia lo que haga falta: se guarda solo al salir de cada campo.
+                    </p>
                     <label>
                       <span>Servicio</span>
                       <input

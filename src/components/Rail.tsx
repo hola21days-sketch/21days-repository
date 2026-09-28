@@ -17,6 +17,7 @@ export type RailClient = {
   /** Los canales del equipo van aparte, arriba y destacados. */
   internal: boolean;
   openCount: number;
+  /** Hay algo nuevo desde la última vez: un mensaje o una tarea. */
   unread: boolean;
 };
 
@@ -76,6 +77,8 @@ export default function Rail({
       "client-item",
       c.id === activeId && vista === "cliente" ? "is-active" : "",
       destacado ? "client-item--equipo" : "",
+      // Si alguien ha escrito o ha puesto una tarea, el canal va en negrita.
+      c.unread ? "is-novedad" : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -101,7 +104,7 @@ export default function Rail({
           <div className="client-item__meta">
             {!destacado && <span className="count-chip">{c.openCount}</span>}
             {c.unread && (
-              <span className="unread-dot" aria-label="Mensajes sin leer" />
+              <span className="unread-dot" aria-label="Hay algo nuevo" />
             )}
           </div>
         </button>

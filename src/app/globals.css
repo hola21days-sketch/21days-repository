@@ -1765,6 +1765,13 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .client-item--equipo .client-item__name { font-weight: 700; }
 .client-item--equipo .client-item__kind { color: var(--accent); }
 
+/* Canal con algo nuevo: un mensaje o una tarea. En negrita y con el nombre a
+   tinta plena, que es lo que se ve de un vistazo bajando por el listado. */
+.client-item.is-novedad .client-item__name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .menu-canal {
   position: fixed;
   z-index: 80;
@@ -2042,6 +2049,26 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--ink-faint);
 }
 .clave__ancho { grid-column: 1 / -1; }
+.claves__todas { margin-left: auto; flex: none; }
+.clave__sin { color: var(--ink-faint); font-size: 0.8rem; }
+.clave__editar {
+  flex: none;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.clave__editar:hover { border-color: var(--accent); color: var(--accent-ink); }
+.clave__ayuda {
+  grid-column: 1 / -1;
+  margin: 0 0 0.2rem;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+}
+
 .claves__nueva {
   margin-top: 1rem;
   padding-top: 0.8rem;

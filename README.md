@@ -16,11 +16,12 @@ usuario y datos persistentes.
 
 ## Qué hace
 
-- **Índice de clientes** — con el número de encargos abiertos y un punto rojo cuando hay mensajes
-  del equipo sin leer.
+- **Índice de clientes** — con el número de encargos abiertos. El canal sale **en negrita** y con un
+  punto cuando hay algo nuevo desde la última vez que se abrió: un mensaje o una tarea. Abrirlo lo
+  da por visto.
 - **Avance del mes** — en el panel de clientes, una rejilla con una fila por cliente y una casilla
-  por fase (*Idear · Grabar · Editar · Programar · Report*). Marcarla deja constancia de quién la
-  dio por hecha. Sustituye al tablero de tarjetas, que ya no existe.
+  por fase (*Idear · Grabar · Editar · Programar · Report*). Una casilla marcada se ve marcada y
+  nada más: quién la marcó no se muestra. Sustituye al tablero de tarjetas, que ya no existe.
 - **Chat interno por cliente** — conversación que ve solo el equipo, nunca el cliente, con
   **archivos adjuntos**: vídeo 4K, Excel, PDF o lo que sea, guardados tal cual y descargados
   idénticos (sin recomprimir ni recortar resolución). Los grandes se suben por partes, con
@@ -35,10 +36,11 @@ usuario y datos persistentes.
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
 - **Claves de acceso** — pestaña *Claves* dentro de cada cliente: Instagram, TikTok, Metricool,
-  ManyChat, Canva… con su usuario, su contraseña, el enlace y notas. Salen tapadas y se copian sin
-  verlas. Las lee todo el equipo, pero **solo un administrador puede añadirlas, cambiarlas o
-  borrarlas**, y cada cambio deja quién y cuándo. Las internas de la agencia van en el canal
-  21DAYS.
+  ManyChat, Google Ads, WordPress, Klaviyo… con su usuario, su contraseña, el enlace y notas. Salen
+  tapadas: se enseñan de una en una, todas de golpe con *Ver todas*, o se copian sin verlas. Las lee
+  todo el equipo, pero **solo un administrador puede añadirlas, cambiarlas o borrarlas** (botón
+  *Editar* en cada fila), y cada cambio deja quién y cuándo. Las internas de la agencia van en el
+  canal 21DAYS.
 - **Drive y Pinterest** — botones *Entrar al Drive* y *Pinterest* en la cabecera de cada cliente y
   dentro de su ficha. Cada canal guarda su carpeta de Drive y su tablero de look & feel; los que
   no tengan carpeta propia apuntan a la carpeta general de clientes.

@@ -132,6 +132,7 @@ export type ClientTask = {
   notes: string;
   due_date: string | null;
   priority: Prioridad;
+  done_at: string | null;
   created_at: string;
 };
 

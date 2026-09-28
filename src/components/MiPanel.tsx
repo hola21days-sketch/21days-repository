@@ -33,8 +33,18 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [cargando, setCargando] = useState(true);
   const [mirando, setMirando] = useState<string>(me.id);
 
+  /**
+   * Se traen también las hechas de los últimos quince días: marcarlas no las
+   * hace desaparecer, se quedan tachadas para poder repasar de un vistazo lo
+   * que ha salido esta semana.
+   */
   const cargar = useCallback(async () => {
-    const { data } = await supabase.from("client_tasks").select("*").eq("done", false);
+    const desde = new Date();
+    desde.setDate(desde.getDate() - 15);
+    const { data } = await supabase
+      .from("client_tasks")
+      .select("*")
+      .or(`done.eq.false,done_at.gte.${desde.toISOString()}`);
     setTasks((data ?? []) as ClientTask[]);
     setCargando(false);
   }, [supabase]);
@@ -51,21 +61,26 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     await supabase.from("client_tasks").update(patch).eq("id", task.id);
   }
 
-  async function terminar(task: ClientTask) {
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
-    await supabase.from("client_tasks").update({ done: true }).eq("id", task.id);
+  /** Marcar y desmarcar. Nada se borra: lo hecho se queda tachado. */
+  async function alternarHecha(task: ClientTask) {
+    const done = !task.done;
+    const done_at = done ? new Date().toISOString() : null;
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done, done_at } : t)));
+    await supabase.from("client_tasks").update({ done, done_at }).eq("id", task.id);
   }
 
   const equipo = useMemo(
     () =>
       profiles.map((p) => {
-        const suyas = tasks.filter((t) => t.assignee_id === p.id);
+        const suyas = tasks.filter((t) => t.assignee_id === p.id && !t.done);
+        const hechas = tasks.filter((t) => t.assignee_id === p.id && t.done);
         return {
           persona: p,
           total: suyas.length,
           urgentes: suyas.filter((t) => t.priority === "urgente").length,
           importantes: suyas.filter((t) => t.priority === "importante").length,
           atrasadas: suyas.filter((t) => t.due_date && t.due_date < hoy).length,
+          hechas: hechas.length,
           proxima: suyas
             .filter((t) => t.due_date)
             .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))[0]?.due_date ?? null,
@@ -74,18 +89,31 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     [profiles, tasks, hoy],
   );
 
-  const sinAsignar = tasks.filter((t) => !t.assignee_id);
+  const sinAsignar = tasks.filter((t) => !t.assignee_id && !t.done);
+
+  const delElegido = useMemo(
+    () => tasks.filter((t) => (mirando === "" ? !t.assignee_id : t.assignee_id === mirando)),
+    [tasks, mirando],
+  );
+
+  const hechas = useMemo(
+    () =>
+      delElegido
+        .filter((t) => t.done)
+        .sort((a, b) => (b.done_at ?? "").localeCompare(a.done_at ?? "")),
+    [delElegido],
+  );
 
   const suyas = useMemo(
     () =>
-      tasks
-        .filter((t) => (mirando === "" ? !t.assignee_id : t.assignee_id === mirando))
+      delElegido
+        .filter((t) => !t.done)
         .sort(
           (a, b) =>
             pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
             (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99"),
         ),
-    [tasks, mirando],
+    [delElegido],
   );
 
   const porPrioridad = PRIORIDADES.map((p) => ({
@@ -108,6 +136,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                 <th>Urgentes</th>
                 <th>Importantes</th>
                 <th>Atrasadas</th>
+                <th>Hechas</th>
                 <th>Próxima entrega</th>
               </tr>
             </thead>
@@ -146,6 +175,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                   <td className="rejilla__num">
                     {f.atrasadas > 0 ? <b className="is-rojo">{f.atrasadas}</b> : "·"}
                   </td>
+                  <td className="rejilla__num">{f.hechas > 0 ? f.hechas : "·"}</td>
                   <td className="rejilla__num">{f.proxima ? formatDue(f.proxima) : "·"}</td>
                 </tr>
               ))}
@@ -171,6 +201,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                     {sinAsignar.filter((t) => t.due_date && t.due_date < hoy).length || "·"}
                   </td>
                   <td className="rejilla__num">·</td>
+                  <td className="rejilla__num">·</td>
                 </tr>
               )}
             </tbody>
@@ -188,7 +219,12 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
         </h2>
 
         {cargando && <p className="panel__vacio">Cargando…</p>}
-        {!cargando && suyas.length === 0 && <p className="panel__vacio">Nada pendiente por aquí.</p>}
+        {!cargando && suyas.length === 0 && hechas.length === 0 && (
+          <p className="panel__vacio">Nada pendiente por aquí.</p>
+        )}
+        {!cargando && suyas.length === 0 && hechas.length > 0 && (
+          <p className="panel__vacio">Todo hecho. Abajo tienes lo cerrado estos días.</p>
+        )}
 
         {porPrioridad.map((g) => (
           <div key={g.key} className="panel__grupo">
@@ -203,7 +239,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                     <input
                       type="checkbox"
                       checked={false}
-                      onChange={() => void terminar(t)}
+                      onChange={() => void alternarHecha(t)}
                       title="Dar por hecha"
                       aria-label={`Dar por hecha: ${t.text}`}
                     />
@@ -252,6 +288,48 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
             </ul>
           </div>
         ))}
+
+        {hechas.length > 0 && (
+          <div className="panel__grupo">
+            <div className="panel__grupo-cab">
+              <span className="prio prio--hecha">Hechas</span>
+              <span className="count-chip">{hechas.length}</span>
+              <span className="panel__grupo-nota">de los últimos 15 días</span>
+            </div>
+            <ul className="panel__objetivos">
+              {hechas.map((t) => (
+                <li key={t.id}>
+                  <div className="panel__objetivo panel__objetivo--fijo is-hecha">
+                    <input
+                      type="checkbox"
+                      checked
+                      onChange={() => void alternarHecha(t)}
+                      title="Devolver a pendientes"
+                      aria-label={`Devolver a pendientes: ${t.text}`}
+                    />
+                    <button
+                      type="button"
+                      className="panel__objetivo-cuerpo panel__objetivo-abrir"
+                      onClick={() => onAbrirCliente(t.client_id)}
+                    >
+                      <span className="panel__objetivo-texto">{t.text}</span>
+                      <span className="panel__objetivo-meta">
+                        <Stamp
+                          label={initialsOf(clientNames[t.client_id] ?? "?")}
+                          color={stampColor(t.client_id)}
+                        />
+                        {clientNames[t.client_id] ?? "Cliente"}
+                      </span>
+                    </button>
+                    <span className="panel__due">
+                      {t.done_at ? formatDue(t.done_at.slice(0, 10)) : ""}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

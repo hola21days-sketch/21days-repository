@@ -1646,6 +1646,20 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .panel__quien.is-libre { color: var(--ink-faint); font-style: italic; }
 .panel__due.is-vacio { color: var(--ink-faint); font-style: italic; }
 .panel__objetivo--fijo { cursor: default; }
+.panel__objetivo--fijo.is-hecha { background: var(--bg); border-style: dashed; }
+.panel__objetivo--fijo.is-hecha .panel__objetivo-texto {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: var(--ink-faint);
+}
+.panel__objetivo--fijo.is-hecha .panel__objetivo-meta { color: var(--ink-faint); }
+.prio--hecha {
+  background: var(--bg);
+  color: var(--ink-faint);
+  border-color: var(--rule);
+  text-decoration: line-through;
+}
+.panel__grupo-nota { font-size: 0.72rem; color: var(--ink-faint); }
 .panel__objetivo--fijo input[type="checkbox"] {
   width: 17px;
   height: 17px;

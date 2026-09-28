@@ -101,7 +101,12 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
           <input
             type="checkbox"
             checked={t.done}
-            onChange={() => void guardar(t, { done: !t.done })}
+            onChange={() =>
+              void guardar(t, {
+                done: !t.done,
+                done_at: t.done ? null : new Date().toISOString(),
+              })
+            }
             aria-label={t.text}
           />
           {destaca(t.priority) && (

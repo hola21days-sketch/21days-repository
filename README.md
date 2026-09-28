@@ -53,8 +53,10 @@ usuario y datos persistentes.
   agrupados **por prioridad**, con su responsable y su fecha de entrega, filtrables por hoy, esta
   semana, este mes o todo.
 - **Tareas del equipo** — el reparto en una tabla: cuántas lleva cada persona, cuántas son
-  urgentes, cuántas van con retraso y cuál es su próxima entrega. Al pulsar en alguien se ven sus
-  tareas, y desde ahí se cambia la prioridad, la fecha o se dan por hechas.
+  urgentes, cuántas van con retraso, cuántas ha cerrado y cuál es su próxima entrega. Al pulsar en
+  alguien se ven sus tareas, y desde ahí se cambia la prioridad, la fecha o se dan por hechas.
+  Marcarlas no las borra: se quedan **tachadas** al final, las de los últimos quince días, para
+  repasar de un vistazo lo que ha salido. Se desmarcan volviendo a pulsar la casilla.
 - **Prioridades** — cada encargo, cada tarea y cada cliente se marcan como *Urgente*,
   *Importante*, *Normal* o *Puede esperar*. Las listas se ordenan solas por prioridad y, a
   igualdad, por fecha de entrega.

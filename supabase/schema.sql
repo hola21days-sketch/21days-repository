@@ -937,3 +937,15 @@ alter table public.clients
 -- ============================================================================
 alter table public.clients
   add column if not exists pinterest_url text not null default '';
+
+-- ============================================================================
+-- 18. Cuándo se dio por hecha una tarea
+-- ----------------------------------------------------------------------------
+-- Marcar una tarea no la hace desaparecer: se queda tachada unos días para
+-- poder repasar lo cerrado. Para eso hace falta saber cuándo se marcó.
+-- ============================================================================
+alter table public.client_tasks
+  add column if not exists done_at timestamptz;
+
+create index if not exists client_tasks_hechas_idx
+  on public.client_tasks (assignee_id, done_at desc) where done;

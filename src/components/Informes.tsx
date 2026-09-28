@@ -238,8 +238,9 @@ export default function Informes({ clientNames, profileById, me }: Props) {
 
       {!cargando && sessions.length === 0 && (
         <p className="report__empty">
-          Nadie ha puesto el cronómetro en este periodo. Se arranca desde la tarjeta, con el botón
-          <b> Iniciar proceso</b>.
+          No hay horas apuntadas en este periodo. Se apuntan al terminar la jornada, con el botón
+          <b> Terminar la jornada</b> del panel de la izquierda: ahí se reparte el día entre los
+          clientes con los que se ha estado.
         </p>
       )}
 

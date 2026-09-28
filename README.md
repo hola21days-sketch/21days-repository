@@ -381,3 +381,21 @@ componentes:
   colores del tema. Para poner el logo real, deja el SVG en `public/logo-decasight.svg` y cambia
   el componente por `<img src={BRAND.logo} alt={BRAND.logoAlt} className="rail__logo" />`.
 - **Nombres y textos de marca** — `src/lib/brand.ts`.
+
+## Cómo se publica
+
+La aplicación vive en Vercel, proyecto `bitacora` del equipo 21DAYS, y se publica en
+**https://bitacora-ashy.vercel.app**. Esa es la dirección buena; hay otros alias
+(`bitacora-21-days1.vercel.app`) que apuntan a versiones antiguas y conviene no usarlos.
+
+La rama de producción es `claude/decasight-interactive-landing-xa9ijw`: cada commit que llega ahí
+se construye y se publica solo.
+
+**Cuidado con subir el mismo commit a dos ramas.** Vercel construye un commit una sola vez: si la
+misma huella llega antes por una rama de borradores, la construye como *Preview* y, cuando después
+llega a la rama de producción, ya no la vuelve a construir — se queda en *Preview* y la web sigue
+sirviendo la versión anterior, sin ningún error que lo avise. Costó una tarde descubrirlo. Si se
+trabaja en una rama aparte, **súbela primero a la de producción** y después a la otra.
+
+Para arreglar una versión que se quedó en *Preview*, en el panel de Vercel: *Deployments*, los tres
+puntos de esa línea, **Promote to Production**.

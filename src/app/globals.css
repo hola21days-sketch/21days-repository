@@ -2062,6 +2062,14 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   margin: 0.25rem 0 0.1rem 1.5rem;
 }
 .task__estado--panel { margin: 0.2rem 0 0.5rem 1.9rem; }
+.rail__version {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+}
+
 .panel__filtros { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.7rem; }
 .panel__filtros .chip { cursor: pointer; border: 1px solid var(--rule); }
 .panel__filtros .chip.is-activo {

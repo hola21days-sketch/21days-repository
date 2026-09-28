@@ -6,6 +6,7 @@ import Logo from "./Logo";
 import Fichaje from "./Fichaje";
 import { BRAND } from "@/lib/brand";
 import { initialsOf, stampColor } from "@/lib/format";
+import { versionPublicada } from "@/lib/version";
 import type { Profile } from "@/lib/types";
 
 export type Vista = "cliente" | "informes" | "dm" | "panel" | "mias";
@@ -221,7 +222,14 @@ export default function Rail({
           label={me.initials || initialsOf(me.full_name)}
           color={me.color}
         />
-        <span className="rail__footer-name">{me.full_name} · conectado</span>
+        <span className="rail__footer-name">
+          {me.full_name} · conectado
+          {/* Qué versión estás viendo. Si algo «no aparece», lo primero es
+              mirar aquí: si el código es viejo, es cuestión de recargar. */}
+          <span className="rail__version" title="Versión publicada">
+            {versionPublicada()}
+          </span>
+        </span>
         <form action="/auth/salir" method="post">
           <button
             type="submit"

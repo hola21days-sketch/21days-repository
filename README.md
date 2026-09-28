@@ -34,6 +34,11 @@ usuario y datos persistentes.
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Claves de acceso** — pestaña *Claves* dentro de cada cliente: Instagram, TikTok, Metricool,
+  ManyChat, Canva… con su usuario, su contraseña, el enlace y notas. Salen tapadas y se copian sin
+  verlas. Las lee todo el equipo, pero **solo un administrador puede añadirlas, cambiarlas o
+  borrarlas**, y cada cambio deja quién y cuándo. Las internas de la agencia van en el canal
+  21DAYS.
 - **Drive y Pinterest** — botones *Entrar al Drive* y *Pinterest* en la cabecera de cada cliente y
   dentro de su ficha. Cada canal guarda su carpeta de Drive y su tablero de look & feel; los que
   no tengan carpeta propia apuntan a la carpeta general de clientes.
@@ -274,6 +279,7 @@ src/
     Fichaje.tsx           Entrada, pausa, regreso y salida
     Informes.tsx          Tiempo por cliente, fase y persona
     MiPanel.tsx           Lo mío y el reparto del equipo
+    Claves.tsx            Claves de acceso de cada cliente
     Chat.tsx              Chat del equipo, adjuntos, transcripciones y Meet
     FichaCliente.tsx      Ficha y contexto de cada cliente
     Panel.tsx             Resumen de todos los clientes y objetivos

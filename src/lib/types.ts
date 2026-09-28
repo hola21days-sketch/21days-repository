@@ -196,3 +196,18 @@ export type ClientDetails = {
   priority: Prioridad;
   internal: boolean;
 };
+
+/** Una clave de acceso de un cliente: la red social, el usuario y su contraseña. */
+export type Credencial = {
+  id: string;
+  client_id: string;
+  service: string;
+  username: string;
+  secret: string;
+  url: string;
+  notes: string;
+  position: number;
+  updated_by: string | null;
+  updated_at: string;
+  created_at: string;
+};

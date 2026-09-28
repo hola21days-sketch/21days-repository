@@ -11,6 +11,7 @@ import Informes from "./Informes";
 import Panel from "./Panel";
 import MiPanel from "./MiPanel";
 import Tareas from "./Tareas";
+import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
 import Stamp from "./Stamp";
@@ -83,7 +84,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   );
 
   const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
-  const [tab, setTab] = useState<"chat" | "tareas">("tareas");
+  const [tab, setTab] = useState<"chat" | "tareas" | "claves">("tareas");
   const [railOpen, setRailOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
 
@@ -729,6 +730,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                   Tareas
                   {pendingTasks > 0 && <span className="count-chip tab-count">{pendingTasks}</span>}
                 </button>
+                <button
+                  className={tab === "claves" ? "tab is-active" : "tab"}
+                  onClick={() => setTab("claves")}
+                >
+                  Claves
+                </button>
               </nav>
             )}
           </div>
@@ -866,6 +873,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             onSend={sendMessage}
             onEdit={editMessage}
             onDelete={deleteMessage}
+          />
+        )}
+
+        {vista === "cliente" && activeClient && tab === "claves" && (
+          <Claves
+            key={activeClient.id}
+            clientId={activeClient.id}
+            clientName={activeClient.name}
+            me={me}
+            profileById={profileById}
           />
         )}
 

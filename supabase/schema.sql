@@ -949,3 +949,50 @@ alter table public.client_tasks
 
 create index if not exists client_tasks_hechas_idx
   on public.client_tasks (assignee_id, done_at desc) where done;
+
+-- ============================================================================
+-- 19. Claves de acceso por cliente
+-- ----------------------------------------------------------------------------
+-- Instagram, TikTok, Metricool, ManyChat, Canva… lo que haga falta para
+-- trabajar cada cuenta. Las internas de la agencia van en su canal interno.
+--
+-- Aviso honesto: la contraseña se guarda tal cual, porque el equipo tiene que
+-- poder leerla. Cualquiera con cuenta en la app las ve todas; solo los
+-- administradores pueden añadirlas, cambiarlas o borrarlas. Para un equipo
+-- pequeño es razonable; si entra gente de fuera, esto habría que cerrarlo por
+-- rol o mover a un gestor de contraseñas de verdad.
+-- ============================================================================
+create table if not exists public.client_credentials (
+  id         uuid primary key default gen_random_uuid(),
+  client_id  uuid not null references public.clients(id) on delete cascade,
+  service    text not null,
+  username   text not null default '',
+  secret     text not null default '',
+  url        text not null default '',
+  notes      text not null default '',
+  position   integer not null default 0,
+  updated_by uuid references public.profiles(id) on delete set null,
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists client_credentials_cliente_idx
+  on public.client_credentials (client_id, position);
+
+alter table public.client_credentials enable row level security;
+
+drop policy if exists client_credentials_select on public.client_credentials;
+create policy client_credentials_select on public.client_credentials
+  for select to authenticated using (true);
+
+drop policy if exists client_credentials_insert on public.client_credentials;
+create policy client_credentials_insert on public.client_credentials
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists client_credentials_update on public.client_credentials;
+create policy client_credentials_update on public.client_credentials
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists client_credentials_delete on public.client_credentials;
+create policy client_credentials_delete on public.client_credentials
+  for delete to authenticated using (public.is_admin());

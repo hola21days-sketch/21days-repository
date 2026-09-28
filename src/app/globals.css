@@ -1940,6 +1940,117 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .parte__botones { display: flex; gap: 0.4rem; }
 
 /* ==========================================================================
+   Claves de acceso
+   ========================================================================== */
+.claves { flex: 1; overflow-y: auto; padding: 1.1rem 1.4rem 1.6rem; }
+.claves__panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1rem 1.1rem 1.1rem;
+  max-width: 940px;
+}
+.claves__aviso {
+  margin: 0 0 0.8rem;
+  padding: 0.45rem 0.6rem;
+  border-left: 2px solid var(--accent);
+  background: var(--bg);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.claves__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.clave {
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  padding: 0.5rem 0.65rem;
+  background: var(--bg);
+}
+.clave__fila { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.clave__servicio {
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  min-width: 96px;
+  text-align: left;
+}
+.clave__servicio:hover { color: var(--accent); }
+.clave__servicio.is-fijo { cursor: default; }
+.clave__usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  min-width: 150px;
+}
+.clave__usuario em { color: var(--ink-faint); }
+.clave__secreta { display: flex; align-items: center; gap: 0.35rem; flex: 1; min-width: 200px; }
+.clave__secreta code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 0.1rem 0.4rem;
+  min-width: 118px;
+}
+.clave__ojo, .clave__copiar {
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  cursor: pointer;
+}
+.clave__ojo:hover, .clave__copiar:hover { border-color: var(--accent); color: var(--accent); }
+.clave__ir { font-size: 0.76rem; color: var(--accent); }
+.clave__pie {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+  font-size: 0.73rem;
+  color: var(--ink-faint);
+}
+.clave__firma { margin-left: auto; }
+.clave__editor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}
+.clave__editor label { display: grid; gap: 0.2rem; }
+.clave__editor label > span,
+.claves__campo > span {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+}
+.clave__ancho { grid-column: 1 / -1; }
+.claves__nueva {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--rule);
+  display: grid;
+  gap: 0.5rem;
+}
+.claves__nueva-fila { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; }
+.claves__campo { display: grid; gap: 0.2rem; flex: 1; min-width: 140px; }
+.claves__add { flex: none; }
+
+/* ==========================================================================
    Responsive — al final a propósito: estas reglas tienen la misma
    especificidad que las de arriba y deben ganar por orden de cascada.
    ========================================================================== */

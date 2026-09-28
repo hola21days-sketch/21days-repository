@@ -223,45 +223,6 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
           {t.due_date && <span className="task__due">{formatDue(t.due_date)}</span>}
           {t.notes && !abierto && <span className="task__flag" title="Tiene indicaciones">✎</span>}
 
-          {/* Iniciar · en proceso · terminar. Lo que está en marcha se ve desde
-              lejos, y con el nombre de quien la lleva. */}
-          {enProceso && (
-            <span
-              className="task__proceso"
-              title={t.started_at ? `Empezada ${desdeCuando(t.started_at)}` : undefined}
-            >
-              En proceso
-              {quienLaLleva && ` · ${quienLaLleva.full_name.split(" ")[0]}`}
-              {t.started_at && ` · ${desdeCuando(t.started_at)}`}
-            </span>
-          )}
-
-          {!t.done && !enProceso && (
-            <button type="button" className="task__accion" onClick={() => empezar(t)}>
-              Iniciar tarea
-            </button>
-          )}
-
-          {enProceso && (
-            <>
-              <button
-                type="button"
-                className="task__accion task__accion--fin"
-                onClick={() => terminar(t)}
-              >
-                Terminar proceso
-              </button>
-              <button
-                type="button"
-                className="task__accion task__accion--soltar"
-                onClick={() => soltar(t)}
-                title="La he cogido sin querer"
-              >
-                Soltar
-              </button>
-            </>
-          )}
-
           <button
             type="button"
             className="checklist__remove"
@@ -271,6 +232,41 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
             ✕
           </button>
         </div>
+
+        {/* Iniciar · en proceso · terminar, en su propia línea: en la de arriba
+            se quedaban apretados contra el borde y no se veían. */}
+        {!t.done && (
+          <div className="task__estado">
+            {enProceso ? (
+              <>
+                <span className="task__proceso">
+                  En proceso
+                  {quienLaLleva && ` · ${quienLaLleva.full_name.split(" ")[0]}`}
+                  {t.started_at && ` · ${desdeCuando(t.started_at)}`}
+                </span>
+                <button
+                  type="button"
+                  className="task__accion task__accion--fin"
+                  onClick={() => terminar(t)}
+                >
+                  Terminar proceso
+                </button>
+                <button
+                  type="button"
+                  className="task__accion task__accion--soltar"
+                  onClick={() => soltar(t)}
+                  title="La he cogido sin querer"
+                >
+                  Soltar
+                </button>
+              </>
+            ) : (
+              <button type="button" className="task__accion" onClick={() => empezar(t)}>
+                ▶ Iniciar tarea
+              </button>
+            )}
+          </div>
+        )}
 
         {abierto && (
           <div className="task__panel">

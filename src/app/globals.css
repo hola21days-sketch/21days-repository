@@ -2052,6 +2052,27 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 /* ==========================================================================
    Tareas en proceso — iniciar, en marcha, terminar
    ========================================================================== */
+/* Los botones de estado van en su propia línea, debajo del texto de la tarea:
+   en la misma fila quedaban aplastados contra el borde derecho. */
+.task__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0.1rem 1.5rem;
+}
+.task__estado--panel { margin: 0.2rem 0 0.5rem 1.9rem; }
+.panel__filtros { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.7rem; }
+.panel__filtros .chip { cursor: pointer; border: 1px solid var(--rule); }
+.panel__filtros .chip.is-activo {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.panel__filtros .chip .count-chip { margin-left: 0.25rem; }
+.task__row { flex-wrap: wrap; }
+
 .marcha { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
 .marcha__fila {
   display: flex;

@@ -63,6 +63,8 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [diasAbiertos, setDiasAbiertos] = useState<Set<string>>(() => new Set([hoyISO()]));
+  // Qué trozo de la lista se mira: lo de hoy, lo de la semana o todo.
+  const [cuando, setCuando] = useState<"hoy" | "semana" | "todo">("todo");
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -228,17 +230,40 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     [delElegido],
   );
 
-  const suyas = useMemo(
+  /**
+   * Lo pendiente de quien se esté mirando. Lo que ya está en marcha sube del
+   * todo: es lo que se está haciendo ahora, antes que ninguna prioridad.
+   */
+  const todasSuyas = useMemo(
     () =>
       delElegido
         .filter((t) => !t.done)
         .sort(
           (a, b) =>
+            Number(!!b.started_at) - Number(!!a.started_at) ||
             pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
             (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99"),
         ),
     [delElegido],
   );
+
+  /** Lo que vence hoy o antes, y lo que vence de aquí a siete días. */
+  const finDeSemana = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
+
+  const deHoy = useMemo(
+    () => todasSuyas.filter((t) => t.due_date && t.due_date <= hoy),
+    [todasSuyas, hoy],
+  );
+  const deLaSemana = useMemo(
+    () => todasSuyas.filter((t) => t.due_date && t.due_date <= finDeSemana),
+    [todasSuyas, finDeSemana],
+  );
+
+  const suyas = cuando === "hoy" ? deHoy : cuando === "semana" ? deLaSemana : todasSuyas;
 
   /** Lo hecho, repartido por el día en que se marcó, de lo más reciente atrás. */
   const porDia = useMemo(() => {
@@ -473,6 +498,27 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
           <span className="count-chip">{suyas.length}</span>
         </h2>
 
+        {/* Hoy, esta semana o todo. Empieza en «todo» a propósito: así nunca
+            parece que falten tareas por un filtro que nadie ha tocado. */}
+        <div className="panel__filtros">
+          {(
+            [
+              ["hoy", "Para hoy", deHoy.length],
+              ["semana", "Esta semana", deLaSemana.length],
+              ["todo", "Todo", todasSuyas.length],
+            ] as const
+          ).map(([clave, texto, n]) => (
+            <button
+              key={clave}
+              type="button"
+              className={cuando === clave ? "chip is-activo" : "chip"}
+              onClick={() => setCuando(clave)}
+            >
+              {texto} <span className="count-chip">{n}</span>
+            </button>
+          ))}
+        </div>
+
         {cargando && <p className="panel__vacio">Cargando…</p>}
         {!cargando && suyas.length === 0 && hechas.length === 0 && (
           <p className="panel__vacio">Nada pendiente por aquí.</p>
@@ -546,6 +592,46 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       onChange={(e) => void guardar(t, { due_date: e.target.value || null })}
                       aria-label="Para cuándo"
                     />
+                  </div>
+
+                  {/* Iniciar y terminar desde aquí mismo: este es el panel donde
+                      cada uno mira lo suyo, no hace falta entrar al cliente. */}
+                  <div className="task__estado task__estado--panel">
+                    {t.started_at ? (
+                      <>
+                        <span className="task__proceso">
+                          En proceso · {desdeCuando(t.started_at)}
+                        </span>
+                        <button
+                          type="button"
+                          className="task__accion task__accion--fin"
+                          onClick={() => void alternarHecha(t)}
+                        >
+                          Terminar proceso
+                        </button>
+                        <button
+                          type="button"
+                          className="task__accion task__accion--soltar"
+                          onClick={() => void guardar(t, { started_at: null, started_by: null })}
+                        >
+                          Soltar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="task__accion"
+                        onClick={() =>
+                          void guardar(t, {
+                            started_at: new Date().toISOString(),
+                            started_by: me.id,
+                            assignee_id: t.assignee_id ?? me.id,
+                          })
+                        }
+                      >
+                        ▶ Iniciar tarea
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}

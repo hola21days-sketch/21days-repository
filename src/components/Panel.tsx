@@ -318,16 +318,16 @@ export default function Panel({
                     </td>
                     {fases.map((f) => {
                       const a = hecho(c.id, f.key);
-                      const quien = a?.done_by ? profileById[a.done_by] : null;
+                      // A propósito no se dice quién la marcó: da igual quién lo
+                      // hizo, lo que importa es si está hecho o no.
                       return (
                         <td key={f.key} className={a?.done ? "rejilla__casilla is-hecha" : "rejilla__casilla"}>
-                          <label title={quien ? `Marcado por ${quien.full_name}` : `${f.label} de ${c.name}`}>
+                          <label title={`${f.label} de ${c.name}`}>
                             <input
                               type="checkbox"
                               checked={!!a?.done}
                               onChange={(e) => void marcar(c.id, f.key, e.target.checked)}
                             />
-                            {quien && <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />}
                           </label>
                         </td>
                       );

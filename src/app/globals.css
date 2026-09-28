@@ -1637,10 +1637,13 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 .rejilla__prio { font-size: 0.74rem; padding: 0.1rem 0.3rem; min-width: 110px; }
 .rejilla__casilla { text-align: center; }
+/* La casilla entera es zona de clic: solo interesa si está hecho o no, así
+   que no hay nada más dentro y se aprovecha todo el hueco. */
 .rejilla__casilla label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.3rem;
+  justify-content: center;
+  padding: 0.3rem 0;
   cursor: pointer;
 }
 .rejilla__casilla input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent); }

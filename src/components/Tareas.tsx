@@ -58,7 +58,13 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
    */
   async function añadir() {
     const text = draft.trim();
-    if (!text || guardando) return;
+    if (guardando) return;
+    // Sin texto no se añade nada, pero tampoco se deja el botón muerto: se
+    // lleva el cursor al campo, que es lo que hace falta.
+    if (!text) {
+      campoRef.current?.focus();
+      return;
+    }
     setGuardando(true);
     setError(null);
 
@@ -240,7 +246,7 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
             type="button"
             className="btn btn--primary"
             onClick={() => void añadir()}
-            disabled={!draft.trim() || guardando}
+            disabled={guardando}
           >
             {guardando ? "Añadiendo…" : "Añadir"}
           </button>

@@ -1660,6 +1660,55 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   text-decoration: line-through;
 }
 .panel__grupo-nota { font-size: 0.72rem; color: var(--ink-faint); }
+
+/* ---- Lo hecho, por días ---- */
+.dia { margin-bottom: 0.25rem; }
+.dia__cab {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+}
+.dia__cab:hover { border-color: var(--accent); }
+.dia__cab.is-abierto { background: var(--bg); }
+.dia__flecha { font-size: 0.7rem; transition: transform 0.15s ease; flex: none; }
+.dia__cab.is-abierto .dia__flecha { transform: rotate(90deg); }
+.dia__nombre { flex: 1; min-width: 0; }
+.dia__lista { margin-top: 0.25rem; padding-left: 1.1rem; }
+
+/* ---- Selección múltiple ---- */
+.panel__objetivo--fijo.is-marcada {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.marcadas {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  background: var(--accent-soft);
+  font-size: 0.84rem;
+}
+.marcadas span { flex: 1; min-width: 0; font-weight: 600; }
+.marcadas__borrar { color: var(--danger); border-color: var(--danger); }
+.menu-canal__normal { color: var(--ink) !important; }
+.menu-canal__normal:hover { background: var(--bg) !important; }
 .panel__objetivo--fijo input[type="checkbox"] {
   width: 17px;
   height: 17px;

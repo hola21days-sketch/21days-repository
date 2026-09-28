@@ -1079,6 +1079,22 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   padding: 0;
 }
 .task.is-done .task__text { color: var(--ink-faint); text-decoration: line-through; }
+.task.is-nueva {
+  animation: entra-tarea 2.5s ease-out;
+  border-radius: 8px;
+}
+@keyframes entra-tarea {
+  0%   { background: var(--accent); }
+  12%  { background: var(--accent-soft); }
+  100% { background: transparent; }
+}
+.tasks__campo { flex: 1; min-width: 0; }
+.tasks__pista {
+  margin: 0.4rem 0 0.8rem;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
 .task__row .stamp { width: 22px; height: 22px; font-size: 0.55rem; outline: none; }
 .task__due {
   font-family: var(--font-mono);
@@ -1596,7 +1612,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-weight: 600;
   white-space: nowrap;
 }
-.rejilla tbody tr:hover { background: var(--bg); }
+.rejilla tbody tr:hover { background: var(--bg); cursor: pointer; }
 .rejilla tbody tr.is-mirando { background: var(--accent-soft); }
 .rejilla__cliente {
   display: flex;
@@ -1660,6 +1676,8 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   text-decoration: line-through;
 }
 .panel__grupo-nota { font-size: 0.72rem; color: var(--ink-faint); }
+.panel__pista { margin: 0 0 0.5rem; font-size: 0.76rem; color: var(--ink-faint); }
+.panel__titulo--quien { display: flex; align-items: center; gap: 0.45rem; }
 
 /* ---- Lo hecho, por días ---- */
 .dia { margin-bottom: 0.25rem; }

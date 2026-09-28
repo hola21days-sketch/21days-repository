@@ -74,6 +74,23 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     void cargar();
   }, [cargar]);
 
+  /**
+   * Las tareas se tocan desde el canal de cada cliente, así que esta pantalla
+   * tiene que enterarse sola: sin esto había que salir y volver a entrar para
+   * ver lo que acababa de asignarse.
+   */
+  useEffect(() => {
+    const canal = supabase
+      .channel("tareas-equipo")
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_tasks" }, () => {
+        void cargar();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [supabase, cargar]);
+
   // El menú del botón derecho se cierra con cualquier clic fuera.
   useEffect(() => {
     if (!menu) return;
@@ -215,7 +232,18 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   return (
     <section className="panel">
       <div className="panel__bloque">
-        <h2 className="panel__titulo">Reparto del equipo</h2>
+        <div className="panel__cabecera">
+          <h2 className="panel__titulo">Reparto del equipo</h2>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => void cargar()}
+            title="Volver a leer las tareas"
+          >
+            Actualizar
+          </button>
+        </div>
+        <p className="panel__pista">Pulsa sobre una persona para ver lo que lleva.</p>
         <div className="panel__rejillawrap">
           <table className="rejilla">
             <thead>
@@ -237,7 +265,12 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                   onClick={() => setMirando(f.persona.id)}
                 >
                   <th scope="row">
-                    <button type="button" className="rejilla__cliente">
+                    <button
+                      type="button"
+                      className="rejilla__cliente"
+                      onClick={() => setMirando(f.persona.id)}
+                      aria-pressed={mirando === f.persona.id}
+                    >
                       <Stamp label={f.persona.initials} color={f.persona.color} />
                       <span>
                         <span className="rejilla__nombre">
@@ -271,7 +304,12 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
               {sinAsignar.length > 0 && (
                 <tr className={mirando === "" ? "is-mirando" : undefined} onClick={() => setMirando("")}>
                   <th scope="row">
-                    <button type="button" className="rejilla__cliente">
+                    <button
+                      type="button"
+                      className="rejilla__cliente"
+                      onClick={() => setMirando("")}
+                      aria-pressed={mirando === ""}
+                    >
                       <Stamp label="··" color="var(--ink-faint)" />
                       <span>
                         <span className="rejilla__nombre">Sin asignar</span>
@@ -353,12 +391,16 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       )}
 
       <div className="panel__bloque">
-        <h2 className="panel__titulo">
-          {quienMiro
-            ? quienMiro.id === me.id
-              ? "Lo mío"
-              : `Lo de ${quienMiro.full_name.split(" ")[0]}`
-            : "Sin asignar"}
+        <h2 className="panel__titulo panel__titulo--quien">
+          {quienMiro ? (
+            <>
+              <Stamp label={quienMiro.initials} color={quienMiro.color} />
+              {quienMiro.id === me.id ? "Lo mío" : `Lo de ${quienMiro.full_name.split(" ")[0]}`}
+            </>
+          ) : (
+            "Sin asignar"
+          )}
+          <span className="count-chip">{suyas.length}</span>
         </h2>
 
         {cargando && <p className="panel__vacio">Cargando…</p>}

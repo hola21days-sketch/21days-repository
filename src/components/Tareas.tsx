@@ -28,6 +28,7 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
   const [abierta, setAbierta] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [reciente, setReciente] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const campoRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +47,23 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
   useEffect(() => {
     void cargar();
   }, [cargar]);
+
+  /** Lo que toque otra persona en este canal se ve aquí sin recargar. */
+  useEffect(() => {
+    const canal = supabase
+      .channel(`tareas-${clientId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_tasks", filter: `client_id=eq.${clientId}` },
+        () => {
+          void cargar();
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [supabase, clientId, cargar]);
 
   useEffect(() => {
     onCount?.(tasks.filter((t) => !t.done).length);
@@ -82,9 +100,21 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
       return;
     }
 
-    setTasks((prev) => [...prev, data as ClientTask]);
+    const nueva = data as ClientTask;
+    setTasks((prev) => [...prev, nueva]);
     setDraft("");
     campoRef.current?.focus();
+
+    // La lista se ordena por prioridad, así que una tarea nueva no aparece
+    // necesariamente al final: se resalta un momento y se lleva a la vista
+    // para que se vea que ha entrado.
+    setReciente(nueva.id);
+    setTimeout(() => setReciente((r) => (r === nueva.id ? null : r)), 2500);
+    setTimeout(() => {
+      document
+        .getElementById(`tarea-${nueva.id}`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 50);
   }
 
   /** Guarda un cambio suelto de la tarea (responsable, indicaciones, fecha…). */
@@ -115,7 +145,13 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
     const responsable = t.assignee_id ? profileById[t.assignee_id] : null;
     const abierto = abierta === t.id;
     return (
-      <li key={t.id} className={t.done ? "task is-done" : "task"}>
+      <li
+        key={t.id}
+        id={`tarea-${t.id}`}
+        className={[t.done ? "task is-done" : "task", reciente === t.id ? "is-nueva" : ""]
+          .filter(Boolean)
+          .join(" ")}
+      >
         <div className="task__row">
           <input
             type="checkbox"
@@ -230,8 +266,8 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
         <div className="tasks__new">
           <input
             ref={campoRef}
-            className="input-inline"
-            placeholder="Escribe una tarea y pulsa Intro"
+            className="input-inline tasks__campo"
+            placeholder="Escribe una tarea y pulsa Intro o Añadir"
             value={draft}
             disabled={guardando}
             onChange={(e) => setDraft(e.target.value)}
@@ -251,6 +287,12 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
             {guardando ? "Añadiendo…" : "Añadir"}
           </button>
         </div>
+
+        <p className="tasks__pista">
+          Escribe y pulsa <b>Añadir</b> tantas veces como quieras: el campo se queda listo para la
+          siguiente. Para poner quién la hace, la prioridad o la fecha, pulsa después sobre la
+          tarea.
+        </p>
 
         {loading && <div className="tasks__empty">Cargando…</div>}
         {!loading && tasks.length === 0 && (

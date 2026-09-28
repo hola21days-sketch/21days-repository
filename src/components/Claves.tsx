@@ -34,10 +34,7 @@ const SERVICIOS = [
   "Web",
 ];
 
-/** Valor del desplegable que abre el campo para escribir el nombre a mano. */
-const OTRO = "__otro";
-
-const VACIA = { service: "Instagram", username: "", secret: "", url: "", notes: "" };
+const VACIA = { service: "", username: "", secret: "", url: "", notes: "" };
 
 /**
  * Las claves de acceso de un cliente.
@@ -61,8 +58,6 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
   const [editando, setEditando] = useState<string | null>(null);
   const [nueva, setNueva] = useState({ ...VACIA });
   const [añadiendo, setAñadiendo] = useState(false);
-  // Con «Otro» elegido, el nombre del servicio se escribe a mano.
-  const [servicioLibre, setServicioLibre] = useState(false);
 
   const cargar = useCallback(async () => {
     const { data } = await supabase
@@ -148,7 +143,6 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
     }
     setClaves((prev) => [...prev, data as Credencial]);
     setNueva({ ...VACIA });
-    setServicioLibre(false);
   }
 
   async function guardar(c: Credencial, patch: Partial<Credencial>) {
@@ -217,6 +211,14 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
             {puedeEditar ? " Añade la primera aquí abajo." : " Pídeselas a un administrador."}
           </p>
         )}
+
+        {/* Sugerencias compartidas por el formulario de alta y por el editor de
+            cada fila. Son eso, sugerencias: se puede escribir cualquier cosa. */}
+        <datalist id="claves-servicios">
+          {SERVICIOS.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
 
         <ul className="claves__lista">
           {claves.map((c) => {
@@ -331,6 +333,7 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                       <span>Servicio</span>
                       <input
                         className="input-inline"
+                        list="claves-servicios"
                         defaultValue={c.service}
                         onBlur={(e) =>
                           e.target.value !== c.service && void guardar(c, { service: e.target.value })
@@ -398,42 +401,17 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
           <div className="claves__nueva-fila">
             <label className="claves__campo">
               <span>Servicio</span>
-              <select
+              {/* Escribir a mano y a la vez tener la lista: no hay «Otro» que
+                  elegir, cualquier nombre vale y las sugerencias salen solas al
+                  pulsar la flechita o al empezar a escribir. */}
+              <input
                 className="input-inline"
-                value={servicioLibre ? OTRO : nueva.service}
-                onChange={(e) => {
-                  // «Otro» no se guarda como nombre: deja el campo en blanco y
-                  // saca el recuadro para escribir cuál es.
-                  if (e.target.value === OTRO) {
-                    setServicioLibre(true);
-                    setNueva({ ...nueva, service: "" });
-                    return;
-                  }
-                  setServicioLibre(false);
-                  setNueva({ ...nueva, service: e.target.value });
-                }}
-              >
-                {SERVICIOS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-                <option value={OTRO}>Otro (lo escribo yo)</option>
-              </select>
+                list="claves-servicios"
+                placeholder="Instagram, Netflix, Wati…"
+                value={nueva.service}
+                onChange={(e) => setNueva({ ...nueva, service: e.target.value })}
+              />
             </label>
-
-            {servicioLibre && (
-              <label className="claves__campo">
-                <span>¿Qué servicio es?</span>
-                <input
-                  className="input-inline"
-                  autoFocus
-                  placeholder="Wati, Topdoctors, Shopify…"
-                  value={nueva.service}
-                  onChange={(e) => setNueva({ ...nueva, service: e.target.value })}
-                />
-              </label>
-            )}
             <label className="claves__campo">
               <span>Usuario</span>
               <input

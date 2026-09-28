@@ -2062,6 +2062,12 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   cursor: pointer;
 }
 .clave__editar:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* Las contraseñas se editan a la vista y en monoespaciada: es la única forma
+   de ver si hay un espacio de más o de distinguir una l de un 1. */
+.clave__campo-secreto {
+  font-family: var(--mono, ui-monospace, "SFMono-Regular", Menlo, monospace);
+  letter-spacing: 0.02em;
+}
 .clave__ayuda {
   grid-column: 1 / -1;
   margin: 0 0 0.2rem;

@@ -136,11 +136,24 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
   async function guardar(c: Credencial, patch: Partial<Credencial>) {
     const cambios = { ...patch, updated_by: me.id, updated_at: new Date().toISOString() };
     setClaves((prev) => prev.map((x) => (x.id === c.id ? { ...x, ...cambios } : x)));
-    const { error: fallo } = await supabase
+    // Se pide la fila de vuelta a propósito: si no eres administrador, la base
+    // de datos no da error, simplemente no cambia nada. Sin esto el cambio
+    // parecía guardado en pantalla y al recargar volvía lo de antes.
+    const { data, error: fallo } = await supabase
       .from("client_credentials")
       .update(cambios)
-      .eq("id", c.id);
-    if (fallo) setError("No se ha podido guardar el cambio.");
+      .eq("id", c.id)
+      .select("id");
+    if (fallo || !data || data.length === 0) {
+      setError(
+        fallo
+          ? `No se ha podido guardar el cambio. ${fallo.message}`
+          : "No se ha podido guardar: solo un administrador puede cambiar las claves.",
+      );
+      void cargar();
+      return;
+    }
+    setError(null);
   }
 
   async function quitar(c: Credencial) {
@@ -189,9 +202,11 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
 
         <ul className="claves__lista">
           {claves.map((c) => {
-            const visible = todasALaVista || aLaVista.has(c.id);
             const quien = c.updated_by ? profileById[c.updated_by] : null;
             const abierta = editando === c.id;
+            // Con el editor abierto la clave se destapa también arriba: no
+            // tiene sentido taparle a alguien lo que está cambiando.
+            const visible = todasALaVista || abierta || aLaVista.has(c.id);
             return (
               <li key={c.id} className="clave">
                 <div className="clave__fila">
@@ -291,7 +306,8 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                 {abierta && puedeEditar && (
                   <div className="clave__editor">
                     <p className="clave__ayuda">
-                      Cambia lo que haga falta: se guarda solo al salir de cada campo.
+                      Cambia lo que haga falta: la contraseña se ve mientras la editas y se guarda
+                      sola al salir del campo.
                     </p>
                     <label>
                       <span>Servicio</span>
@@ -316,9 +332,14 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
                     </label>
                     <label>
                       <span>Contraseña</span>
+                      {/* A la vista y en monoespaciada: se está editando a
+                          propósito, y a ciegas no se distingue una l de un 1
+                          ni se ve si sobra un espacio al final. */}
                       <input
-                        className="input-inline"
-                        type={visible ? "text" : "password"}
+                        className="input-inline clave__campo-secreto"
+                        type="text"
+                        autoComplete="off"
+                        spellCheck={false}
                         defaultValue={c.secret}
                         onBlur={(e) =>
                           e.target.value !== c.secret && void guardar(c, { secret: e.target.value })
@@ -382,8 +403,10 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
             <label className="claves__campo">
               <span>Contraseña</span>
               <input
-                className="input-inline"
-                type="password"
+                className="input-inline clave__campo-secreto"
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
                 value={nueva.secret}
                 onChange={(e) => setNueva({ ...nueva, secret: e.target.value })}
               />

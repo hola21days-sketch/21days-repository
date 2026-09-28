@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue } from "@/lib/format";
@@ -27,7 +27,9 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
   const [draft, setDraft] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const campoRef = useRef<HTMLInputElement>(null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -49,23 +51,34 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
     onCount?.(tasks.filter((t) => !t.done).length);
   }, [tasks, onCount]);
 
+  /**
+   * Añade una tarea y deja el campo listo para la siguiente. No se abre su
+   * ficha: lo normal es escribir varias seguidas, y abrirla cada vez dejaba
+   * el formulario enterrado bajo un panel.
+   */
   async function añadir() {
     const text = draft.trim();
-    if (!text) return;
-    setDraft("");
+    if (!text || guardando) return;
+    setGuardando(true);
     setError(null);
-    const position = (tasks.at(-1)?.position ?? 0) + 1;
+
+    const position = Math.max(0, ...tasks.map((t) => t.position)) + 1;
     const { data, error } = await supabase
       .from("client_tasks")
       .insert({ client_id: clientId, text, position })
       .select("*")
       .single();
+
+    setGuardando(false);
     if (error || !data) {
-      setError("No se ha podido guardar la tarea.");
+      // El texto no se borra: así no se pierde lo escrito si falla.
+      setError(`No se ha podido guardar la tarea. ${error?.message ?? ""}`.trim());
       return;
     }
+
     setTasks((prev) => [...prev, data as ClientTask]);
-    setAbierta((data as ClientTask).id);
+    setDraft("");
+    campoRef.current?.focus();
   }
 
   /** Guarda un cambio suelto de la tarea (responsable, indicaciones, fecha…). */
@@ -210,9 +223,11 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
 
         <div className="tasks__new">
           <input
+            ref={campoRef}
             className="input-inline"
             placeholder="Escribe una tarea y pulsa Intro"
             value={draft}
+            disabled={guardando}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -221,8 +236,13 @@ export default function Tareas({ clientId, profiles, profileById, onCount }: Pro
               }
             }}
           />
-          <button type="button" className="btn btn--primary" onClick={() => void añadir()} disabled={!draft.trim()}>
-            Añadir
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => void añadir()}
+            disabled={!draft.trim() || guardando}
+          >
+            {guardando ? "Añadiendo…" : "Añadir"}
           </button>
         </div>
 

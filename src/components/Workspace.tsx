@@ -33,6 +33,7 @@ type ClientRow = {
   contact: string;
   meet_url: string;
   drive_url: string;
+  pinterest_url: string;
   priority: Prioridad;
   internal: boolean;
 };
@@ -753,6 +754,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                 title="Abrir la carpeta de Drive de este cliente"
               >
                 Entrar al Drive
+              </a>
+            )}
+            {activeClient && vista === "cliente" && activeClient.pinterest_url && (
+              <a
+                className="btn"
+                href={activeClient.pinterest_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Abrir el tablero de Pinterest de este cliente"
+              >
+                Pinterest
               </a>
             )}
             {activeClient && vista === "cliente" && (

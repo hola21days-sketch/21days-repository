@@ -134,7 +134,6 @@ export default function Fichaje({ me, profiles, clients }: Props) {
         <SalidaDelDia
           me={me}
           clients={clients}
-          minutosFichados={minutos}
           onCancelar={() => setDespidiendo(false)}
           onConfirmar={async () => {
             setDespidiendo(false);

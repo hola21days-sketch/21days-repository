@@ -191,6 +191,7 @@ export type ClientDetails = {
   contact: string;
   meet_url: string;
   drive_url: string;
+  pinterest_url: string;
   priority: Prioridad;
   internal: boolean;
 };

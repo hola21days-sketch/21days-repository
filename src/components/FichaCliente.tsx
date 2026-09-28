@@ -59,6 +59,7 @@ export default function FichaCliente({
     videos_per_month: client.videos_per_month,
     contact: client.contact,
     drive_url: client.drive_url,
+    pinterest_url: client.pinterest_url,
   });
   const [guardando, setGuardando] = useState(false);
 
@@ -79,6 +80,7 @@ export default function FichaCliente({
       videos_per_month: Number(borrador.videos_per_month) || 0,
       contact: borrador.contact.trim(),
       drive_url: borrador.drive_url.trim(),
+      pinterest_url: borrador.pinterest_url.trim(),
     };
     const supabase = createClient();
     await supabase.from("clients").update(cambios).eq("id", client.id);
@@ -103,6 +105,16 @@ export default function FichaCliente({
               rel="noopener noreferrer"
             >
               Entrar al Drive
+            </a>
+          )}
+          {!editando && client.pinterest_url && (
+            <a
+              className="btn"
+              href={client.pinterest_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Pinterest
             </a>
           )}
           {!editando && (
@@ -170,6 +182,16 @@ export default function FichaCliente({
               placeholder="https://drive.google.com/drive/folders/…"
               value={borrador.drive_url}
               onChange={(e) => setBorrador({ ...borrador, drive_url: e.target.value })}
+            />
+          </label>
+
+          <label>
+            <span>Tablero de Pinterest</span>
+            <input
+              className="input-inline"
+              placeholder="https://pin.it/…"
+              value={borrador.pinterest_url}
+              onChange={(e) => setBorrador({ ...borrador, pinterest_url: e.target.value })}
             />
           </label>
 

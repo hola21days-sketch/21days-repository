@@ -928,3 +928,12 @@ alter table public.clients
 
 -- Un canal marcado como interno es del equipo, no un cliente: no sale en el
 -- panel de clientes y se muestra destacado arriba del listado.
+
+-- ============================================================================
+-- 17. Tablero de Pinterest por cliente
+-- ----------------------------------------------------------------------------
+-- El look & feel de cada cuenta vive en un tablero de Pinterest. Se guarda
+-- junto a la carpeta de Drive, y ambos salen como botón en la cabecera.
+-- ============================================================================
+alter table public.clients
+  add column if not exists pinterest_url text not null default '';

@@ -34,9 +34,9 @@ usuario y datos persistentes.
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
-- **Carpeta de Drive** — botón *Entrar al Drive* en la cabecera de cada cliente y dentro de su
-  ficha. Cada canal guarda su propia carpeta; los que no la tengan puesta apuntan a la carpeta
-  general de clientes.
+- **Drive y Pinterest** — botones *Entrar al Drive* y *Pinterest* en la cabecera de cada cliente y
+  dentro de su ficha. Cada canal guarda su carpeta de Drive y su tablero de look & feel; los que
+  no tengan carpeta propia apuntan a la carpeta general de clientes.
 - **Canal del equipo** — los canales internos salen destacados arriba del listado y no cuentan
   como clientes en el panel.
 - **Ficha del cliente** — se abre pulsando su nombre arriba: descripción, desde cuándo es cliente
@@ -58,9 +58,11 @@ usuario y datos persistentes.
 - **Prioridades** — cada encargo, cada tarea y cada cliente se marcan como *Urgente*,
   *Importante*, *Normal* o *Puede esperar*. Las listas se ordenan solas por prioridad y, a
   igualdad, por fecha de entrega.
-- **Jornada** — no se ficha la entrada. Al terminar se pulsa *Terminar la jornada* y se apunta qué
-  se ha hecho: la tarea (editar, grabar, programar…), el cliente y el rato. Eso es lo que alimenta
-  los informes.
+- **Parte del día** — no se ficha la entrada. Al terminar se pulsa *Terminar la jornada* y sale una
+  sola pregunta, *¿qué has hecho hoy?*, que se responde en tres gestos: eliges la tarea (Idear,
+  Grabar, Editar, Programar, Report, Reunión), marcas los clientes —varios de una vez si hace
+  falta— y das el rato. Lo que estuviera cronometrado aparece ya puesto, y cada línea se ajusta de
+  15 en 15 o se quita. Eso es lo que alimenta los informes.
 - **Informes de tiempo** *(solo administradores)* — semana o mes, con el total por cliente y fase
   (p. ej. *Editar de X: 4h 20m*), el total por persona y quién está trabajando en cada cosa en
   este momento.

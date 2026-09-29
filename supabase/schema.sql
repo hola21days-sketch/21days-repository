@@ -1085,3 +1085,58 @@ create policy daily_notes_update on public.daily_notes
 drop policy if exists daily_notes_delete on public.daily_notes;
 create policy daily_notes_delete on public.daily_notes
   for delete to authenticated using (profile_id = auth.uid() or public.is_admin());
+
+-- ============================================================================
+-- 23. Que solo el equipo vea los datos
+-- ----------------------------------------------------------------------------
+-- La aplicación es pública: cualquiera llega a la pantalla de entrada, y la
+-- clave publicable viaja dentro del JavaScript, como es normal. Lo que protege
+-- los datos son estas políticas, no la clave.
+--
+-- Antes bastaba con estar autenticado, y eso era un agujero: quien se
+-- registrara por su cuenta podía leer los clientes, las conversaciones y las
+-- contraseñas de los clientes. Ahora hace falta además una ficha de equipo
+-- activa. Se hace con políticas RESTRICTIVE, que se suman con Y a las que ya
+-- había: no hay que reescribir ninguna y no se cuela nada por una que se olvide.
+-- ============================================================================
+create or replace function public.es_equipo()
+returns boolean
+language sql
+stable
+security definer
+set search_path to 'public'
+as $$
+  select exists (
+    select 1 from public.profiles where id = auth.uid() and active
+  );
+$$;
+
+revoke execute on function public.es_equipo() from anon, public;
+grant execute on function public.es_equipo() to authenticated;
+
+do $$
+declare
+  t text;
+  tablas text[] := array[
+    'profiles', 'clients', 'client_members', 'client_tasks', 'client_credentials',
+    'client_month_progress', 'client_notices', 'daily_notes', 'personal_notes',
+    'messages', 'message_attachments', 'chat_reads', 'dm_messages', 'meetings',
+    'transcripts', 'work_sessions', 'time_punches', 'board_columns', 'cards',
+    'card_assignees', 'card_comments', 'checklist_items'
+  ];
+begin
+  foreach t in array tablas loop
+    if to_regclass('public.' || t) is not null then
+      execute format('drop policy if exists %I on public.%I', t || '_solo_equipo', t);
+      execute format(
+        'create policy %I on public.%I as restrictive to authenticated using (public.es_equipo()) with check (public.es_equipo())',
+        t || '_solo_equipo', t
+      );
+    end if;
+  end loop;
+end $$;
+
+-- Quien llegue por su cuenta entra desactivado: tiene sesión, pero no ve nada
+-- hasta que un administrador lo active. Los correos de la agencia y los de la
+-- lista de administradores entran activos, para no romper las altas normales.
+-- (handle_new_user queda redefinida en la migración solo_el_equipo_entra.)

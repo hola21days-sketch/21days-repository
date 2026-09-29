@@ -36,6 +36,7 @@ type Props = {
   dmUnread: number;
   puedeBorrar: boolean;
   onBorrarCliente: (id: string) => void;
+  onMiCuenta: () => void;
 };
 
 export default function Rail({
@@ -52,6 +53,7 @@ export default function Rail({
   dmUnread,
   puedeBorrar,
   onBorrarCliente,
+  onMiCuenta,
 }: Props) {
   // Menú del botón derecho sobre un canal.
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(
@@ -231,6 +233,15 @@ export default function Rail({
           color={me.color}
         />
         <span className="rail__footer-name">{me.full_name} · conectado</span>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          style={{ fontSize: "0.74rem" }}
+          onClick={onMiCuenta}
+          title="Cambiar mi contraseña"
+        >
+          Mi cuenta
+        </button>
         <form action="/auth/salir" method="post">
           <button
             type="submit"

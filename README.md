@@ -386,6 +386,22 @@ componentes:
   el componente por `<img src={BRAND.logo} alt={BRAND.logoAlt} className="rail__logo" />`.
 - **Nombres y textos de marca** — `src/lib/brand.ts`.
 
+## Quién puede entrar
+
+No hay alta pública: la pantalla de entrada solo deja iniciar sesión, con contraseña o con un
+enlace por correo, y ese enlace no crea cuentas (`shouldCreateUser: false`). Las cuentas las da de
+alta un administrador desde Supabase.
+
+Eso no se queda en la pantalla, que sería un candado de cartón: la aplicación está abierta en
+internet y la clave publicable de Supabase viaja dentro del JavaScript, como es normal. Lo que
+protege los datos son las políticas de la base de datos. Cada tabla de la aplicación lleva una
+política **restrictiva** (`<tabla>_solo_equipo`) que se suma con Y a las demás y exige
+`public.es_equipo()`: tener una ficha de equipo **activa**. Estar autenticado ya no basta.
+
+Y quien consiguiera registrarse por otra vía entra **desactivado**, salvo que su correo sea de
+`@21daysagency.com` o esté en `admin_emails`. Tendría sesión y no vería absolutamente nada hasta
+que un administrador lo activase.
+
 ## Cómo se publica
 
 La aplicación vive en Vercel, proyecto `bitacora` del equipo 21DAYS, y se publica en

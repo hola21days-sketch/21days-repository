@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { initialsOf } from "@/lib/format";
 
 const ALLOWED_DOMAINS = (process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS ?? "")
   .split(",")
@@ -17,18 +16,25 @@ function domainAllowed(email: string) {
   return ALLOWED_DOMAINS.includes(domain);
 }
 
-type Mode = "password" | "link" | "signup";
+/**
+ * No hay alta pública a propósito.
+ * ---------------------------------------------------------------------------
+ * La aplicación está abierta en internet y dentro hay conversaciones del
+ * equipo y las contraseñas de las cuentas de los clientes. Si cualquiera
+ * pudiera crearse una cuenta, con eso le bastaría. Las altas las hace un
+ * administrador, y la base de datos además deja sin acceso a cualquier ficha
+ * que no esté dada de alta por el equipo.
+ */
+type Mode = "password" | "link";
 
 const TITLES: Record<Mode, string> = {
   password: "Entrar",
   link: "Entrar",
-  signup: "Crear cuenta",
 };
 
 export default function LoginForm() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("password");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -62,59 +68,9 @@ export default function LoginForm() {
     setBusy(true);
     const supabase = createClient();
 
-    // ---------------------------------------------------------------- alta
-    if (mode === "signup") {
-      const fullName = name.trim();
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName, initials: initialsOf(fullName) },
-          emailRedirectTo: `${window.location.origin}/auth/callback?volver=${encodeURIComponent(
-            volverA(),
-          )}`,
-        },
-      });
-
-      if (error) {
-        setBusy(false);
-        setError(traducir(error.message));
-        return;
-      }
-
-      // Supabase no dice "ese correo ya existe" para no delatar quién tiene
-      // cuenta: devuelve un usuario sin identidades. Lo traducimos nosotros.
-      if (data.user && data.user.identities?.length === 0) {
-        setBusy(false);
-        setError("Ese correo ya tiene cuenta. Entra con tu contraseña o pide un enlace por correo.");
-        return;
-      }
-
-      // Lo normal: el alta ya trae sesión y entramos directos.
-      if (data.session) {
-        router.push(volverA());
-        router.refresh();
-        return;
-      }
-
-      // Si el proyecto tiene activada la confirmación por correo, signUp no
-      // devuelve sesión. Aun así entramos: el trigger auto_confirm_new_user de
-      // la base de datos deja el correo por confirmado al crear el usuario.
-      const entrada = await supabase.auth.signInWithPassword({ email, password });
-      setBusy(false);
-      if (!entrada.error) {
-        router.push(volverA());
-        router.refresh();
-        return;
-      }
-
-      setNotice(
-        `Cuenta creada para ${email}. Ya puedes entrar con tu contraseña desde «Entrar».`,
-      );
-      return;
-    }
-
-    // ------------------------------------------------- entrar con un enlace
+    // -------------------------------------------------------------- enlace
+    // shouldCreateUser en false: el enlace solo sirve para quien ya está dado
+    // de alta; si no, no se crea ninguna cuenta por la puerta de atrás.
     if (mode === "link") {
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -150,28 +106,11 @@ export default function LoginForm() {
   return (
     <form className="gate__form" onSubmit={onSubmit}>
       <h1 className="gate__title">{TITLES[mode]}</h1>
-      <p className="gate__sub">
-        {mode === "signup"
-          ? `Date de alta con tu correo de trabajo para entrar en la bitácora de ${BRAND.company}.`
-          : `Acceso reservado al equipo de ${BRAND.company}.`}
-      </p>
+      <p className="gate__sub">Acceso reservado al equipo de {BRAND.company}.</p>
 
       {error && <div className="notice notice--error">{error}</div>}
       {notice && <div className="notice notice--ok">{notice}</div>}
 
-      {mode === "signup" && (
-        <div className="field">
-          <label htmlFor="name">Nombre y apellido</label>
-          <input
-            id="name"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Marc Valero"
-          />
-        </div>
-      )}
 
       <div className="field">
         <label htmlFor="email">Correo de trabajo</label>
@@ -192,28 +131,16 @@ export default function LoginForm() {
           <input
             id="password"
             type="password"
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+            autoComplete="current-password"
             required
-            minLength={mode === "signup" ? 8 : undefined}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {mode === "signup" && (
-            <span style={{ fontSize: "0.72rem", color: "var(--ink-faint)" }}>
-              Mínimo 8 caracteres.
-            </span>
-          )}
         </div>
       )}
 
       <button className="btn btn--primary gate__full" type="submit" disabled={busy}>
-        {busy
-          ? "Un momento…"
-          : mode === "password"
-            ? "Entrar"
-            : mode === "link"
-              ? "Enviarme un enlace"
-              : "Crear cuenta"}
+        {busy ? "Un momento…" : mode === "password" ? "Entrar" : "Enviarme un enlace"}
       </button>
 
       <div className="gate__switch">
@@ -233,24 +160,11 @@ export default function LoginForm() {
             </button>
           </>
         )}
-        {mode === "signup" && (
-          <>
-            <span>¿Ya tienes cuenta?</span>
-            <button type="button" onClick={() => go("password")}>
-              Entrar
-            </button>
-          </>
-        )}
       </div>
 
-      {mode !== "signup" && (
-        <div className="gate__switch">
-          <span>¿Aún no tienes cuenta?</span>
-          <button type="button" onClick={() => go("signup")}>
-            Crear una
-          </button>
-        </div>
-      )}
+      <div className="gate__switch gate__switch--nota">
+        <span>Las cuentas las da de alta un administrador. Si no tienes, pídesela a Adri o a Aina.</span>
+      </div>
 
       <div className="gate__brandline">
         {BRAND.product} — {BRAND.company}

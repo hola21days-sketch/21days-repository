@@ -11,6 +11,7 @@ import Informes from "./Informes";
 import Panel from "./Panel";
 import MiPanel from "./MiPanel";
 import Agenda from "./Agenda";
+import MiCuenta from "./MiCuenta";
 import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
@@ -105,6 +106,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
   const [fichaAbierta, setFichaAbierta] = useState(false);
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
 
   /**
    * Mensajes directos sin leer. Se cuenta aquí arriba para que el aviso del
@@ -698,6 +700,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           setRailOpen(false);
         }}
         onClose={() => setRailOpen(false)}
+        onMiCuenta={() => {
+          setRailOpen(false);
+          setCuentaAbierta(true);
+        }}
         puedeBorrar={me.role === "admin"}
         onBorrarCliente={(id) => void deleteClient(id)}
         vista={vista}
@@ -907,6 +913,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             }}
           />
         )}
+
+        {cuentaAbierta && <MiCuenta me={me} onCerrar={() => setCuentaAbierta(false)} />}
 
         {vista === "agenda" && <Agenda me={me} />}
 

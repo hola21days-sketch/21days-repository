@@ -2493,3 +2493,23 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .medias__texto { flex-basis: 100%; }
   .parte__aviso-nuevo > * { flex-basis: 100%; }
 }
+
+/* ==========================================================================
+   Mi cuenta — cambiar la propia contraseña
+   ========================================================================== */
+.cuenta { max-width: 420px; }
+.cuenta__cab { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
+.cuenta__correo { margin: 0.1rem 0 0; font-size: 0.78rem; color: var(--ink-muted); }
+.cuenta__aviso { font-size: 0.82rem; color: var(--ink-muted); margin: 0 0 0.9rem; line-height: 1.5; }
+.cuenta__ver {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+.cuenta__pega { margin: 0 0 0.6rem; font-size: 0.8rem; color: var(--danger); }
+
+.gate__switch--nota { color: var(--ink-faint); font-size: 0.78rem; line-height: 1.5; }

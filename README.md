@@ -43,6 +43,9 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
+- **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
+  quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
+  ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.
 - **Mi agenda** — *Mi agenda*, en el panel izquierdo: lo de cada uno que no es trabajo, con su
   fecha y sus apuntes. **Solo la ve quien la escribe**, y no por estar escondida: la base de datos
   únicamente deja leer y escribir las filas propias, tenga el perfil que tenga. No sale en el panel

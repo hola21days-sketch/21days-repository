@@ -62,7 +62,9 @@ usuario y datos persistentes.
   tenga. A la derecha **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
   en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
   los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
-  cliente y en el panel del equipo. **La tiene todo el equipo**, no solo los administradores: cada
+  cliente y en el panel del equipo. Desde ahí también se **añaden** tareas: se dice qué hay que
+  hacer, de qué cliente y para qué día, y la tarea aparece en el canal de ese cliente asignada a
+  quien la escribió. **La tiene todo el equipo**, no solo los administradores: cada
   uno la suya, y lo personal de cada cual no lo ve nadie más.
 - **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
   pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del

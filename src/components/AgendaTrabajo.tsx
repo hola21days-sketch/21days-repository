@@ -54,10 +54,17 @@ function casillas() {
  */
 export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props) {
   const supabase = useMemo(() => createClient(), []);
+  const cols = casillas();
   const [tareas, setTareas] = useState<ClientTask[]>([]);
   const [cargando, setCargando] = useState(true);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [encima, setEncima] = useState<string | null>(null);
+  // Alta rápida: texto, de qué cliente y para qué día.
+  const [texto, setTexto] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [cuando, setCuando] = useState<string>(dia(0));
+  const [guardando, setGuardando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     const { data } = await supabase
@@ -85,6 +92,39 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     };
   }, [supabase, me.id, cargar]);
 
+  /**
+   * Añade una tarea desde aquí. Va al canal del cliente como cualquier otra
+   * —no es una lista aparte— y se asigna a quien la escribe, que es el sentido
+   * de crearla desde tu propia agenda.
+   */
+  async function añadir() {
+    const t = texto.trim();
+    if (guardando) return;
+    if (!t) {
+      setAviso("Escribe qué hay que hacer.");
+      return;
+    }
+    if (!cliente) {
+      setAviso("Elige de qué cliente es: la tarea vive en su canal.");
+      return;
+    }
+    setGuardando(true);
+    setAviso(null);
+    const due = cuando === "" ? null : cuando === "resto" ? dia(7) : cuando;
+    const { data, error } = await supabase
+      .from("client_tasks")
+      .insert({ client_id: cliente, text: t, assignee_id: me.id, due_date: due })
+      .select("*")
+      .single();
+    setGuardando(false);
+    if (error || !data) {
+      setAviso(`No se ha podido guardar. ${error?.message ?? ""}`.trim());
+      return;
+    }
+    setTareas((prev) => [...prev, data as ClientTask]);
+    setTexto("");
+  }
+
   /** Mover de columna es ponerle otra fecha de entrega. */
   async function mover(t: ClientTask, columna: string) {
     const due = columna === "" ? null : columna === "resto" ? dia(7) : columna;
@@ -101,7 +141,6 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
       .eq("id", t.id);
   }
 
-  const cols = casillas();
   const pasado = cols[2].clave;
 
   function enQue(t: ClientTask): string {
@@ -140,6 +179,60 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
         usa los botones: <b>lo que muevas aquí cambia su fecha de entrega</b> también en el canal
         del cliente y en el panel del equipo.
       </p>
+
+      {/* Alta rápida. Hace falta el cliente porque la tarea vive en su canal:
+          aquí no hay una lista aparte, es la misma de siempre vista por días. */}
+      <div className="plan__alta">
+        <input
+          className="input-inline plan__alta-texto"
+          placeholder="Qué hay que hacer…"
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void añadir();
+            }
+          }}
+        />
+        <select
+          className="input-inline"
+          value={cliente}
+          onChange={(e) => setCliente(e.target.value)}
+          aria-label="De qué cliente"
+        >
+          <option value="">Cliente…</option>
+          {Object.entries(clientNames)
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .map(([id, nombre]) => (
+              <option key={id} value={id}>
+                {nombre}
+              </option>
+            ))}
+        </select>
+        <select
+          className="input-inline"
+          value={cuando}
+          onChange={(e) => setCuando(e.target.value)}
+          aria-label="Para cuándo"
+        >
+          {cols.map((c) => (
+            <option key={c.clave} value={c.clave}>
+              {c.titulo}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={() => void añadir()}
+          disabled={guardando}
+        >
+          {guardando ? "Añadiendo…" : "Añadir"}
+        </button>
+      </div>
+
+      {aviso && <div className="notice notice--error">{aviso}</div>}
 
       {cargando && <p className="panel__vacio">Cargando…</p>}
       {!cargando && tareas.length === 0 && (

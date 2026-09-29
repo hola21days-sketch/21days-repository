@@ -106,6 +106,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [progreso, setProgreso] = useState<number | null>(null);
   const [pendingTasks, setPendingTasks] = useState(0);
+  const [tareasAtrasadas, setTareasAtrasadas] = useState(0);
+  /** Pendientes por cliente, para el número del listado de la izquierda. */
+  const [pendientesPorCliente, setPendientesPorCliente] = useState<Record<string, number>>({});
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
   const [fichaAbierta, setFichaAbierta] = useState(false);
@@ -223,11 +226,13 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         name: c.name,
         kind: c.kind,
         internal: c.internal,
-        openCount: cards.filter((cd) => cd.client_id === c.id && !doneColumnIds.has(cd.column_id))
-          .length,
+        // El número de la derecha son sus tareas pendientes. Antes contaba
+        // tarjetas del tablero, que ya no existe: enseñaba un número de algo
+        // que nadie podía abrir.
+        openCount: pendientesPorCliente[c.id] ?? 0,
         unread: hayNovedades(c.id),
       })),
-    [clients, cards, doneColumnIds, hayNovedades],
+    [clients, pendientesPorCliente, hayNovedades],
   );
 
   // ---------------------------------------------------------------- recargas
@@ -421,12 +426,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     if (!activeId) return;
     let vigente = true;
     void (async () => {
-      const { count } = await supabase
+      const hoy = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
         .from("client_tasks")
-        .select("id", { count: "exact", head: true })
+        .select("due_date")
         .eq("client_id", activeId)
         .eq("done", false);
-      if (vigente) setPendingTasks(count ?? 0);
+      if (!vigente) return;
+      const filas = (data ?? []) as { due_date: string | null }[];
+      setPendingTasks(filas.length);
+      setTareasAtrasadas(filas.filter((t) => t.due_date && t.due_date < hoy).length);
     })();
     return () => {
       vigente = false;
@@ -446,8 +455,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       setLastTaskAt(mapa);
     };
     void (async () => {
-      const { data } = await supabase.from("client_tasks").select("client_id, created_at");
-      if (data) resumir(data as { client_id: string; created_at: string }[]);
+      const { data } = await supabase.from("client_tasks").select("client_id, created_at, done");
+      if (data) {
+        const filas = data as { client_id: string; created_at: string; done: boolean }[];
+        resumir(filas);
+        const cuenta: Record<string, number> = {};
+        for (const f of filas) {
+          if (!f.done) cuenta[f.client_id] = (cuenta[f.client_id] ?? 0) + 1;
+        }
+        setPendientesPorCliente(cuenta);
+      }
     })();
 
     const canal = supabase
@@ -828,12 +845,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                 {fichaAbierta && activeClient && vista === "cliente" && (
                   <FichaCliente
                     client={activeClient}
-                    enCurso={activeCards.filter((c) => c.column_id !== activeDoneColumnId).length}
-                    enReport={
-                      activeCards.filter(
-                        (c) => activeDoneColumnId && c.column_id === activeDoneColumnId,
-                      ).length
-                    }
                     onSaved={(cambios) =>
                       setClients((prev) =>
                         prev.map((c) => (c.id === activeClient.id ? { ...c, ...cambios } : c)),
@@ -876,9 +887,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             <Resumen
               key={activeClient.id}
               clientId={activeClient.id}
-              cards={activeCards}
-              doneColumnId={activeDoneColumnId}
               pendingTasks={pendingTasks}
+              tareasAtrasadas={tareasAtrasadas}
               me={me}
             />
           )}

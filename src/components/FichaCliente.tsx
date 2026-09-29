@@ -7,8 +7,6 @@ import type { ClientDetails } from "@/lib/types";
 type Props = {
   client: ClientDetails;
   /** Cifras que salen del tablero, para no tener que mantenerlas a mano. */
-  enCurso: number;
-  enReport: number;
   onSaved: (cambios: Partial<ClientDetails>) => void;
   onClose: () => void;
   /** Borrar un canal es cosa de administradores. */
@@ -44,8 +42,6 @@ function desdeCuando(fecha: string | null): string {
  */
 export default function FichaCliente({
   client,
-  enCurso,
-  enReport,
   onSaved,
   onClose,
   puedeBorrar,
@@ -253,12 +249,6 @@ export default function FichaCliente({
                 <dd>{client.videos_per_month}</dd>
               </div>
             )}
-            <div>
-              <dt>Ahora mismo</dt>
-              <dd>
-                {enCurso} en producción · {enReport} en report
-              </dd>
-            </div>
             {client.contact && (
               <div>
                 <dt>Contacto</dt>

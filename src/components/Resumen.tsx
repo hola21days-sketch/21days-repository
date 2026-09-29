@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { isOverdue } from "@/lib/format";
-import type { Card, Notice, Profile } from "@/lib/types";
+import type {Notice, Profile} from "@/lib/types";
 
 type Props = {
   clientId: string;
-  cards: Card[];
-  doneColumnId: string | null;
   pendingTasks: number;
+  /** Pendientes cuya fecha de entrega ya pasó. */
+  tareasAtrasadas: number;
   me: Profile;
 };
 
@@ -21,7 +20,7 @@ type Props = {
  * algo que decir: si no hay atrasos ni avisos, esos huecos no ocupan sitio.
  * Los avisos se despliegan al pulsar, para no robarle alto al tablero.
  */
-export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, me }: Props) {
+export default function Resumen({ clientId, pendingTasks, tareasAtrasadas, me }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [abierto, setAbierto] = useState(false);
@@ -63,29 +62,20 @@ export default function Resumen({ clientId, cards, doneColumnId, pendingTasks, m
     await supabase.from("client_notices").delete().eq("id", notice.id);
   }
 
-  const enReport = cards.filter((c) => doneColumnId && c.column_id === doneColumnId).length;
-  const enCurso = cards.filter((c) => c.column_id !== doneColumnId).length;
-  const atrasadas = cards.filter(
-    (c) => c.column_id !== doneColumnId && isOverdue(c.due_date),
-  ).length;
+  // «En producción» y «en report» contaban tarjetas del tablero, que ya no
+  // existe: se quedaron enseñando números de algo que nadie puede abrir. Lo
+  // que se mira ahora de un cliente son sus pendientes y lo que lleva retraso.
+  const atrasadas = tareasAtrasadas;
 
   return (
     <section className="digest" aria-label="Estado del cliente">
       <div className="digest__line">
         <span className="digest__stat">
-          <b>{enCurso}</b> en producción
-        </span>
-        <span className="digest__stat">
-          <b>{enReport}</b> en report
+          <b>{pendingTasks}</b> {pendingTasks === 1 ? "tarea pendiente" : "tareas pendientes"}
         </span>
         {atrasadas > 0 && (
           <span className="digest__stat is-alerta">
             <b>{atrasadas}</b> con la entrega pasada
-          </span>
-        )}
-        {pendingTasks > 0 && (
-          <span className="digest__stat">
-            <b>{pendingTasks}</b> tareas
           </span>
         )}
 

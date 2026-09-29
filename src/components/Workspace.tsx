@@ -12,6 +12,7 @@ import Panel from "./Panel";
 import MiPanel from "./MiPanel";
 import Agenda from "./Agenda";
 import MiCuenta from "./MiCuenta";
+import AgendaTrabajo from "./AgendaTrabajo";
 import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
@@ -468,6 +469,53 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     void loadMessages(activeId);
   }, [activeId, tab, loadMessages]);
 
+  /**
+   * Red de seguridad del chat.
+   * -------------------------------------------------------------------------
+   * Lo normal es que los mensajes lleguen solos por tiempo real. Pero ese
+   * socket se cae con el wifi, al bloquear el móvil o al dejar la pestaña de
+   * fondo un rato, y cuando vuelve no siempre trae lo que se perdió. Con esto
+   * se piden los mensajes nuevos cada pocos segundos mientras el chat está
+   * abierto, y de golpe al volver a la pestaña. Nadie tiene que recargar.
+   */
+  const traerNuevos = useCallback(
+    async (clientId: string) => {
+      const lista = messagesByClient[clientId] ?? [];
+      const ultimo = lista.at(-1)?.created_at;
+      let q = supabase.from("messages").select("*").eq("client_id", clientId);
+      q = ultimo ? q.gt("created_at", ultimo) : q.order("created_at").limit(200);
+      const { data } = await q;
+      if (!data || data.length === 0) return;
+      for (const m of data as Message[]) upsertMessage(clientId, m);
+      const ids = (data as Message[]).map((m) => m.id);
+      const { data: files } = await supabase
+        .from("message_attachments")
+        .select("*")
+        .in("message_id", ids);
+      if (files) mergeAttachments(files as Attachment[]);
+    },
+    [supabase, messagesByClient, upsertMessage, mergeAttachments],
+  );
+
+  const traerNuevosRef = useRef(traerNuevos);
+  traerNuevosRef.current = traerNuevos;
+
+  useEffect(() => {
+    if (!activeId || tab !== "chat" || vista !== "cliente") return;
+    const id = activeId;
+    const reloj = setInterval(() => void traerNuevosRef.current(id), 12000);
+    const alVolver = () => {
+      if (document.visibilityState === "visible") void traerNuevosRef.current(id);
+    };
+    document.addEventListener("visibilitychange", alVolver);
+    window.addEventListener("focus", alVolver);
+    return () => {
+      clearInterval(reloj);
+      document.removeEventListener("visibilitychange", alVolver);
+      window.removeEventListener("focus", alVolver);
+    };
+  }, [activeId, tab, vista]);
+
   useEffect(() => {
     if (!activeId || tab !== "chat") return;
     void markRead(activeId);
@@ -764,7 +812,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                         : vista === "mias"
                           ? "Qué lleva cada uno y para cuándo"
                           : vista === "agenda"
-                            ? "Tus cosas, solo las ves tú"
+                            ? "Lo tuyo a un lado, el trabajo al otro"
                             : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
 
@@ -916,7 +964,20 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
         {cuentaAbierta && <MiCuenta me={me} onCerrar={() => setCuentaAbierta(false)} />}
 
-        {vista === "agenda" && <Agenda me={me} />}
+        {vista === "agenda" && (
+          <section className="agenda">
+            <Agenda me={me} />
+            <AgendaTrabajo
+              me={me}
+              clientNames={clientNames}
+              onAbrirCliente={(id) => {
+                setActiveId(id);
+                setVista("cliente");
+                setTab("tareas");
+              }}
+            />
+          </section>
+        )}
 
         {vista === "dm" && (
           <MensajesDirectos me={me} profiles={profiles} onUnread={setDmUnread} />

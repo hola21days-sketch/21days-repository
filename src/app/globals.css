@@ -179,7 +179,7 @@ a { color: var(--accent-ink); }
 }
 .client-item:hover { background: var(--surface-alt); }
 .client-item.is-active { background: var(--accent-soft); }
-.client-item.is-active .client-item__name { color: var(--accent-ink); font-weight: 600; }
+.client-item.is-active .client-item__name { color: var(--accent-ink); font-weight: 700; }
 
 .stamp {
   flex: none;
@@ -198,8 +198,12 @@ a { color: var(--accent-ink); }
   outline-offset: 2px;
 }
 .client-item__body { min-width: 0; flex: 1; }
+/* El nombre del canal, a tinta plena: es lo que se busca bajando por el
+   listado, y en gris se leía peor de lo que debía. */
 .client-item__name {
   font-size: 0.87rem;
+  color: var(--ink);
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2513,3 +2517,95 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .cuenta__pega { margin: 0 0 0.6rem; font-size: 0.8rem; color: var(--danger); }
 
 .gate__switch--nota { color: var(--ink-faint); font-size: 0.78rem; line-height: 1.5; }
+
+/* ==========================================================================
+   Mi agenda — lo personal a un lado, el trabajo al otro
+   ========================================================================== */
+.agenda {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
+  gap: 1.2rem;
+  align-items: start;
+  padding: 1.1rem 1.4rem 1.4rem;
+  overflow-y: auto;
+}
+.agenda__col {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0.9rem 1rem 1.1rem;
+  min-width: 0;
+}
+
+/* El planificador por días */
+.plan {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(150px, 1fr);
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+.plan__col {
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  background: var(--bg);
+  padding: 0.5rem 0.45rem 0.6rem;
+  min-width: 0;
+}
+/* Al arrastrar encima, que se vea dónde va a caer. */
+.plan__col.is-encima { border-color: var(--accent); background: var(--accent-soft); }
+.plan__cab { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.45rem; }
+.plan__tit { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.plan__sub { font-size: 0.68rem; color: var(--ink-faint); flex-basis: 100%; }
+.plan__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.plan__vacio { font-size: 0.78rem; color: var(--ink-faint); text-align: center; padding: 0.4rem 0; }
+.plan__tarea {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem 0.5rem;
+  cursor: grab;
+}
+.plan__tarea:active { cursor: grabbing; }
+.plan__tarea:hover { border-color: var(--accent); }
+.plan__tarea-cab { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; }
+.plan__texto { margin: 0 0 0.35rem; font-size: 0.83rem; line-height: 1.35; overflow-wrap: anywhere; }
+.plan__cliente {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.plan__cliente .stamp { width: 18px; height: 18px; font-size: 0.5rem; outline: none; }
+.plan__cliente:hover { color: var(--accent-ink); }
+/* Los botones de mover salen al pasar por encima: si no, cada tarjeta parece
+   un formulario y no se lee lo que pone. */
+.plan__mover { display: none; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.4rem; }
+.plan__tarea:hover .plan__mover, .plan__tarea:focus-within .plan__mover { display: flex; }
+.plan__mover-op {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-faint);
+  border-radius: 999px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.64rem;
+  cursor: pointer;
+}
+.plan__mover-op:hover { border-color: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 980px) {
+  .agenda { grid-template-columns: 1fr; padding: 0.9rem 1rem 1.2rem; }
+}
+@media (max-width: 780px) {
+  /* En el móvil no se puede arrastrar, así que los botones de mover van
+     siempre a la vista. */
+  .plan__mover { display: flex; }
+  .plan { grid-auto-columns: minmax(180px, 82vw); }
+}

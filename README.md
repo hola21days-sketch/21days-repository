@@ -46,10 +46,13 @@ usuario y datos persistentes.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.
-- **Mi agenda** — *Mi agenda*, en el panel izquierdo: lo de cada uno que no es trabajo, con su
-  fecha y sus apuntes. **Solo la ve quien la escribe**, y no por estar escondida: la base de datos
-  únicamente deja leer y escribir las filas propias, tenga el perfil que tenga. No sale en el panel
-  del equipo ni en los informes.
+- **Mi agenda** — dos agendas, una al lado de la otra. A la izquierda **lo personal**: lo de cada
+  uno que no es trabajo, con su fecha y sus apuntes. **Solo lo ve quien lo escribe**, y no por estar
+  escondido: la base de datos únicamente deja leer y escribir las filas propias, tenga el perfil que
+  tenga. A la derecha **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
+  en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
+  los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
+  cliente y en el panel del equipo.
 - **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
   pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del
   botón ☰, las tablas se desplazan de lado con la columna del nombre fija, los campos no provocan

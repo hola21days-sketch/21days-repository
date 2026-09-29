@@ -173,16 +173,16 @@ export default function Agenda({ me }: Props) {
   }
 
   return (
-    <section className="tasks">
-      <div className="tasks__panel">
+    <div className="agenda__col">
+      <div>
         <div className="tasks__head">
-          <h2 className="tasks__title">Mi agenda</h2>
+          <h2 className="tasks__title">Lo personal</h2>
           <span className="count-chip">{pendientes.length}</span>
         </div>
 
         <p className="claves__aviso">
-          Tus cosas, no las del trabajo. <b>Solo las ves tú</b>: no salen en el panel del equipo,
-          ni en los informes, ni las puede leer nadie más, tenga el perfil que tenga.
+          Tus cosas, las que no son del trabajo. <b>Solo las ves tú</b>: no salen en el panel del
+          equipo, ni en los informes, ni las puede leer nadie más, tenga el perfil que tenga.
         </p>
 
         {error && <div className="notice notice--error">{error}</div>}
@@ -236,6 +236,6 @@ export default function Agenda({ me }: Props) {
           </>
         )}
       </div>
-    </section>
+    </div>
   );
 }

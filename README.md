@@ -30,7 +30,7 @@ usuario y datos persistentes.
   **videollamada de Google Meet**, al momento o programada (con enlace para meterla en Google
   Calendar).
 - **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
-  *Transcribir y traducir*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
+  *Transcribir audio*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
   debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con archivos, notas de voz, enlaces pulsables y aviso de los que

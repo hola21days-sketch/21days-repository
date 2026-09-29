@@ -30,9 +30,13 @@ Deno.serve(async (req: Request) => {
   );
 
   let attachmentId = "";
+  // De dónde sale el archivo: del chat de un cliente o de un mensaje directo.
+  // Son tablas distintas y el mensaje directo no tiene cliente.
+  let fuente = "canal";
   try {
     const body = await req.json();
     attachmentId = String(body.attachment_id ?? "");
+    if (body.source === "dm") fuente = "dm";
   } catch {
     return new Response(JSON.stringify({ error: "Falta attachment_id." }), {
       status: 400,
@@ -41,7 +45,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: adjunto } = await supabase
-    .from("message_attachments")
+    .from(fuente === "dm" ? "dm_attachments" : "message_attachments")
     .select("*")
     .eq("id", attachmentId)
     .maybeSingle();
@@ -58,7 +62,8 @@ Deno.serve(async (req: Request) => {
     await supabase.from("transcripts").upsert(
       {
         attachment_id: adjunto.id,
-        client_id: adjunto.client_id,
+        client_id: adjunto.client_id ?? null,
+        source: fuente,
         ...campos,
       },
       { onConflict: "attachment_id" },

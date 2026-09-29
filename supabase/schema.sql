@@ -1204,3 +1204,48 @@ create policy adjuntos_select on storage.objects
       )
     )
   );
+
+-- ============================================================================
+-- 25. Transcribir también en los mensajes directos
+-- ----------------------------------------------------------------------------
+-- Las transcripciones colgaban solo de los adjuntos de los canales: la clave
+-- foránea apuntaba a message_attachments y el cliente era obligatorio. Con
+-- notas de voz en los mensajes directos eso ya no vale, y ahí no hay cliente.
+-- ============================================================================
+alter table public.transcripts drop constraint if exists transcripts_attachment_id_fkey;
+alter table public.transcripts alter column client_id drop not null;
+alter table public.transcripts add column if not exists source text not null default 'canal';
+alter table public.transcripts drop constraint if exists transcripts_source_check;
+alter table public.transcripts
+  add constraint transcripts_source_check check (source in ('canal', 'dm'));
+
+-- Sin clave foránea hay que limpiar a mano cuando se borra el adjunto.
+create or replace function public.borrar_transcripcion()
+returns trigger language plpgsql security definer set search_path to 'public' as $$
+begin
+  delete from public.transcripts where attachment_id = old.id;
+  return old;
+end;
+$$;
+
+drop trigger if exists on_message_attachment_deleted on public.message_attachments;
+create trigger on_message_attachment_deleted
+  after delete on public.message_attachments
+  for each row execute function public.borrar_transcripcion();
+
+drop trigger if exists on_dm_attachment_deleted on public.dm_attachments;
+create trigger on_dm_attachment_deleted
+  after delete on public.dm_attachments
+  for each row execute function public.borrar_transcripcion();
+
+drop policy if exists transcripts_select on public.transcripts;
+create policy transcripts_select on public.transcripts
+  for select to authenticated using (
+    source = 'canal'
+    or exists (
+      select 1 from public.dm_attachments a
+      join public.dm_messages m on m.id = a.message_id
+      where a.id = attachment_id
+        and (m.sender_id = auth.uid() or m.recipient_id = auth.uid())
+    )
+  );

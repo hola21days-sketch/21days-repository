@@ -835,7 +835,6 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 1rem 1.1rem 1.2rem;
-  max-width: 1100px;
 }
 .tasks__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
 .tasks__title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; margin: 0; flex: 1; }
@@ -2758,3 +2757,26 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .adj { max-width: 100%; }
   .adj__img, .adj__video { max-height: 300px; }
 }
+
+/* Velocidad de reproducción: x1 · x1,5 · x2 */
+.vel { display: inline-flex; gap: 0.15rem; flex: none; }
+.vel__op {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 0.08rem 0.36rem;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.vel__op:hover { border-color: var(--accent); color: var(--accent-ink); }
+.vel__op.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.adj--voz { display: block; }
+.adj__voz-fila { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.adj .transcripcion { border-top: 1px solid var(--rule); margin-top: 0.5rem; padding-top: 0.5rem; }

@@ -323,7 +323,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                               <ul className="files">
                                 {(adjuntos[m.id] ?? []).map((a) => (
                                   <li key={a.id}>
-                                    <Adjunto att={a} />
+                                    <Adjunto att={a} fuente="dm" />
                                   </li>
                                 ))}
                               </ul>

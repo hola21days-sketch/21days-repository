@@ -8,7 +8,7 @@ import GrabadorVoz from "./GrabadorVoz";
 import { dayLabel, formatSize, formatTime, initialsOf, stampColor } from "@/lib/format";
 import { MAX_BYTES, MAX_MB } from "@/lib/subir";
 import { conEnlaces } from "@/lib/enlaces";
-import type { Attachment, Meeting, Message, Profile, Transcript } from "@/lib/types";
+import type { Attachment, Meeting, Message, Profile } from "@/lib/types";
 
 type Props = {
   clientId: string;
@@ -55,10 +55,6 @@ function enlaceCalendario(titulo: string, cuando: Date, url: string): string {
 }
 
 /** ¿Es un archivo del que se puede sacar la voz? */
-function tieneVoz(mime: string) {
-  return mime.startsWith("video/") || mime.startsWith("audio/");
-}
-
 /** Pinta el texto con las menciones resaltadas y los enlaces pulsables. */
 function conMenciones(body: string, nombres: string[]) {
   if (nombres.length === 0) return conEnlaces(body);
@@ -102,7 +98,6 @@ export default function Chat({
   const [menciones, setMenciones] = useState<Profile[] | null>(null);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [programando, setProgramando] = useState(false);
-  const [transcripciones, setTranscripciones] = useState<Record<string, Transcript>>({});
   const [transcribiendo, setTranscribiendo] = useState<string | null>(null);
   const [filtroPersona, setFiltroPersona] = useState("");
   const logRef = useRef<HTMLDivElement>(null);
@@ -151,33 +146,6 @@ export default function Chat({
       setMeetings((data ?? []) as Meeting[]);
     })();
   }, [supabase, clientId]);
-
-  /** Trae las transcripciones que ya existan de este cliente. */
-  const cargarTranscripciones = useCallback(async () => {
-    const { data } = await supabase.from("transcripts").select("*").eq("client_id", clientId);
-    if (data) {
-      setTranscripciones(
-        Object.fromEntries((data as Transcript[]).map((t) => [t.attachment_id, t])),
-      );
-    }
-  }, [supabase, clientId]);
-
-  useEffect(() => {
-    void cargarTranscripciones();
-  }, [cargarTranscripciones]);
-
-  /**
-   * Manda el archivo al servicio de transcripción. Descifra lo que se dice en
-   * el vídeo, sea el idioma que sea, y lo traduce al castellano.
-   */
-  async function transcribir(att: Attachment) {
-    setTranscribiendo(att.id);
-    // Si algo falla, la propia función deja el motivo escrito en la fila,
-    // así que basta con releerla para enseñarlo.
-    await supabase.functions.invoke("transcribir", { body: { attachment_id: att.id } });
-    await cargarTranscripciones();
-    setTranscribiendo(null);
-  }
 
   /** De "@ma" saca la lista de gente que encaja, para el desplegable. */
   function revisarMenciones(texto: string, cursor: number) {
@@ -539,47 +507,10 @@ export default function Chat({
                     {adjuntos.length > 0 && (
                       <ul className="files">
                         {adjuntos.map((a) => {
-                          const t = transcripciones[a.id];
                           return (
                             <li key={a.id}>
                               <Adjunto att={a} />
 
-                              {tieneVoz(a.mime) && (
-                                <div className="transcripcion">
-                                  {(!t || t.status === "error") && (
-                                    <button
-                                      type="button"
-                                      className="btn btn--ghost transcripcion__pedir"
-                                      onClick={() => void transcribir(a)}
-                                      disabled={transcribiendo === a.id}
-                                    >
-                                      {transcribiendo === a.id
-                                        ? "Escuchando el vídeo…"
-                                        : "Transcribir y traducir"}
-                                    </button>
-                                  )}
-                                  {t?.status === "error" && (
-                                    <p className="transcripcion__error">{t.error}</p>
-                                  )}
-                                  {t?.status === "pendiente" && (
-                                    <p className="transcripcion__meta">En marcha…</p>
-                                  )}
-                                  {t?.status === "listo" && (
-                                    <div className="transcripcion__texto">
-                                      <p className="transcripcion__meta">
-                                        Transcripción{t.language ? ` · ${t.language}` : ""}
-                                      </p>
-                                      <p>{t.text}</p>
-                                      {t.translation && (
-                                        <>
-                                          <p className="transcripcion__meta">Traducción al castellano</p>
-                                          <p>{t.translation}</p>
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
                             </li>
                           );
                         })}

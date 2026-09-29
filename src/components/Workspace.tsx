@@ -13,6 +13,8 @@ import MiPanel from "./MiPanel";
 import Agenda from "./Agenda";
 import MiCuenta from "./MiCuenta";
 import AgendaTrabajo from "./AgendaTrabajo";
+import AvisoSonido from "./AvisoSonido";
+import { sonarAviso } from "@/lib/aviso";
 import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
@@ -125,7 +127,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     void contar();
     const canal = supabase
       .channel("dm-aviso")
-      .on("postgres_changes", { event: "*", schema: "public", table: "dm_messages" }, () => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages" }, (payload) => {
+        const fila = payload.new as { recipient_id: string };
+        if (fila.recipient_id === me.id) sonarAviso();
+        void contar();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "dm_messages" }, () => {
         void contar();
       })
       .subscribe();
@@ -314,6 +321,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           const row = payload.new as Message;
           setLastMsgAt((prev) => ({ ...prev, [row.client_id]: row.created_at }));
           upsertMessage(row.client_id, row);
+          // Los propios no suenan: ya sabes que has escrito tú.
+          if (row.author_id !== me.id) sonarAviso();
         },
       )
       .on(
@@ -875,6 +884,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           )}
 
           <div className="main__actions">
+            <AvisoSonido />
             {activeClient && vista === "cliente" && activeClient.drive_url && (
               <a
                 className="btn"

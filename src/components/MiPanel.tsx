@@ -71,6 +71,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [orden, setOrden] = useState<"prioridad" | "fecha">("prioridad");
   // Qué tarea tiene la explicación desplegada.
   const [desplegada, setDesplegada] = useState<string | null>(null);
+  // Lo que se está escribiendo en el desplegable. Nada se guarda hasta pulsar.
+  const [borrador, setBorrador] = useState({ text: "", notes: "" });
+  const [guardandoTarea, setGuardandoTarea] = useState(false);
 
   const profileById = useMemo(
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
@@ -158,6 +161,22 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     const done_at = done ? new Date().toISOString() : null;
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done, done_at } : t)));
     await supabase.from("client_tasks").update({ done, done_at }).eq("id", task.id);
+  }
+
+  /** Abre el desplegable de una tarea con lo que tiene ahora. */
+  function abrirTarea(t: ClientTask) {
+    setDesplegada(t.id);
+    setBorrador({ text: t.text, notes: t.notes });
+  }
+
+  /** Guarda el título y la explicación de golpe. */
+  async function guardarTarea(t: ClientTask) {
+    const text = borrador.text.trim();
+    if (!text || guardandoTarea) return;
+    setGuardandoTarea(true);
+    await guardar(t, { text, notes: borrador.notes });
+    setGuardandoTarea(false);
+    setDesplegada(null);
   }
 
   /** Darlo por resuelto lo quita de la lista: ya no hay nada que avisar. */
@@ -680,7 +699,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       onClick={() =>
                         seleccion.size > 0
                           ? alternarSeleccion(t.id)
-                          : setDesplegada((d) => (d === t.id ? null : t.id))
+                          : desplegada === t.id
+                            ? setDesplegada(null)
+                            : abrirTarea(t)
                       }
                       aria-expanded={desplegada === t.id}
                     >
@@ -737,27 +758,54 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                         )}
                       </div>
 
-                      <p className="explica__titulo">{t.text}</p>
+                      {/* Se lee y se edita en el mismo sitio: si has abierto
+                          la tarea para mirarla, lo siguiente que quieres hacer
+                          suele ser cambiarle algo. */}
+                      <input
+                        className="input-inline explica__titulo-campo"
+                        value={borrador.text}
+                        onChange={(e) => setBorrador({ ...borrador, text: e.target.value })}
+                        aria-label="Texto de la tarea"
+                      />
 
-                      {t.notes ? (
-                        // Los enlaces salen pulsables y el texto respeta los
-                        // saltos de línea: es la explicación de la tarea, se
-                        // lee tal como se escribió.
-                        <div className="explica__texto">{conEnlaces(t.notes, t.id)}</div>
-                      ) : (
-                        <p className="explica__vacio">
-                          Esta tarea no tiene explicación. Se escribe desde el canal del cliente,
-                          en <b>Tareas</b>, pulsando sobre ella.
-                        </p>
+                      <textarea
+                        className="input-inline explica__notas"
+                        value={borrador.notes}
+                        placeholder="Cómo se hace, qué hace falta, enlaces, referencias…"
+                        onChange={(e) => setBorrador({ ...borrador, notes: e.target.value })}
+                        aria-label="Explicación de la tarea"
+                      />
+
+                      {/* Debajo, la explicación tal como se va a leer: con los
+                          saltos de línea y los enlaces pulsables. */}
+                      {borrador.notes.trim() && (
+                        <div className="explica__texto">{conEnlaces(borrador.notes, t.id)}</div>
                       )}
 
-                      <button
-                        type="button"
-                        className="btn btn--ghost explica__ir"
-                        onClick={() => onAbrirCliente(t.client_id)}
-                      >
-                        Ir al canal de {clientNames[t.client_id] ?? "este cliente"} →
-                      </button>
+                      <div className="explica__botones">
+                        <button
+                          type="button"
+                          className="btn btn--primary"
+                          onClick={() => void guardarTarea(t)}
+                          disabled={guardandoTarea || !borrador.text.trim()}
+                        >
+                          {guardandoTarea ? "Guardando…" : "Guardar"}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost"
+                          onClick={() => setDesplegada(null)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost explica__ir"
+                          onClick={() => onAbrirCliente(t.client_id)}
+                        >
+                          Ir al canal de {clientNames[t.client_id] ?? "este cliente"} →
+                        </button>
+                      </div>
                     </div>
                   )}
 

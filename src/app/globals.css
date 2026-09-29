@@ -2609,3 +2609,27 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .plan__mover { display: flex; }
   .plan { grid-auto-columns: minmax(180px, 82vw); }
 }
+
+/* El desplegable de una tarea: se lee y se edita en el mismo sitio */
+.explica__titulo-campo {
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+.explica__notas {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-family: inherit;
+}
+.explica__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+.explica__texto { margin-top: 0.55rem; }

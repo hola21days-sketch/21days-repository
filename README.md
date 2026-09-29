@@ -43,6 +43,9 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
+- **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto
+  cuando alguien escribe, en un canal o por mensaje directo. Los propios no suenan. Se guarda por
+  aparato, así que puede estar encendido en el ordenador y apagado en el móvil.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.

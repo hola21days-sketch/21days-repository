@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
+import Adjunto from "./Adjunto";
+import GrabadorVoz from "./GrabadorVoz";
 import { dayLabel, formatSize, formatTime, initialsOf, stampColor } from "@/lib/format";
 import { MAX_BYTES, MAX_MB } from "@/lib/subir";
 import { conEnlaces } from "@/lib/enlaces";
@@ -30,19 +32,6 @@ type Props = {
   onEdit: (messageId: string, body: string) => void;
   onDelete: (messageId: string) => void;
 };
-
-/** Abre el fichero en una pestaña nueva con un enlace firmado de una hora. */
-async function abrir(att: Attachment) {
-  const supabase = createClient();
-  const { data, error } = await supabase.storage.from("adjuntos").createSignedUrl(att.path, 3600, {
-    download: att.name,
-  });
-  if (error || !data) {
-    alert("No se ha podido abrir el archivo. Vuelve a intentarlo.");
-    return;
-  }
-  window.open(data.signedUrl, "_blank", "noopener");
-}
 
 /** Deja el enlace de Google Meet en su forma canónica, o devuelve "" si no lo es. */
 function limpiarMeet(texto: string): string {
@@ -553,18 +542,7 @@ export default function Chat({
                           const t = transcripciones[a.id];
                           return (
                             <li key={a.id}>
-                              <button type="button" className="file" onClick={() => void abrir(a)}>
-                                <span className="file__icon">
-                                  {a.mime.startsWith("image/") ? "▣" : tieneVoz(a.mime) ? "▶" : "▤"}
-                                </span>
-                                <span className="file__body">
-                                  <span className="file__name">{a.name}</span>
-                                  <span className="file__meta">
-                                    {formatSize(a.size_bytes)} · original, sin recomprimir
-                                  </span>
-                                </span>
-                                <span className="file__down">Descargar</span>
-                              </button>
+                              <Adjunto att={a} />
 
                               {tieneVoz(a.mime) && (
                                 <div className="transcripcion">
@@ -693,6 +671,10 @@ export default function Chat({
           >
             📎
           </button>
+          <GrabadorVoz
+            disabled={uploading !== null}
+            onGrabado={(nota) => setFiles((prev) => [...prev, nota])}
+          />
           <textarea
             ref={inputRef}
             className="composer__input"

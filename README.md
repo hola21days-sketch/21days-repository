@@ -43,6 +43,12 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
+- **Notas de voz** — el micrófono del chat graba y la nota se va con el mensaje como un adjunto
+  más: se escucha en el propio chat y se puede transcribir igual que un vídeo. Hay botón de tirarla
+  antes de mandarla.
+- **Archivos que se ven** — una imagen sale grande y se abre a pantalla completa al pulsarla, un
+  vídeo se reproduce en el chat y un audio trae su barra de reproducción. Lo demás sigue siendo una
+  tarjeta con su nombre y su tamaño. Descargar siempre está a mano, y el original no se toca.
 - **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto
   cuando alguien escribe, en un canal o por mensaje directo. Los propios no suenan. Se guarda por
   aparato, así que puede estar encendido en el ordenador y apagado en el móvil.
@@ -55,7 +61,8 @@ usuario y datos persistentes.
   tenga. A la derecha **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
   en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
   los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
-  cliente y en el panel del equipo.
+  cliente y en el panel del equipo. **La tiene todo el equipo**, no solo los administradores: cada
+  uno la suya, y lo personal de cada cual no lo ve nadie más.
 - **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
   pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del
   botón ☰, las tablas se desplazan de lado con la columna del nombre fija, los campos no provocan

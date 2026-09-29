@@ -2633,3 +2633,124 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   margin-top: 0.6rem;
 }
 .explica__texto { margin-top: 0.55rem; }
+
+/* ==========================================================================
+   Adjuntos del chat — que se vean, no que se descarguen
+   ========================================================================== */
+.adj {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  margin: 0;
+  max-width: 520px;
+}
+.adj__img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  cursor: zoom-in;
+  background: var(--surface-alt);
+}
+.adj__video { display: block; width: 100%; max-height: 420px; background: #000; }
+.adj__cargando {
+  padding: 1.6rem 0.8rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  background: var(--surface-alt);
+}
+.adj__pie {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+}
+.adj__nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adj__meta { flex: none; color: var(--ink-faint); }
+.adj__accion {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  color: var(--accent-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Nota de voz */
+.adj--voz { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.6rem; }
+.adj--voz.is-nota { border-color: var(--accent); background: var(--accent-soft); }
+.adj__voz-icono { flex: none; font-size: 1rem; }
+.adj__audio { flex: 1; min-width: 0; height: 36px; }
+
+/* La imagen a tamaño completo */
+.lupa {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 12, 11, 0.86);
+  padding: 1.5rem;
+  cursor: zoom-out;
+}
+.lupa__img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+.lupa__cerrar {
+  position: fixed;
+  top: 1rem;
+  right: 1.2rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Grabar una nota de voz */
+.voz--grabando {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.5rem;
+  border: 1px solid var(--danger);
+  border-radius: 999px;
+  background: var(--danger-soft);
+  flex: none;
+}
+.voz__punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: voz-late 1s ease-in-out infinite;
+}
+@keyframes voz-late { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.voz__reloj { font-family: var(--font-mono); font-size: 0.78rem; color: var(--danger); }
+.voz__btn {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 5px;
+}
+.voz__btn--tirar { color: var(--ink-muted); }
+.voz__btn--listo { color: var(--accent-ink); font-weight: 600; }
+.voz__mic { font-size: 1rem; }
+.voz__error { font-size: 0.72rem; color: var(--danger); }
+
+@media (max-width: 780px) {
+  .adj { max-width: 100%; }
+  .adj__img, .adj__video { max-height: 300px; }
+}

@@ -231,6 +231,7 @@ export default function Rail({
         <Stamp
           label={me.initials || initialsOf(me.full_name)}
           color={me.color}
+          foto={me.avatar_url}
         />
         <span className="rail__footer-name">{me.full_name} · conectado</span>
         <button

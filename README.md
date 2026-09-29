@@ -30,8 +30,6 @@ usuario y datos persistentes.
   **videollamada de Google Meet**, al momento o programada (con enlace para meterla en Google
   Calendar).
 - **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
-  *Transcribir audio*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
-  debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con archivos, notas de voz, enlaces pulsables y aviso de los que
   quedan sin leer. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
@@ -44,15 +42,17 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
-- **Notas de voz** — en los canales y en los mensajes directos: el micrófono graba y la nota se va con el mensaje como un adjunto
-  más: se escucha en el propio chat y se puede transcribir igual que un vídeo. Hay botón de tirarla
-  antes de mandarla.
+- **Notas de voz** — en los canales y en los mensajes directos: el micrófono graba y la nota se va
+  con el mensaje como un adjunto más, con su barra de reproducción y sus velocidades. Hay botón de
+  tirarla antes de mandarla.
 - **Archivos que se ven** — en los canales y en los mensajes directos: una imagen sale grande y se abre a pantalla completa al pulsarla, un
   vídeo se reproduce en el chat y un audio trae su barra de reproducción. Lo demás sigue siendo una
   tarjeta con su nombre y su tamaño. Descargar siempre está a mano, y el original no se toca.
 - **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto
   cuando alguien escribe, en un canal o por mensaje directo. Los propios no suenan. Se guarda por
   aparato, así que puede estar encendido en el ordenador y apagado en el móvil.
+- **Foto de perfil** — la misma que cada uno tiene en Slack, en los mensajes, en las tareas y en
+  los paneles. Si no carga, se ven las iniciales de siempre en vez de un cuadro roto.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.
@@ -130,7 +130,7 @@ usuario y datos persistentes.
 | Pieza | Estado |
 |---|---|
 | Código de la aplicación | Listo. Compila y está en esta rama. |
-| Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): tablas con RLS en todas, realtime, funciones y la función de borde `transcribir`. |
+| Base de datos Supabase | **Instalada** en el proyecto `bbxyvhcolypgvxtfsyvy` (región `eu-west-1`): tablas con RLS en todas, realtime y funciones. |
 | Publicación en Vercel | **Hecha** — <https://bitacora-21-days1.vercel.app> (proyecto `bitacora`, equipo 21DAYS). |
 | Altas del equipo | Cada uno se registra en <https://bitacora-21-days1.vercel.app> con «Crear una». Hoy **no hay ningún usuario** dado de alta. |
 | Hoja de fichajes | [Google Sheets](https://docs.google.com/spreadsheets/d/1mKnnXBtKxVEpQMkJ6ovZgOnwaRWiM_0ncmtQB0IHuTk/edit) — se rellena con el Excel que exporta la app. |
@@ -225,17 +225,13 @@ frenar antes de tiempo.
 Mientras tanto la aplicación avisa al elegir el archivo, en vez de fallar a mitad de subida, y
 recuerda la alternativa: subir el vídeo a Drive y pegar el enlace en el chat.
 
-### 5. Activar la transcripción de vídeos  *(2 minutos, solo si la queréis)*
+### 5. Transcripción de audios  *(apagada)*
 
-El botón *Transcribir y traducir* llama a la función `transcribir` de Supabase, que usa el
-reconocimiento de voz de OpenAI. Para que funcione:
-
-1. Saca una clave en <https://platform.openai.com/api-keys>.
-2. En Supabase → **Edge Functions → Secrets**, añade `OPENAI_API_KEY` con ese valor.
-
-Cuesta unos **0,006 $ por minuto** de vídeo y el servicio admite archivos de hasta **25 MB**
-(para vídeos largos, sube solo el audio). Sin la clave, el botón sigue ahí pero avisa de que falta
-configurarla — no rompe nada.
+La función de borde `transcribir` sigue instalada y la tabla `transcripts` también, pero **el botón
+ya no aparece en la aplicación**: usaba el reconocimiento de voz de OpenAI y hacía falta una clave
+de pago, y para lo que se usaba no compensaba el lío. Para volver a encenderlo basta con devolver
+el bloque de transcripción a `Adjunto.tsx` y añadir `OPENAI_API_KEY` en Supabase → Edge Functions →
+Secrets.
 
 ### 6. Fichajes en Google Sheets
 
@@ -334,7 +330,7 @@ src/
 supabase/
   schema.sql              Tablas, permisos, tiempo real
   seed.sql                Datos de ejemplo (opcional)
-  functions/transcribir/  Función de borde: voz a texto y traducción
+  functions/transcribir/  Voz a texto (instalada, sin botón en la aplicación)
 ```
 
 ### Dar de baja a alguien

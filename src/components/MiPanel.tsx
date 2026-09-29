@@ -379,7 +379,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
               return (
                 <li key={a.id} className="medias__fila">
                   {quien && (
-                    <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+                    <Stamp label={quien.initials} color={quien.color} foto={quien.avatar_url} title={quien.full_name} />
                   )}
                   <span className="medias__quien">
                     {quien ? quien.full_name.split(" ")[0] : "Alguien"}
@@ -422,7 +422,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
               return (
                 <li key={t.id} className="marcha__fila">
                   {quien ? (
-                    <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+                    <Stamp label={quien.initials} color={quien.color} foto={quien.avatar_url} title={quien.full_name} />
                   ) : (
                     <Stamp label="?" color={stampColor(t.id)} />
                   )}
@@ -487,7 +487,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       onClick={() => setMirando(f.persona.id)}
                       aria-pressed={mirando === f.persona.id}
                     >
-                      <Stamp label={f.persona.initials} color={f.persona.color} />
+                      <Stamp label={f.persona.initials} color={f.persona.color} foto={f.persona.avatar_url} />
                       <span>
                         <span className="rejilla__nombre">
                           {f.persona.full_name}
@@ -610,7 +610,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
         <h2 className="panel__titulo panel__titulo--quien">
           {quienMiro ? (
             <>
-              <Stamp label={quienMiro.initials} color={quienMiro.color} />
+              <Stamp label={quienMiro.initials} color={quienMiro.color} foto={quienMiro.avatar_url} />
               {quienMiro.id === me.id ? "Lo mío" : `Lo de ${quienMiro.full_name.split(" ")[0]}`}
             </>
           ) : (

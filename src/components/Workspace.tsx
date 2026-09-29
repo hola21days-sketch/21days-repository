@@ -926,7 +926,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               >
                 <div className="avatar-stack">
                   {activeMembers.map((p) => (
-                    <Stamp key={p.id} label={p.initials} color={p.color} title={p.full_name} />
+                    <Stamp key={p.id} label={p.initials} color={p.color} title={p.full_name} foto={p.avatar_url} />
                   ))}
                   {!iAmMember && <Stamp label="+" color="var(--ink-faint)" title="Seguir este cliente" />}
                 </div>

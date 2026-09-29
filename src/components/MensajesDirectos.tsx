@@ -217,7 +217,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                 className={p.id === conId ? "dm__persona is-active" : "dm__persona"}
                 onClick={() => setConId(p.id)}
               >
-                <Stamp label={p.initials} color={p.color} />
+                <Stamp label={p.initials} color={p.color} foto={p.avatar_url} />
                 <span className="dm__persona-nombre">{p.full_name}</span>
                 {sinLeer[p.id] > 0 && <span className="count-chip">{sinLeer[p.id]}</span>}
               </button>
@@ -232,7 +232,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
         {con && (
           <>
             <div className="dm__hilo-cabecera">
-              <Stamp label={con.initials} color={con.color} />
+              <Stamp label={con.initials} color={con.color} foto={con.avatar_url} />
               <div>
                 <div className="dm__hilo-nombre">{con.full_name}</div>
                 <div className="dm__hilo-sub">Conversación privada · solo la veis vosotros dos</div>
@@ -254,6 +254,8 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                   <div key={m.id}>
                     {separa && <div className="chat__divider">{dia}</div>}
                     <div className="msg">
+                      <Stamp label={quien.initials} color={quien.color} foto={quien.avatar_url} title={quien.full_name} />
+                      <div className="msg__body">
                       {/* Misma barra que en los canales: sale al pasar por
                           encima, y siempre puesta en pantallas táctiles. */}
                       {mio && editando !== m.id && (
@@ -283,8 +285,6 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                           </button>
                         </div>
                       )}
-                      <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
-                      <div className="msg__body">
                         <div className="msg__head">
                           <span className="msg__author">{quien.full_name}</span>
                           <span className="msg__time">{formatTime(m.created_at)}</span>
@@ -332,7 +332,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                               <ul className="files">
                                 {(adjuntos[m.id] ?? []).map((a) => (
                                   <li key={a.id}>
-                                    <Adjunto att={a} fuente="dm" />
+                                    <Adjunto att={a} />
                                   </li>
                                 ))}
                               </ul>

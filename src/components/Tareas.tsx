@@ -217,6 +217,7 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
             <Stamp
               label={responsable.initials}
               color={responsable.color}
+              foto={responsable.avatar_url}
               title={`Lo lleva ${responsable.full_name}`}
             />
           )}

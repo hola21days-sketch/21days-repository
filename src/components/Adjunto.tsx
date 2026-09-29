@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatSize } from "@/lib/format";
 
@@ -16,19 +16,7 @@ export type ArchivoVisible = {
   size_bytes: number;
 };
 
-type Props = {
-  att: ArchivoVisible;
-  /** De dónde sale: del chat de un cliente o de un mensaje directo. */
-  fuente?: "canal" | "dm";
-};
-
-type Transcripcion = {
-  status: "pendiente" | "listo" | "error";
-  text: string | null;
-  translation: string | null;
-  language: string | null;
-  error: string | null;
-};
+type Props = { att: ArchivoVisible };
 
 /** Las velocidades de siempre. Más de 2x ya no se entiende nada. */
 const VELOCIDADES = [1, 1.25, 1.5, 2];
@@ -62,14 +50,12 @@ function esAudio(mime: string) {
  * El bucket es privado, así que no hay direcciones fijas: cada archivo pide su
  * enlace firmado al mostrarse.
  */
-export default function Adjunto({ att, fuente = "canal" }: Props) {
+export default function Adjunto({ att }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [url, setUrl] = useState<string | null>(null);
   const [fallo, setFallo] = useState(false);
   const [ampliada, setAmpliada] = useState(false);
   const [velocidad, setVelocidad] = useState(1);
-  const [trans, setTrans] = useState<Transcripcion | null>(null);
-  const [pidiendo, setPidiendo] = useState(false);
   const mediaRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
   const visual = esImagen(att.mime) || esVideo(att.mime) || esAudio(att.mime);
@@ -95,32 +81,6 @@ export default function Adjunto({ att, fuente = "canal" }: Props) {
     if (mediaRef.current) mediaRef.current.playbackRate = velocidad;
   }, [velocidad, url]);
 
-  const conVoz = esVideo(att.mime) || esAudio(att.mime);
-
-  /** Si ya se transcribió alguna vez, se enseña sin volver a pedirla. */
-  const leerTranscripcion = useCallback(async () => {
-    const { data } = await supabase
-      .from("transcripts")
-      .select("status, text, translation, language, error")
-      .eq("attachment_id", att.id)
-      .maybeSingle();
-    if (data) setTrans(data as Transcripcion);
-  }, [supabase, att.id]);
-
-  useEffect(() => {
-    if (conVoz) void leerTranscripcion();
-  }, [conVoz, leerTranscripcion]);
-
-  async function transcribir() {
-    setPidiendo(true);
-    setTrans({ status: "pendiente", text: null, translation: null, language: null, error: null });
-    await supabase.functions.invoke("transcribir", {
-      body: { attachment_id: att.id, source: fuente },
-    });
-    await leerTranscripcion();
-    setPidiendo(false);
-  }
-
   /** Los botones de x1 · x1,5 · x2, que se usan igual en audio y en vídeo. */
   function mandos() {
     return (
@@ -136,40 +96,6 @@ export default function Adjunto({ att, fuente = "canal" }: Props) {
             ×{String(v).replace(".", ",")}
           </button>
         ))}
-      </div>
-    );
-  }
-
-  /** El bloque de transcribir, debajo de un audio o un vídeo. */
-  function transcripcion() {
-    return (
-      <div className="transcripcion">
-        {(!trans || trans.status === "error") && (
-          <button
-            type="button"
-            className="btn btn--ghost transcripcion__pedir"
-            onClick={() => void transcribir()}
-            disabled={pidiendo}
-          >
-            {pidiendo ? "Escuchando…" : "Transcribir audio"}
-          </button>
-        )}
-        {trans?.status === "error" && <p className="transcripcion__error">{trans.error}</p>}
-        {trans?.status === "pendiente" && <p className="transcripcion__meta">En marcha…</p>}
-        {trans?.status === "listo" && (
-          <div className="transcripcion__texto">
-            <p className="transcripcion__meta">
-              Transcripción{trans.language ? ` · ${trans.language}` : ""}
-            </p>
-            <p>{trans.text}</p>
-            {trans.translation && (
-              <>
-                <p className="transcripcion__meta">Traducción al castellano</p>
-                <p>{trans.translation}</p>
-              </>
-            )}
-          </div>
-        )}
       </div>
     );
   }
@@ -248,7 +174,6 @@ export default function Adjunto({ att, fuente = "canal" }: Props) {
             Descargar
           </button>
         </figcaption>
-        {transcripcion()}
       </figure>
     );
   }
@@ -276,7 +201,6 @@ export default function Adjunto({ att, fuente = "canal" }: Props) {
             Descargar
           </button>
         </div>
-        {transcripcion()}
       </div>
     );
   }

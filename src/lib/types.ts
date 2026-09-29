@@ -13,6 +13,8 @@ export type Profile = {
   role: Role;
   /** Falso cuando alguien deja el equipo: desaparece de la app sin perder su historial. */
   active: boolean;
+  /** Foto de perfil. Vacío si no tiene. */
+  avatar_url: string;
 };
 
 export type BoardColumn = {

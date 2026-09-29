@@ -98,7 +98,6 @@ export default function Chat({
   const [menciones, setMenciones] = useState<Profile[] | null>(null);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [programando, setProgramando] = useState(false);
-  const [transcribiendo, setTranscribiendo] = useState<string | null>(null);
   const [filtroPersona, setFiltroPersona] = useState("");
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -439,6 +438,12 @@ export default function Chat({
               <div key={m.id}>
                 {showDivider && <div className="chat__divider">{day}</div>}
                 <div className={pendingIds.has(m.id) ? "msg is-pending" : "msg"}>
+                  <Stamp
+                    label={author?.initials ?? initialsOf(nombre)}
+                    color={author?.color ?? stampColor(m.external_author || m.id)}
+                    title={nombre}
+                  />
+                  <div className="msg__body">
                   {/* La barra de acciones, como en Slack: aparece al pasar por
                       encima del mensaje, arriba a la derecha. Antes iba en gris
                       clarito junto a la hora y no la encontraba nadie. En
@@ -473,12 +478,6 @@ export default function Chat({
                       </button>
                     </div>
                   )}
-                  <Stamp
-                    label={author?.initials ?? initialsOf(nombre)}
-                    color={author?.color ?? stampColor(m.external_author || m.id)}
-                    title={nombre}
-                  />
-                  <div className="msg__body">
                     <div className="msg__head">
                       <span className="msg__author">{nombre}</span>
                       <span className="msg__time">{formatTime(m.created_at)}</span>
@@ -587,7 +586,7 @@ export default function Chat({
             {menciones.map((p) => (
               <li key={p.id}>
                 <button type="button" onClick={() => elegirMencion(p)}>
-                  <Stamp label={p.initials} color={p.color} />
+                  <Stamp label={p.initials} color={p.color} foto={p.avatar_url} />
                   <span>{p.full_name}</span>
                 </button>
               </li>

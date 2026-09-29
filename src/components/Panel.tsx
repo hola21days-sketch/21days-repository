@@ -187,7 +187,7 @@ export default function Panel({
           </span>
           {quien ? (
             <span className="panel__quien">
-              <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
+              <Stamp label={quien.initials} color={quien.color} foto={quien.avatar_url} title={quien.full_name} />
               {quien.full_name.split(" ")[0]}
             </span>
           ) : (

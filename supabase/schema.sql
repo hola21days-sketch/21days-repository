@@ -1249,3 +1249,13 @@ create policy transcripts_select on public.transcripts
         and (m.sender_id = auth.uid() or m.recipient_id = auth.uid())
     )
   );
+
+-- ============================================================================
+-- 26. Foto de perfil
+-- ----------------------------------------------------------------------------
+-- Se guarda la dirección, no el archivo: son las mismas fotos de Slack, que
+-- están publicadas ahí y las sirve el navegador directamente. Si algún día se
+-- quiere una propia, basta con cambiar esta dirección.
+-- ============================================================================
+alter table public.profiles
+  add column if not exists avatar_url text not null default '';

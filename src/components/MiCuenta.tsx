@@ -58,7 +58,7 @@ export default function MiCuenta({ me, onCerrar }: Props) {
     <div className="modal" role="dialog" aria-label="Mi cuenta">
       <div className="modal__panel cuenta">
         <div className="cuenta__cab">
-          <Stamp label={me.initials || initialsOf(me.full_name)} color={me.color} />
+          <Stamp label={me.initials || initialsOf(me.full_name)} color={me.color} foto={me.avatar_url} />
           <div>
             <h2 className="modal__title">{me.full_name}</h2>
             <p className="cuenta__correo">

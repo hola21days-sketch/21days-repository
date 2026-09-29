@@ -107,6 +107,15 @@ export default function Chat({
   const nombres = useMemo(() => profiles.map((p) => p.full_name), [profiles]);
 
   /**
+   * Los tuyos los editas y los borras. Un administrador además puede borrar
+   * cualquiera —hace falta para limpiar lo que vino de Slack—, pero editar lo
+   * que escribió otro no: eso sería poner palabras en su boca.
+   */
+  function puedeTocar(m: Message): boolean {
+    return m.author_id === me.id || me.role === "admin";
+  }
+
+  /**
    * Google Meet no deja inventarse el código de una sala: hay que abrirla desde
    * la propia cuenta de Google y pegar aquí el enlace. Eso es lo que hace el
    * botón "Crear en Google Meet" — abre una sala nueva y luego se pega.
@@ -430,6 +439,40 @@ export default function Chat({
               <div key={m.id}>
                 {showDivider && <div className="chat__divider">{day}</div>}
                 <div className={pendingIds.has(m.id) ? "msg is-pending" : "msg"}>
+                  {/* La barra de acciones, como en Slack: aparece al pasar por
+                      encima del mensaje, arriba a la derecha. Antes iba en gris
+                      clarito junto a la hora y no la encontraba nadie. En
+                      pantallas táctiles, donde no hay «pasar por encima», está
+                      siempre puesta. */}
+                  {puedeTocar(m) && editando !== m.id && !pendingIds.has(m.id) && (
+                    <div className="msg__barra">
+                      {m.author_id === me.id && (
+                        <button
+                          type="button"
+                          className="msg__barra-op"
+                          onClick={() => {
+                            setEditando(m.id);
+                            setBorrador(m.body);
+                          }}
+                          title="Editar el mensaje"
+                        >
+                          ✎ Editar
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="msg__barra-op msg__barra-op--borrar"
+                        onClick={() => {
+                          if (confirm("¿Borrar este mensaje? No se puede deshacer.")) {
+                            onDelete(m.id);
+                          }
+                        }}
+                        title="Borrar el mensaje"
+                      >
+                        🗑 Borrar
+                      </button>
+                    </div>
+                  )}
                   <Stamp
                     label={author?.initials ?? initialsOf(nombre)}
                     color={author?.color ?? stampColor(m.external_author || m.id)}
@@ -445,27 +488,6 @@ export default function Chat({
                         </span>
                       )}
                       {m.edited_at && <span className="msg__time">· editado</span>}
-                      {mio && !pendingIds.has(m.id) && editando !== m.id && (
-                        <span className="msg__acciones">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditando(m.id);
-                              setBorrador(m.body);
-                            }}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (confirm("¿Borrar este mensaje?")) onDelete(m.id);
-                            }}
-                          >
-                            Borrar
-                          </button>
-                        </span>
-                      )}
                     </div>
 
                     {editando === m.id ? (

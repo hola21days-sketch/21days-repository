@@ -500,7 +500,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   margin: 0.3rem 0;
 }
 .chat__divider::before, .chat__divider::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
-.msg { display: flex; gap: 0.65rem; }
+.msg { display: flex; gap: 0.65rem; position: relative; }
 .msg .stamp { width: 32px; height: 32px; font-size: 0.65rem; outline: none; }
 .msg__body { min-width: 0; }
 .msg__head { display: flex; align-items: baseline; gap: 0.5rem; }
@@ -2780,3 +2780,52 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .adj--voz { display: block; }
 .adj__voz-fila { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .adj .transcripcion { border-top: 1px solid var(--rule); margin-top: 0.5rem; padding-top: 0.5rem; }
+
+/* ==========================================================================
+   Barra de acciones de un mensaje, al estilo de Slack
+   --------------------------------------------------------------------------
+   Antes esto eran dos palabras en gris clarito al lado de la hora, a 0,68rem.
+   Estaban, pero no las veía nadie. Ahora es una barra flotante arriba a la
+   derecha del mensaje, que aparece al pasar por encima.
+   ========================================================================== */
+.msg__barra {
+  position: absolute;
+  top: -0.55rem;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.15rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(10, 16, 15, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.msg:hover .msg__barra,
+.msg:focus-within .msg__barra {
+  opacity: 1;
+  pointer-events: auto;
+}
+.msg__barra-op {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  padding: 0.18rem 0.42rem;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.msg__barra-op:hover { background: var(--surface-alt); color: var(--ink); }
+.msg__barra-op--borrar:hover { background: var(--danger-soft); color: var(--danger); }
+
+/* En una pantalla táctil no existe «pasar por encima»: ahí va siempre puesta. */
+@media (hover: none) {
+  .msg__barra { opacity: 1; pointer-events: auto; position: static; box-shadow: none; }
+  .msg { flex-wrap: wrap; }
+  .msg__barra { order: 3; flex-basis: 100%; justify-content: flex-end; }
+}

@@ -254,33 +254,42 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                   <div key={m.id}>
                     {separa && <div className="chat__divider">{dia}</div>}
                     <div className="msg">
+                      {/* Misma barra que en los canales: sale al pasar por
+                          encima, y siempre puesta en pantallas táctiles. */}
+                      {mio && editando !== m.id && (
+                        <div className="msg__barra">
+                          <button
+                            type="button"
+                            className="msg__barra-op"
+                            onClick={() => {
+                              setEditando(m.id);
+                              setBorrador(m.body);
+                            }}
+                            title="Editar el mensaje"
+                          >
+                            ✎ Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="msg__barra-op msg__barra-op--borrar"
+                            onClick={() => {
+                              if (confirm("¿Borrar este mensaje? No se puede deshacer.")) {
+                                void borrar(m.id);
+                              }
+                            }}
+                            title="Borrar el mensaje"
+                          >
+                            🗑 Borrar
+                          </button>
+                        </div>
+                      )}
                       <Stamp label={quien.initials} color={quien.color} title={quien.full_name} />
                       <div className="msg__body">
                         <div className="msg__head">
                           <span className="msg__author">{quien.full_name}</span>
                           <span className="msg__time">{formatTime(m.created_at)}</span>
                           {m.edited_at && <span className="msg__time">· editado</span>}
-                          {mio && editando !== m.id && (
-                            <span className="msg__acciones">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditando(m.id);
-                                  setBorrador(m.body);
-                                }}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (confirm("¿Borrar este mensaje?")) void borrar(m.id);
-                                }}
-                              >
-                                Borrar
-                              </button>
-                            </span>
-                          )}
+
                         </div>
                         {editando === m.id ? (
                           <div className="msg__edit">

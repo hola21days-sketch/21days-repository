@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import { dayLabel, formatTime } from "@/lib/format";
+import Adjunto, { type ArchivoVisible } from "./Adjunto";
+import GrabadorVoz from "./GrabadorVoz";
+import { dayLabel, formatSize, formatTime } from "@/lib/format";
+import { conEnlaces } from "@/lib/enlaces";
+import { subirArchivo, ErrorDeSubida, MAX_MB } from "@/lib/subir";
 import type { DirectMessage, Profile } from "@/lib/types";
 
 type Props = {
@@ -32,6 +36,13 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
   const [editando, setEditando] = useState<string | null>(null);
   const [borrador, setBorrador] = useState("");
   const [cargando, setCargando] = useState(true);
+  // Archivos y notas de voz, igual que en los canales.
+  const [files, setFiles] = useState<File[]>([]);
+  const [adjuntos, setAdjuntos] = useState<Record<string, ArchivoVisible[]>>({});
+  const [subiendo, setSubiendo] = useState<string | null>(null);
+  const [progreso, setProgreso] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
   const con = conId ? compañeros.find((p) => p.id === conId) ?? null : null;
@@ -42,7 +53,23 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
       .select("*")
       .order("created_at")
       .limit(500);
-    setMensajes((data ?? []) as DirectMessage[]);
+    const lista = (data ?? []) as DirectMessage[];
+    setMensajes(lista);
+
+    // Los adjuntos de esos mensajes. La base de datos ya solo devuelve los de
+    // conversaciones tuyas, así que no hay que filtrar nada aquí.
+    if (lista.length > 0) {
+      const { data: files } = await supabase
+        .from("dm_attachments")
+        .select("*")
+        .in("message_id", lista.map((m) => m.id));
+      const mapa: Record<string, ArchivoVisible[]> = {};
+      for (const f of (files ?? []) as (ArchivoVisible & { message_id: string })[]) {
+        mapa[f.message_id] = [...(mapa[f.message_id] ?? []), f];
+      }
+      setAdjuntos(mapa);
+    }
+
     setCargando(false);
   }, [supabase]);
 
@@ -102,16 +129,59 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
     if (log) log.scrollTop = log.scrollHeight;
   }, [hilo.length, conId]);
 
+  /**
+   * Manda el mensaje y, si lleva archivos, los sube después.
+   * Primero el mensaje y luego los ficheros a propósito: los adjuntos cuelgan
+   * de él, y si la subida falla queda el texto, que es lo importante.
+   */
   async function enviar() {
     const texto = draft.trim();
-    if (!texto || !conId) return;
+    const aSubir = files;
+    if ((!texto && aSubir.length === 0) || !conId) return;
     setDraft("");
+    setFiles([]);
+    setError(null);
+
     const { data } = await supabase
       .from("dm_messages")
       .insert({ sender_id: me.id, recipient_id: conId, body: texto })
       .select("*")
       .single();
-    if (data) setMensajes((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data as DirectMessage]));
+    if (!data) {
+      setError("No se ha podido enviar el mensaje.");
+      return;
+    }
+    const mensaje = data as DirectMessage;
+    setMensajes((prev) => (prev.some((m) => m.id === mensaje.id) ? prev : [...prev, mensaje]));
+
+    for (const f of aSubir) {
+      setSubiendo(f.name);
+      setProgreso(0);
+      const ruta = `dm/${mensaje.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
+      try {
+        await subirArchivo("adjuntos", ruta, f, (a) => setProgreso(Math.round(a.parte * 100)));
+        const { data: fila } = await supabase
+          .from("dm_attachments")
+          .insert({
+            message_id: mensaje.id,
+            path: ruta,
+            name: f.name,
+            mime: f.type || "application/octet-stream",
+            size_bytes: f.size,
+          })
+          .select("*")
+          .single();
+        if (fila) {
+          const att = fila as ArchivoVisible;
+          setAdjuntos((prev) => ({ ...prev, [mensaje.id]: [...(prev[mensaje.id] ?? []), att] }));
+        }
+      } catch (e) {
+        const motivo = e instanceof ErrorDeSubida ? e.message : "se ha cortado la subida";
+        setError(`No se ha podido subir ${f.name}: ${motivo}`);
+      }
+    }
+    setSubiendo(null);
+    setProgreso(null);
   }
 
   async function guardarEdicion(id: string) {
@@ -245,7 +315,20 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                             </div>
                           </div>
                         ) : (
-                          <div className="msg__text">{m.body}</div>
+                          <>
+                            {m.body && (
+                              <div className="msg__text">{conEnlaces(m.body, m.id)}</div>
+                            )}
+                            {(adjuntos[m.id] ?? []).length > 0 && (
+                              <ul className="files">
+                                {(adjuntos[m.id] ?? []).map((a) => (
+                                  <li key={a.id}>
+                                    <Adjunto att={a} />
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -255,7 +338,66 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
             </div>
 
             <div className="composer">
+              {error && <div className="notice notice--error">{error}</div>}
+
+              {subiendo && (
+                <p className="composer__aviso">
+                  Subiendo {subiendo}
+                  {progreso !== null ? ` · ${progreso}%` : "…"}
+                </p>
+              )}
+
+              {files.length > 0 && (
+                <ul className="composer__files">
+                  {files.map((f, i) => (
+                    <li key={`${f.name}-${i}`}>
+                      {f.name} <b>{formatSize(f.size)}</b>
+                      <button
+                        type="button"
+                        onClick={() => setFiles((prev) => prev.filter((_, x) => x !== i))}
+                        aria-label={`Quitar ${f.name}`}
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <div className="composer__field">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  multiple
+                  hidden
+                  onChange={(e) => {
+                    const elegidos = Array.from(e.target.files ?? []);
+                    const grandes = elegidos.filter((f) => f.size > MAX_MB * 1024 * 1024);
+                    if (grandes.length > 0) {
+                      setError(
+                        `${grandes.map((f) => f.name).join(", ")}: pasan de ${MAX_MB} MB, que es el tope por archivo.`,
+                      );
+                    }
+                    setFiles((prev) => [
+                      ...prev,
+                      ...elegidos.filter((f) => f.size <= MAX_MB * 1024 * 1024),
+                    ]);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  className="composer__clip"
+                  onClick={() => fileRef.current?.click()}
+                  title="Adjuntar archivos"
+                  aria-label="Adjuntar archivos"
+                >
+                  📎
+                </button>
+                <GrabadorVoz
+                  disabled={subiendo !== null}
+                  onGrabado={(nota) => setFiles((prev) => [...prev, nota])}
+                />
                 <textarea
                   className="composer__input"
                   rows={1}
@@ -277,7 +419,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                   type="button"
                   className="composer__send"
                   onClick={() => void enviar()}
-                  disabled={!draft.trim()}
+                  disabled={(!draft.trim() && files.length === 0) || subiendo !== null}
                 >
                   Enviar
                 </button>

@@ -1140,3 +1140,67 @@ end $$;
 -- hasta que un administrador lo active. Los correos de la agencia y los de la
 -- lista de administradores entran activos, para no romper las altas normales.
 -- (handle_new_user queda redefinida en la migración solo_el_equipo_entra.)
+
+-- ============================================================================
+-- 24. Adjuntos y notas de voz en los mensajes directos
+-- ----------------------------------------------------------------------------
+-- Tabla aparte de los del chat de clientes porque cuelgan de otro mensaje y,
+-- sobre todo, porque los ven dos personas y no el equipo entero.
+-- ============================================================================
+create table if not exists public.dm_attachments (
+  id         uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.dm_messages(id) on delete cascade,
+  path       text not null,
+  name       text not null,
+  mime       text not null default '',
+  size_bytes bigint not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists dm_attachments_mensaje_idx on public.dm_attachments (message_id);
+create index if not exists dm_attachments_path_idx on public.dm_attachments (path);
+
+alter table public.dm_attachments enable row level security;
+
+drop policy if exists dm_attachments_select on public.dm_attachments;
+create policy dm_attachments_select on public.dm_attachments
+  for select to authenticated using (
+    exists (select 1 from public.dm_messages m
+            where m.id = message_id and (m.sender_id = auth.uid() or m.recipient_id = auth.uid()))
+  );
+
+drop policy if exists dm_attachments_insert on public.dm_attachments;
+create policy dm_attachments_insert on public.dm_attachments
+  for insert to authenticated with check (
+    exists (select 1 from public.dm_messages m where m.id = message_id and m.sender_id = auth.uid())
+  );
+
+drop policy if exists dm_attachments_delete on public.dm_attachments;
+create policy dm_attachments_delete on public.dm_attachments
+  for delete to authenticated using (
+    exists (select 1 from public.dm_messages m where m.id = message_id and m.sender_id = auth.uid())
+  );
+
+drop policy if exists dm_attachments_solo_equipo on public.dm_attachments;
+create policy dm_attachments_solo_equipo on public.dm_attachments
+  as restrictive to authenticated
+  using (public.es_equipo()) with check (public.es_equipo());
+
+-- El bucket dejaba leer cualquier archivo a cualquiera del equipo. Para el chat
+-- de clientes está bien, que lo ve todo el mundo igualmente. Para un mensaje
+-- directo no: lo que va por ahí es de dos. Esos archivos se guardan bajo «dm/»
+-- y solo los leen sus dos dueños.
+drop policy if exists adjuntos_select on storage.objects;
+create policy adjuntos_select on storage.objects
+  for select using (
+    bucket_id = 'adjuntos'
+    and (
+      name not like 'dm/%'
+      or exists (
+        select 1 from public.dm_attachments a
+        join public.dm_messages m on m.id = a.message_id
+        where a.path = storage.objects.name
+          and (m.sender_id = auth.uid() or m.recipient_id = auth.uid())
+      )
+    )
+  );

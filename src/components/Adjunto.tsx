@@ -3,9 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatSize } from "@/lib/format";
-import type { Attachment } from "@/lib/types";
 
-type Props = { att: Attachment };
+/**
+ * Lo que hace falta para enseñar un archivo, venga del chat de un cliente o de
+ * un mensaje directo. Son tablas distintas, pero lo que se pinta es lo mismo.
+ */
+export type ArchivoVisible = {
+  id: string;
+  path: string;
+  name: string;
+  mime: string;
+  size_bytes: number;
+};
+
+type Props = { att: ArchivoVisible };
 
 /** Los enlaces firmados caducan; se piden de hora en hora, con margen. */
 const VIGENCIA = 3600;

@@ -33,7 +33,8 @@ usuario y datos persistentes.
   *Transcribir y traducir*: descifra lo que se dice, sea el idioma que sea, y lo deja escrito
   debajo junto a su traducción al castellano. Necesita la clave `OPENAI_API_KEY` (ver más abajo).
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
-  uno con cualquier compañero, con aviso de los que quedan sin leer. Solo la ven los dos. Al
+  uno con cualquier compañero, con archivos, notas de voz, enlaces pulsables y aviso de los que
+  quedan sin leer. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
 - **Tareas en proceso** — dentro de un cliente, cada pendiente tiene **Iniciar tarea**. Mientras
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
@@ -43,10 +44,10 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
-- **Notas de voz** — el micrófono del chat graba y la nota se va con el mensaje como un adjunto
+- **Notas de voz** — en los canales y en los mensajes directos: el micrófono graba y la nota se va con el mensaje como un adjunto
   más: se escucha en el propio chat y se puede transcribir igual que un vídeo. Hay botón de tirarla
   antes de mandarla.
-- **Archivos que se ven** — una imagen sale grande y se abre a pantalla completa al pulsarla, un
+- **Archivos que se ven** — en los canales y en los mensajes directos: una imagen sale grande y se abre a pantalla completa al pulsarla, un
   vídeo se reproduce en el chat y un audio trae su barra de reproducción. Lo demás sigue siendo una
   tarjeta con su nombre y su tamaño. Descargar siempre está a mano, y el original no se toca.
 - **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto

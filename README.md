@@ -58,6 +58,9 @@ usuario y datos persistentes.
   directos, en las tareas y en los paneles. Lo traído de Slack también sale con su foto: se empareja
   por el nombre, así que «Aina» y «Aina Viciano» son la misma persona y ya no aparece dos veces en
   la barra de gente. Si la foto no carga, se ven las iniciales de siempre en vez de un cuadro roto.
+- **Enlaces pulsables en todas partes** — en el chat, en los mensajes directos, en las indicaciones
+  de una tarea, en la agenda, en la ficha del cliente y en las notas de una clave. Se escriben como
+  texto y se leen como enlace, sin copiar y pegar.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.

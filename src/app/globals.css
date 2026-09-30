@@ -1695,6 +1695,12 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   text-decoration: line-through;
 }
 .panel__grupo-nota { font-size: 0.72rem; color: var(--ink-faint); }
+/* La etiqueta de un día no es una tarea hecha: nada de tachado. */
+.prio--dia {
+  background: var(--surface-alt);
+  color: var(--ink-muted);
+  border-color: var(--rule);
+}
 .panel__pista { margin: 0 0 0.5rem; font-size: 0.76rem; color: var(--ink-faint); }
 .panel__titulo--quien { display: flex; align-items: center; gap: 0.45rem; }
 
@@ -2882,4 +2888,14 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-size: 0.86rem;
   color: var(--amber);
   font-weight: 700;
+}
+
+.explica__campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+@media (max-width: 780px) {
+  .explica__campos { grid-template-columns: 1fr; }
 }

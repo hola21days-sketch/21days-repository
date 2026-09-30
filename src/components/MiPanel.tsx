@@ -354,7 +354,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       .map(([dia, items]) => ({
         clave: dia || "sin-fecha",
         titulo: dia ? comoDia(dia, hoy) : "Sin fecha",
-        chip: dia && dia < hoy ? "prio prio--urgente" : "prio prio--hecha",
+        chip: dia && dia < hoy ? "prio prio--urgente" : "prio prio--dia",
         items,
       }));
   }, [orden, suyas, hoy]);
@@ -781,6 +781,58 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       {borrador.notes.trim() && (
                         <div className="explica__texto">{conEnlaces(borrador.notes, t.id)}</div>
                       )}
+
+                      {/* Lo que más se cambia de una tarea al abrirla: quién la
+                          hace y para cuándo. Se guarda al momento, que son
+                          desplegables y no hay nada que redactar. */}
+                      <div className="explica__campos">
+                        <label className="task__field">
+                          <span>Quién la hace</span>
+                          <select
+                            className="input-inline"
+                            value={t.assignee_id ?? ""}
+                            onChange={(e) =>
+                              void guardar(t, { assignee_id: e.target.value || null })
+                            }
+                          >
+                            <option value="">Sin asignar</option>
+                            {profiles.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.full_name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label className="task__field">
+                          <span>Prioridad</span>
+                          <select
+                            className={`input-inline prio--${t.priority}`}
+                            value={t.priority}
+                            onChange={(e) =>
+                              void guardar(t, { priority: e.target.value as Prioridad })
+                            }
+                          >
+                            {PRIORIDADES.map((p) => (
+                              <option key={p.key} value={p.key}>
+                                {p.texto}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label className="task__field">
+                          <span>Para cuándo</span>
+                          <input
+                            className="input-inline"
+                            type="date"
+                            value={t.due_date ?? ""}
+                            onChange={(e) =>
+                              void guardar(t, { due_date: e.target.value || null })
+                            }
+                          />
+                        </label>
+                      </div>
 
                       <div className="explica__botones">
                         <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { conEnlaces } from "@/lib/enlaces";
 import { createClient } from "@/lib/supabase/client";
 import type { ClientDetails } from "@/lib/types";
 
@@ -223,7 +224,7 @@ export default function FichaCliente({
       ) : (
         <>
           {client.description ? (
-            <p className="ficha__descripcion">{client.description}</p>
+            <p className="ficha__descripcion">{conEnlaces(client.description, client.id)}</p>
           ) : (
             <p className="ficha__vacio">
               Todavía no hay ficha. Pulsa <b>Editar ficha</b> y cuenta de qué va el cliente.

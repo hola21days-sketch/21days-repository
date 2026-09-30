@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { commentStamp } from "@/lib/format";
+import { conEnlaces } from "@/lib/enlaces";
 import type { Credencial, Profile } from "@/lib/types";
 
 type Props = {
@@ -369,7 +370,7 @@ export default function Claves({ clientId, clientName, me, profileById }: Props)
 
                 {(c.notes || quien) && !abierta && (
                   <div className="clave__pie">
-                    {c.notes && <span>{c.notes}</span>}
+                    {c.notes && <span>{conEnlaces(c.notes, c.id)}</span>}
                     {quien && (
                       <span className="clave__firma">
                         {quien.full_name.split(" ")[0]} · {commentStamp(c.updated_at)}

@@ -5,6 +5,7 @@ import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { formatDue } from "@/lib/format";
 import { destaca, etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import { conEnlaces } from "@/lib/enlaces";
 import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
@@ -325,6 +326,13 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
                 }}
               />
             </label>
+
+            {/* Debajo, las indicaciones tal como se leen: con los saltos de
+                línea y los enlaces pulsables. En el recuadro de escribir un
+                enlace es texto y hay que copiarlo a mano; aquí no. */}
+            {t.notes.trim() && (
+              <div className="nota__leer">{conEnlaces(t.notes, t.id)}</div>
+            )}
           </div>
         )}
       </li>

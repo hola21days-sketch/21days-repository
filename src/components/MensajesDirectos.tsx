@@ -214,12 +214,21 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
             <li key={p.id}>
               <button
                 type="button"
-                className={p.id === conId ? "dm__persona is-active" : "dm__persona"}
+                className={[
+                  p.id === conId ? "dm__persona is-active" : "dm__persona",
+                  sinLeer[p.id] > 0 ? "is-novedad" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 onClick={() => setConId(p.id)}
               >
                 <Stamp label={p.initials} color={p.color} foto={p.avatar_url} />
                 <span className="dm__persona-nombre">{p.full_name}</span>
-                {sinLeer[p.id] > 0 && <span className="count-chip">{sinLeer[p.id]}</span>}
+                {/* En negrita y con un punto, sin número: lo que importa es que
+                    hay algo, no cuánto. */}
+                {sinLeer[p.id] > 0 && (
+                  <span className="unread-dot" aria-label="Sin leer" />
+                )}
               </button>
             </li>
           ))}

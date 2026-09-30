@@ -31,8 +31,9 @@ usuario y datos persistentes.
   Calendar).
 - **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
-  uno con cualquier compañero, con archivos, notas de voz, enlaces pulsables y aviso de los que
-  quedan sin leer. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
+  uno con cualquier compañero, con archivos, notas de voz y enlaces pulsables. Lo que tiene algo sin
+  leer sale **en negrita y con un punto**, sin número: da igual que sean dos mensajes o nueve, se
+  entra igual. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
 - **Tareas en proceso** — dentro de un cliente, cada pendiente tiene **Iniciar tarea**. Mientras
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al

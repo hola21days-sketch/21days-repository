@@ -234,6 +234,7 @@ a { color: var(--accent-ink); }
   padding: 0.05rem 0.35rem;
 }
 .unread-dot {
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -2860,3 +2861,10 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 @media (max-width: 780px) {
   .plan__alta > * { flex-basis: 100%; }
 }
+
+/* Hay algo sin leer: negrita y un punto, nunca un número. Da igual que sean dos
+   mensajes o nueve, se entra igual; el número solo metía ruido. */
+.rail__nav.is-novedad { font-weight: 700; color: var(--ink); }
+.rail__nav .unread-dot { margin-left: 0.35rem; }
+.dm__persona.is-novedad .dm__persona-nombre { font-weight: 700; color: var(--ink); }
+.dm__persona .unread-dot { margin-left: auto; }

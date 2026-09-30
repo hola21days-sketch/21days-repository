@@ -160,13 +160,21 @@ export default function Rail({
           Mi agenda
         </button>
 
+        {/* Sin número: si hay algo sin leer, va en negrita y con un punto. El
+            número no aporta nada —da igual que sean dos o nueve, hay que
+            entrar igual— y encima mete ruido en el menú. */}
         <button
           type="button"
-          className={vista === "dm" ? "rail__nav is-active" : "rail__nav"}
+          className={[
+            vista === "dm" ? "rail__nav is-active" : "rail__nav",
+            dmUnread > 0 ? "is-novedad" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onClick={() => onVista(vista === "dm" ? "cliente" : "dm")}
         >
           Mensajes directos
-          {dmUnread > 0 && <span className="count-chip">{dmUnread}</span>}
+          {dmUnread > 0 && <span className="unread-dot" aria-label="Hay mensajes sin leer" />}
         </button>
 
         {me.role === "admin" && (

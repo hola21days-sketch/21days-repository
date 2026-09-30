@@ -51,9 +51,11 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
     const { data } = await supabase
       .from("dm_messages")
       .select("*")
-      .order("created_at")
+      // Los más recientes: con .order("created_at") a secas se pedían los 500
+      // más viejos, y el día que haya más de 500 dejarían de verse los nuevos.
+      .order("created_at", { ascending: false })
       .limit(500);
-    const lista = (data ?? []) as DirectMessage[];
+    const lista = ((data ?? []) as DirectMessage[]).slice().reverse();
     setMensajes(lista);
 
     // Los adjuntos de esos mensajes. La base de datos ya solo devuelve los de
@@ -113,20 +115,31 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
     [mensajes, conId, me.id],
   );
 
-  /** Al abrir un hilo, marcar como leídos los suyos. */
+  /**
+   * Al abrir una conversación, darla por leída entera.
+   * -------------------------------------------------------------------------
+   * Se marca por conversación y no por la lista de mensajes que esta pantalla
+   * tenga cargada: si alguno se quedaba fuera de esa lista, no se marcaba
+   * nunca y el aviso no había forma de quitarlo. Así se marca todo lo que haya
+   * de esa persona, esté cargado o no.
+   */
   useEffect(() => {
     if (!conId) return;
-    const pendientes = hilo.filter((m) => m.recipient_id === me.id && !m.read_at).map((m) => m.id);
-    if (pendientes.length === 0) return;
     const ahora = new Date().toISOString();
-    // Se marcan también aquí, sin esperar a que vuelva de la base de datos: si
-    // no, la negrita y el punto se quedaban puestos hasta la siguiente recarga
-    // y parecía que no se hubiera leído nada.
     setMensajes((prev) =>
-      prev.map((m) => (pendientes.includes(m.id) ? { ...m, read_at: ahora } : m)),
+      prev.map((m) =>
+        m.sender_id === conId && m.recipient_id === me.id && !m.read_at
+          ? { ...m, read_at: ahora }
+          : m,
+      ),
     );
-    void supabase.from("dm_messages").update({ read_at: ahora }).in("id", pendientes);
-  }, [supabase, conId, hilo, me.id]);
+    void supabase
+      .from("dm_messages")
+      .update({ read_at: ahora })
+      .eq("sender_id", conId)
+      .eq("recipient_id", me.id)
+      .is("read_at", null);
+  }, [supabase, conId, me.id]);
 
   useEffect(() => {
     const log = logRef.current;

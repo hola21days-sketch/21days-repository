@@ -548,7 +548,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       const lista = messagesByClient[clientId] ?? [];
       const ultimo = lista.at(-1)?.created_at;
       let q = supabase.from("messages").select("*").eq("client_id", clientId);
-      q = ultimo ? q.gt("created_at", ultimo) : q.order("created_at").limit(200);
+      // Sin nada cargado se piden los 200 más recientes, no los 200 más viejos.
+      q = ultimo
+        ? q.gt("created_at", ultimo)
+        : q.order("created_at", { ascending: false }).limit(200);
       const { data } = await q;
       if (!data || data.length === 0) return;
       for (const m of data as Message[]) upsertMessage(clientId, m);

@@ -263,27 +263,61 @@ export default function Chat({
     setProgramando(false);
   }
 
+  /**
+   * A quién corresponde un mensaje.
+   * -------------------------------------------------------------------------
+   * Lo traído de Slack no tiene cuenta aquí: solo guarda el nombre con el que
+   * se firmó allí, y ese nombre no siempre coincide —«Aina» contra «Aina
+   * Viciano», «Lidia Rodriguez» sin tilde—. Emparejarlos sirve para dos cosas:
+   * que salga su foto en los mensajes viejos y que no aparezcan dos veces en
+   * la barra de gente, una por cada forma de escribir su nombre.
+   *
+   * Es solo para pintar. La identidad de verdad sigue siendo author_id, y un
+   * mensaje de Slack no se vuelve tuyo por parecerse el nombre: no se puede
+   * editar ni borrar por esta vía.
+   */
+  const porNombre = useMemo(() => {
+    const limpia = (t: string) =>
+      t
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    const mapa = new Map<string, Profile>();
+    for (const p of profiles) {
+      mapa.set(limpia(p.full_name), p);
+      // También por el nombre de pila, que es como firma medio Slack.
+      const pila = limpia(p.full_name.split(" ")[0]);
+      if (pila && !mapa.has(pila)) mapa.set(pila, p);
+    }
+    return { mapa, limpia };
+  }, [profiles]);
+
+  const personaDe = useCallback(
+    (m: Message): Profile | undefined => {
+      if (m.author_id) return profileById[m.author_id];
+      if (!m.external_author) return undefined;
+      return porNombre.mapa.get(porNombre.limpia(m.external_author));
+    },
+    [profileById, porNombre],
+  );
+
   /** Quién ha escrito en este canal, contando a la gente traída de Slack. */
   const autores = useMemo(() => {
     const cuenta = new Map<string, number>();
     for (const m of messages) {
-      const nombre = m.author_id
-        ? (profileById[m.author_id]?.full_name ?? "")
-        : m.external_author;
+      const nombre = personaDe(m)?.full_name ?? m.external_author;
       if (nombre) cuenta.set(nombre, (cuenta.get(nombre) ?? 0) + 1);
     }
     return [...cuenta.entries()].sort((a, b) => b[1] - a[1]);
-  }, [messages, profileById]);
+  }, [messages, personaDe]);
 
   const visibles = useMemo(() => {
     if (!filtroPersona) return messages;
-    return messages.filter((m) => {
-      const nombre = m.author_id
-        ? (profileById[m.author_id]?.full_name ?? "")
-        : m.external_author;
-      return nombre === filtroPersona;
-    });
-  }, [messages, filtroPersona, profileById]);
+    return messages.filter(
+      (m) => (personaDe(m)?.full_name ?? m.external_author) === filtroPersona,
+    );
+  }, [messages, filtroPersona, personaDe]);
 
   let lastDay = "";
 
@@ -407,7 +441,11 @@ export default function Chat({
               className={filtroPersona === nombre ? "chat__quien is-on" : "chat__quien"}
               onClick={() => setFiltroPersona(filtroPersona === nombre ? "" : nombre)}
             >
-              <Stamp label={initialsOf(nombre)} color={stampColor(nombre)} />
+              <Stamp
+                label={porNombre.mapa.get(porNombre.limpia(nombre))?.initials ?? initialsOf(nombre)}
+                color={porNombre.mapa.get(porNombre.limpia(nombre))?.color ?? stampColor(nombre)}
+                foto={porNombre.mapa.get(porNombre.limpia(nombre))?.avatar_url}
+              />
               {nombre} <span>{n}</span>
             </button>
           ))}
@@ -429,7 +467,7 @@ export default function Chat({
             const day = dayLabel(m.created_at);
             const showDivider = day !== lastDay;
             lastDay = day;
-            const author = m.author_id ? profileById[m.author_id] : undefined;
+            const author = personaDe(m);
             // Lo traído de Slack no tiene cuenta aquí: se enseña el nombre tal cual.
             const nombre = author?.full_name ?? m.external_author ?? "Alguien del equipo";
             const adjuntos = attachmentsByMessage[m.id] ?? [];
@@ -441,6 +479,7 @@ export default function Chat({
                   <Stamp
                     label={author?.initials ?? initialsOf(nombre)}
                     color={author?.color ?? stampColor(m.external_author || m.id)}
+                    foto={author?.avatar_url}
                     title={nombre}
                   />
                   <div className="msg__body">

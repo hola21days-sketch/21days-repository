@@ -52,8 +52,10 @@ usuario y datos persistentes.
 - **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto
   cuando alguien escribe, en un canal o por mensaje directo. Los propios no suenan. Se guarda por
   aparato, así que puede estar encendido en el ordenador y apagado en el móvil.
-- **Foto de perfil** — la misma que cada uno tiene en Slack, en los mensajes, en las tareas y en
-  los paneles. Si no carga, se ven las iniciales de siempre en vez de un cuadro roto.
+- **Foto de perfil** — la misma que cada uno tiene en Slack, en los chats, en los mensajes
+  directos, en las tareas y en los paneles. Lo traído de Slack también sale con su foto: se empareja
+  por el nombre, así que «Aina» y «Aina Viciano» son la misma persona y ya no aparece dos veces en
+  la barra de gente. Si la foto no carga, se ven las iniciales de siempre en vez de un cuadro roto.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.

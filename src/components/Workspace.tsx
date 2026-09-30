@@ -81,9 +81,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [columns, setColumns] = useState<BoardColumn[]>(initial.columns);
   const [cards, setCards] = useState<Card[]>(() => mergeAssignees(initial.cards, initial.assignees));
 
-  const [lastMsgAt, setLastMsgAt] = useState<Record<string, string | null>>(() =>
-    Object.fromEntries(initial.chatState.map((c) => [c.client_id, c.last_message_at])),
-  );
+  /**
+   * Cuándo escribió **otra persona** por última vez en cada canal. Lo propio no
+   * cuenta: si contara, el canal del equipo estaría siempre en negrita por tus
+   * propios mensajes y la negrita dejaría de significar nada.
+   */
+  const [lastMsgAt, setLastMsgAt] = useState<Record<string, string | null>>({});
   const [reads, setReads] = useState<Record<string, string>>(() =>
     Object.fromEntries(initial.reads.map((r) => [r.client_id, r.last_read_at])),
   );
@@ -322,10 +325,13 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           const row = payload.new as Message;
-          setLastMsgAt((prev) => ({ ...prev, [row.client_id]: row.created_at }));
           upsertMessage(row.client_id, row);
-          // Los propios no suenan: ya sabes que has escrito tú.
-          if (row.author_id !== me.id) sonarAviso();
+          // Lo propio ni suena ni pone el canal en negrita: ya sabes que has
+          // escrito tú.
+          if (row.author_id !== me.id) {
+            setLastMsgAt((prev) => ({ ...prev, [row.client_id]: row.created_at }));
+            sonarAviso();
+          }
         },
       )
       .on(
@@ -441,6 +447,28 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   }, [activeId, supabase]);
 
   /**
+   * Cuándo escribió otra persona por última vez en cada canal. Se pide una vez
+   * al entrar; después lo mantiene al día el realtime.
+   */
+  useEffect(() => {
+    void (async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("client_id, created_at")
+        .neq("author_id", me.id)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (!data) return;
+      const mapa: Record<string, string> = {};
+      for (const f of data as { client_id: string; created_at: string }[]) {
+        // Vienen de más nuevo a más viejo: el primero de cada canal es el suyo.
+        if (!mapa[f.client_id]) mapa[f.client_id] = f.created_at;
+      }
+      setLastMsgAt(mapa);
+    })();
+  }, [supabase, me.id]);
+
+  /**
    * Cuándo se movió por última vez una tarea en cada canal. Se pide una vez y
    * después se va actualizando con lo que llegue por realtime.
    */
@@ -453,10 +481,18 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       setLastTaskAt(mapa);
     };
     void (async () => {
-      const { data } = await supabase.from("client_tasks").select("client_id, created_at, done");
+      const { data } = await supabase
+        .from("client_tasks")
+        .select("client_id, created_at, done, author_id");
       if (data) {
-        const filas = data as { client_id: string; created_at: string; done: boolean }[];
-        resumir(filas);
+        const filas = data as {
+          client_id: string;
+          created_at: string;
+          done: boolean;
+          author_id: string | null;
+        }[];
+        // Para la negrita solo cuenta lo que ha puesto otra persona.
+        resumir(filas.filter((f) => f.author_id !== me.id));
         const cuenta: Record<string, number> = {};
         for (const f of filas) {
           if (!f.done) cuenta[f.client_id] = (cuenta[f.client_id] ?? 0) + 1;
@@ -471,7 +507,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "client_tasks" },
         (payload) => {
-          const fila = payload.new as { client_id: string; created_at: string };
+          const fila = payload.new as {
+            client_id: string;
+            created_at: string;
+            author_id: string | null;
+          };
+          if (fila.author_id === me.id) return;
           setLastTaskAt((prev) => ({ ...prev, [fila.client_id]: fila.created_at }));
         },
       )
@@ -479,7 +520,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     return () => {
       void supabase.removeChannel(canal);
     };
-  }, [supabase]);
+  }, [supabase, me.id]);
 
   // Abrir el canal da lo de dentro por visto, sea la pestaña que sea: así la
   // negrita se quita igual si la novedad era un mensaje o una tarea.

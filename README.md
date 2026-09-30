@@ -17,7 +17,8 @@ usuario y datos persistentes.
 ## Qué hace
 
 - **Índice de clientes** — con el número de tareas pendientes. El canal sale **en negrita** cuando
-  hay algo nuevo desde la última vez que se abrió, y con un icono que dice de qué se trata: 💬 si
+  **otra persona** ha hecho algo desde la última vez que se abrió —lo propio no cuenta, que si no
+  el canal del equipo estaría siempre en negrita—, y con un icono que dice de qué se trata: 💬 si
   han escrito, ✎ si han tocado las tareas, los dos si las dos cosas. Abrirlo lo da por visto y la
   negrita se quita.
 - **Avance del mes** — en el panel de clientes, una rejilla con una fila por cliente y una casilla

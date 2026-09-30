@@ -1259,3 +1259,13 @@ create policy transcripts_select on public.transcripts
 -- ============================================================================
 alter table public.profiles
   add column if not exists avatar_url text not null default '';
+
+-- ============================================================================
+-- 27. Quién crea cada tarea
+-- ----------------------------------------------------------------------------
+-- La columna existía pero nadie la rellenaba, y hace falta para una cosa
+-- concreta: que un canal no se ponga en negrita por lo que has hecho tú. Se
+-- pone por defecto desde la base de datos, así que da igual desde qué pantalla
+-- se cree la tarea.
+-- ============================================================================
+alter table public.client_tasks alter column author_id set default auth.uid();

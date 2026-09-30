@@ -16,9 +16,10 @@ usuario y datos persistentes.
 
 ## Qué hace
 
-- **Índice de clientes** — con el número de encargos abiertos. El canal sale **en negrita** y con un
-  punto cuando hay algo nuevo desde la última vez que se abrió: un mensaje o una tarea. Abrirlo lo
-  da por visto.
+- **Índice de clientes** — con el número de tareas pendientes. El canal sale **en negrita** cuando
+  hay algo nuevo desde la última vez que se abrió, y con un icono que dice de qué se trata: 💬 si
+  han escrito, ✎ si han tocado las tareas, los dos si las dos cosas. Abrirlo lo da por visto y la
+  negrita se quita.
 - **Avance del mes** — en el panel de clientes, una rejilla con una fila por cliente y una casilla
   por fase (*Idear · Grabar · Editar · Programar · Report*). Una casilla marcada se ve marcada y
   nada más: quién la marcó no se muestra. Sustituye al tablero de tarjetas, que ya no existe.
@@ -32,8 +33,8 @@ usuario y datos persistentes.
 - **Transcripción y traducción de vídeos** — en cualquier vídeo o audio del chat sale
 - **Mensajes directos** — *Mensajes directos*, en el panel izquierdo: conversación privada uno a
   uno con cualquier compañero, con archivos, notas de voz y enlaces pulsables. Lo que tiene algo sin
-  leer sale **en negrita y con un punto**, sin número: da igual que sean dos mensajes o nueve, se
-  entra igual. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
+  leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
+  igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
 - **Tareas en proceso** — dentro de un cliente, cada pendiente tiene **Iniciar tarea**. Mientras
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al

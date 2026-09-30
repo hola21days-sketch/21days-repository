@@ -183,19 +183,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   );
 
   /**
-   * Si en este canal hay algo nuevo desde la última vez que se abrió: un
-   * mensaje o una tarea. Es lo que pone el canal en negrita en el listado.
+   * Qué hay de nuevo en un canal desde la última vez que se abrió: un mensaje,
+   * una tarea, o las dos cosas. Se distingue para poder enseñar el icono que
+   * toca en el listado, en vez de un punto que no dice nada.
    */
-  const hayNovedades = useCallback(
+  const novedadesDe = useCallback(
     (clientId: string) => {
-      if (clientId === activeId) return false;
-      const read = reads[clientId];
-      const nuevo = [lastMsgAt[clientId], lastTaskAt[clientId]]
-        .filter(Boolean)
-        .map((f) => new Date(f as string).getTime());
-      if (nuevo.length === 0) return false;
-      if (!read) return true;
-      return Math.max(...nuevo) > new Date(read).getTime();
+      if (clientId === activeId) return { chat: false, tarea: false };
+      const read = reads[clientId] ? new Date(reads[clientId]).getTime() : 0;
+      const masNuevo = (f: string | null | undefined) =>
+        !!f && new Date(f).getTime() > read;
+      return { chat: masNuevo(lastMsgAt[clientId]), tarea: masNuevo(lastTaskAt[clientId]) };
     },
     [activeId, reads, lastMsgAt, lastTaskAt],
   );
@@ -230,9 +228,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         // tarjetas del tablero, que ya no existe: enseñaba un número de algo
         // que nadie podía abrir.
         openCount: pendientesPorCliente[c.id] ?? 0,
-        unread: hayNovedades(c.id),
+        ...novedadesDe(c.id),
       })),
-    [clients, pendientesPorCliente, hayNovedades],
+    [clients, pendientesPorCliente, novedadesDe],
   );
 
   // ---------------------------------------------------------------- recargas

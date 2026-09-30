@@ -18,8 +18,10 @@ export type RailClient = {
   /** Los canales del equipo van aparte, arriba y destacados. */
   internal: boolean;
   openCount: number;
-  /** Hay algo nuevo desde la última vez: un mensaje o una tarea. */
-  unread: boolean;
+  /** Ha escrito alguien desde la última vez que se abrió. */
+  chat: boolean;
+  /** Alguien ha puesto o movido una tarea desde la última vez. */
+  tarea: boolean;
 };
 
 type Props = {
@@ -81,7 +83,7 @@ export default function Rail({
       c.id === activeId && vista === "cliente" ? "is-active" : "",
       destacado ? "client-item--equipo" : "",
       // Si alguien ha escrito o ha puesto una tarea, el canal va en negrita.
-      c.unread ? "is-novedad" : "",
+      c.chat || c.tarea ? "is-novedad" : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -106,8 +108,17 @@ export default function Rail({
           </div>
           <div className="client-item__meta">
             {!destacado && <span className="count-chip">{c.openCount}</span>}
-            {c.unread && (
-              <span className="unread-dot" aria-label="Hay algo nuevo" />
+            {/* El icono dice qué es lo nuevo, que es lo que uno quiere saber
+                antes de entrar: si le han escrito o si le han puesto trabajo. */}
+            {c.chat && (
+              <span className="aviso aviso--chat" title="Hay mensajes nuevos">
+                💬
+              </span>
+            )}
+            {c.tarea && (
+              <span className="aviso aviso--tarea" title="Hay novedades en las tareas">
+                ✎
+              </span>
             )}
           </div>
         </button>
@@ -174,7 +185,11 @@ export default function Rail({
           onClick={() => onVista(vista === "dm" ? "cliente" : "dm")}
         >
           Mensajes directos
-          {dmUnread > 0 && <span className="unread-dot" aria-label="Hay mensajes sin leer" />}
+          {dmUnread > 0 && (
+            <span className="aviso aviso--chat" title="Tienes mensajes sin leer">
+              💬
+            </span>
+          )}
         </button>
 
         {me.role === "admin" && (

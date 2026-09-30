@@ -2865,6 +2865,21 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 /* Hay algo sin leer: negrita y un punto, nunca un número. Da igual que sean dos
    mensajes o nueve, se entra igual; el número solo metía ruido. */
 .rail__nav.is-novedad { font-weight: 700; color: var(--ink); }
-.rail__nav .unread-dot { margin-left: 0.35rem; }
+.rail__nav .aviso { margin-left: 0.35rem; }
 .dm__persona.is-novedad .dm__persona-nombre { font-weight: 700; color: var(--ink); }
-.dm__persona .unread-dot { margin-left: auto; }
+.dm__persona .aviso { margin-left: auto; }
+
+/* El aviso dice qué es lo nuevo: un mensaje o una tarea. Un punto de color
+   avisa de que hay algo; el icono además dice de qué, que es lo que uno quiere
+   saber antes de decidir si entra. */
+.aviso {
+  flex: none;
+  font-size: 0.78rem;
+  line-height: 1;
+  filter: saturate(0.9);
+}
+.aviso--tarea {
+  font-size: 0.86rem;
+  color: var(--amber);
+  font-weight: 700;
+}

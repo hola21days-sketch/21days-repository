@@ -118,10 +118,14 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
     if (!conId) return;
     const pendientes = hilo.filter((m) => m.recipient_id === me.id && !m.read_at).map((m) => m.id);
     if (pendientes.length === 0) return;
-    void supabase
-      .from("dm_messages")
-      .update({ read_at: new Date().toISOString() })
-      .in("id", pendientes);
+    const ahora = new Date().toISOString();
+    // Se marcan también aquí, sin esperar a que vuelva de la base de datos: si
+    // no, la negrita y el punto se quedaban puestos hasta la siguiente recarga
+    // y parecía que no se hubiera leído nada.
+    setMensajes((prev) =>
+      prev.map((m) => (pendientes.includes(m.id) ? { ...m, read_at: ahora } : m)),
+    );
+    void supabase.from("dm_messages").update({ read_at: ahora }).in("id", pendientes);
   }, [supabase, conId, hilo, me.id]);
 
   useEffect(() => {
@@ -227,7 +231,9 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                 {/* En negrita y con un punto, sin número: lo que importa es que
                     hay algo, no cuánto. */}
                 {sinLeer[p.id] > 0 && (
-                  <span className="unread-dot" aria-label="Sin leer" />
+                  <span className="aviso aviso--chat" title="Sin leer">
+                    💬
+                  </span>
                 )}
               </button>
             </li>

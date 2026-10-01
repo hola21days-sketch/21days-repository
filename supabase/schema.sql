@@ -1269,3 +1269,40 @@ alter table public.profiles
 -- se cree la tarea.
 -- ============================================================================
 alter table public.client_tasks alter column author_id set default auth.uid();
+
+-- ============================================================================
+-- 28. Una tarea, varias personas
+-- ----------------------------------------------------------------------------
+-- Hay trabajo que se reparte entre dos o tres, y una columna «assignee_id»
+-- solo cabe una persona. Quién lleva cada tarea pasa a ser una tabla aparte:
+-- una fila por persona y tarea. La columna antigua se queda donde está, vacía
+-- de uso, para no romper nada que aún la lea; la verdad está aquí.
+-- ============================================================================
+create table if not exists public.client_task_assignees (
+  task_id    uuid not null references public.client_tasks(id) on delete cascade,
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (task_id, profile_id)
+);
+
+create index if not exists client_task_assignees_profile_idx
+  on public.client_task_assignees (profile_id);
+
+alter table public.client_task_assignees enable row level security;
+
+drop policy if exists client_task_assignees_todo on public.client_task_assignees;
+create policy client_task_assignees_todo on public.client_task_assignees
+  for all to authenticated using (true) with check (true);
+
+-- Y, como todo lo demás, solo para quien es del equipo.
+drop policy if exists client_task_assignees_solo_equipo on public.client_task_assignees;
+create policy client_task_assignees_solo_equipo on public.client_task_assignees
+  as restrictive for all to authenticated
+  using (public.es_equipo()) with check (public.es_equipo());
+
+alter publication supabase_realtime add table public.client_task_assignees;
+
+-- Lo que ya había asignado se trae tal cual.
+insert into public.client_task_assignees (task_id, profile_id)
+  select id, assignee_id from public.client_tasks where assignee_id is not null
+  on conflict do nothing;

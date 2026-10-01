@@ -39,6 +39,11 @@ usuario y datos persistentes.
   leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
   igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Una tarea, varias personas** — hay trabajo que se reparte, así que una tarea puede llevarla
+  más de uno: dos, tres o los que hagan falta. Donde antes había un desplegable que solo dejaba
+  elegir a una persona —en el canal del cliente, en *Tareas del equipo* y en la agenda— ahora
+  está cada uno con su foto y se pulsa para ponerlo o quitarlo. En las listas salen todas las
+  caras, y la tarea aparece en el *mi trabajo* de cada una de ellas.
 - **Tareas en proceso** — dentro de un cliente, cada pendiente tiene **Iniciar tarea**. Mientras
   está en marcha se ve *En proceso*, con el nombre de quien la lleva y el rato que lleva, y al
   acabar se pulsa **Terminar proceso**. En *Tareas del equipo*, lo primero es **En marcha ahora

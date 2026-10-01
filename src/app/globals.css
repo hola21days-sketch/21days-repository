@@ -2906,3 +2906,30 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--on-accent);
   font-weight: 700;
 }
+
+/* ============ Quién hace la tarea (puede ser más de uno) ============ */
+/* Una tarea se reparte: cada persona es un botón que se enciende. */
+.task__field--ancho { flex-basis: 100%; grid-column: 1 / -1; }
+.quien { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.quien__op {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem 0.22rem 0.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.quien__op .stamp { width: 20px; height: 20px; font-size: 0.52rem; outline: none; }
+.quien__op:hover { border-color: var(--accent); color: var(--accent-ink); }
+.quien__op.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.quien__nadie { font-size: 0.78rem; color: var(--ink-faint); }

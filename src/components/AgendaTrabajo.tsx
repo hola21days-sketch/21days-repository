@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { initialsOf, stampColor } from "@/lib/format";
 import { etiqueta, pesoPrioridad, destaca } from "@/lib/prioridad";
 import type { ClientTask, Profile } from "@/lib/types";
+import { leerAsignados } from "@/lib/asignados";
 
 type Props = {
   me: Profile;
@@ -67,10 +68,21 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
   const [aviso, setAviso] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
+    // Las que llevo yo, que ahora pueden llevarlas varios: primero mis
+    // asignaciones y después esas tareas.
+    const asignados = await leerAsignados(supabase);
+    const mias = Object.entries(asignados)
+      .filter(([, gente]) => gente.includes(me.id))
+      .map(([id]) => id);
+    if (mias.length === 0) {
+      setTareas([]);
+      setCargando(false);
+      return;
+    }
     const { data } = await supabase
       .from("client_tasks")
       .select("*")
-      .eq("assignee_id", me.id)
+      .in("id", mias)
       .eq("done", false);
     setTareas((data ?? []) as ClientTask[]);
     setCargando(false);
@@ -86,6 +98,13 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
       .on("postgres_changes", { event: "*", schema: "public", table: "client_tasks" }, () => {
         void cargar();
       })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_task_assignees" },
+        () => {
+          void cargar();
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(canal);
@@ -113,14 +132,19 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     const due = cuando === "" ? null : cuando === "resto" ? dia(7) : cuando;
     const { data, error } = await supabase
       .from("client_tasks")
-      .insert({ client_id: cliente, text: t, assignee_id: me.id, due_date: due })
+      .insert({ client_id: cliente, text: t, due_date: due })
       .select("*")
       .single();
-    setGuardando(false);
     if (error || !data) {
+      setGuardando(false);
       setAviso(`No se ha podido guardar. ${error?.message ?? ""}`.trim());
       return;
     }
+    // Creada desde mi agenda: me la quedo yo. Luego se puede repartir.
+    await supabase
+      .from("client_task_assignees")
+      .insert({ task_id: (data as ClientTask).id, profile_id: me.id });
+    setGuardando(false);
     setTareas((prev) => [...prev, data as ClientTask]);
     setTexto("");
   }

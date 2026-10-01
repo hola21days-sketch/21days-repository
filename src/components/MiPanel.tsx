@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
 import { pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import { conEnlaces } from "@/lib/enlaces";
+import QuienLaHace from "./QuienLaHace";
+import { leerAsignados, alternarAsignado, type Asignados } from "@/lib/asignados";
 import type { ClientTask, DailyNote, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
@@ -60,6 +62,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [avisos, setAvisos] = useState<DailyNote[]>([]);
+  const [asignados, setAsignados] = useState<Asignados>({});
   const [cargando, setCargando] = useState(true);
   const [mirando, setMirando] = useState<string>(me.id);
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
@@ -92,7 +95,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       .from("client_tasks")
       .select("*")
       .or(`done.eq.false,done_at.gte.${desde.toISOString()}`);
-    setTasks((data ?? []) as ClientTask[]);
+    const lista = (data ?? []) as ClientTask[];
+    setTasks(lista);
+    setAsignados(await leerAsignados(supabase));
 
     // Lo que se quedó a medias: lo pendiente de las dos últimas semanas.
     const { data: notas } = await supabase
@@ -124,6 +129,13 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       .on("postgres_changes", { event: "*", schema: "public", table: "daily_notes" }, () => {
         void cargar();
       })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_task_assignees" },
+        () => {
+          void cargar();
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(canal);
@@ -188,6 +200,18 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
       .eq("id", a.id);
   }
 
+  /** Pone o quita a alguien de una tarea. Pueden ser varios. */
+  async function alternarPersona(t: ClientTask, profileId: string, estaba: boolean) {
+    setAsignados((prev) => {
+      const actuales = prev[t.id] ?? [];
+      return {
+        ...prev,
+        [t.id]: estaba ? actuales.filter((x) => x !== profileId) : [...actuales, profileId],
+      };
+    });
+    await alternarAsignado(supabase, t.id, profileId, estaba);
+  }
+
   async function borrar(ids: string[]) {
     if (ids.length === 0) return;
     const cuantas = ids.length;
@@ -232,8 +256,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const equipo = useMemo(
     () =>
       profiles.map((p) => {
-        const suyas = tasks.filter((t) => t.assignee_id === p.id && !t.done);
-        const hechas = tasks.filter((t) => t.assignee_id === p.id && t.done);
+        const lleva = (t: ClientTask) => (asignados[t.id] ?? []).includes(p.id);
+        const suyas = tasks.filter((t) => lleva(t) && !t.done);
+        const hechas = tasks.filter((t) => lleva(t) && t.done);
         return {
           persona: p,
           total: suyas.length,
@@ -246,10 +271,10 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
             .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))[0]?.due_date ?? null,
         };
       }),
-    [profiles, tasks, hoy],
+    [profiles, tasks, asignados, hoy],
   );
 
-  const sinAsignar = tasks.filter((t) => !t.assignee_id && !t.done);
+  const sinAsignar = tasks.filter((t) => (asignados[t.id] ?? []).length === 0 && !t.done);
 
   /**
    * Lo que se está haciendo en este momento: las tareas que alguien ha
@@ -265,8 +290,13 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   );
 
   const delElegido = useMemo(
-    () => tasks.filter((t) => (mirando === "" ? !t.assignee_id : t.assignee_id === mirando)),
-    [tasks, mirando],
+    () =>
+      tasks.filter((t) =>
+        mirando === ""
+          ? (asignados[t.id] ?? []).length === 0
+          : (asignados[t.id] ?? []).includes(mirando),
+      ),
+    [tasks, mirando, asignados],
   );
 
   const hechas = useMemo(
@@ -785,25 +815,16 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                       {/* Lo que más se cambia de una tarea al abrirla: quién la
                           hace y para cuándo. Se guarda al momento, que son
                           desplegables y no hay nada que redactar. */}
-                      <div className="explica__campos">
-                        <label className="task__field">
-                          <span>Quién la hace</span>
-                          <select
-                            className="input-inline"
-                            value={t.assignee_id ?? ""}
-                            onChange={(e) =>
-                              void guardar(t, { assignee_id: e.target.value || null })
-                            }
-                          >
-                            <option value="">Sin asignar</option>
-                            {profiles.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.full_name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                      <div className="task__field task__field--ancho">
+                        <span>Quién la hace</span>
+                        <QuienLaHace
+                          profiles={profiles}
+                          elegidos={asignados[t.id] ?? []}
+                          onAlternar={(id, estaba) => void alternarPersona(t, id, estaba)}
+                        />
+                      </div>
 
+                      <div className="explica__campos">
                         <label className="task__field">
                           <span>Prioridad</span>
                           <select
@@ -889,11 +910,15 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                         type="button"
                         className="task__accion"
                         onClick={() =>
-                          void guardar(t, {
-                            started_at: new Date().toISOString(),
-                            started_by: me.id,
-                            assignee_id: t.assignee_id ?? me.id,
-                          })
+                          void (async () => {
+                            await guardar(t, {
+                              started_at: new Date().toISOString(),
+                              started_by: me.id,
+                            });
+                            if ((asignados[t.id] ?? []).length === 0) {
+                              await alternarPersona(t, me.id, false);
+                            }
+                          })()
                         }
                       >
                         ▶ Iniciar tarea

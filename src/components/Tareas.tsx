@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDue } from "@/lib/format";
 import { destaca, etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import { conEnlaces } from "@/lib/enlaces";
+import QuienLaHace from "./QuienLaHace";
+import { leerAsignados, alternarAsignado, type Asignados } from "@/lib/asignados";
 import type { ClientTask, Prioridad, Profile } from "@/lib/types";
 
 type Props = {
@@ -36,6 +38,7 @@ function desdeCuando(inicio: string): string {
 export default function Tareas({ clientId, me, profiles, profileById, onCount }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
+  const [asignados, setAsignados] = useState<Asignados>({});
   const [draft, setDraft] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +55,9 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
       .eq("client_id", clientId)
       .order("done")
       .order("position");
-    setTasks((data ?? []) as ClientTask[]);
+    const lista = (data ?? []) as ClientTask[];
+    setTasks(lista);
+    setAsignados(await leerAsignados(supabase, lista.map((t) => t.id)));
     setLoading(false);
   }, [supabase, clientId]);
 
@@ -67,6 +72,15 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "client_tasks", filter: `client_id=eq.${clientId}` },
+        () => {
+          void cargar();
+        },
+      )
+      // Repartir una tarea es tocar otra tabla: sin esto, a los demás no les
+      // cambiaba la cara de quien la lleva hasta recargar.
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_task_assignees" },
         () => {
           void cargar();
         },
@@ -141,11 +155,11 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
    * qué estás. Si no tenía responsable, te lo pones de paso.
    */
   function empezar(task: ClientTask) {
-    void guardar(task, {
-      started_at: new Date().toISOString(),
-      started_by: me.id,
-      assignee_id: task.assignee_id ?? me.id,
-    });
+    void guardar(task, { started_at: new Date().toISOString(), started_by: me.id });
+    // Si no la llevaba nadie, al empezarla pasa a ser tuya.
+    if ((asignados[task.id] ?? []).length === 0) {
+      void alternarPersona(task, me.id, false);
+    }
   }
 
   /** Terminar el proceso es darla por hecha. El inicio se guarda como registro. */
@@ -156,6 +170,20 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
   /** Si se ha cogido por error, se suelta sin dejar rastro de que estaba en marcha. */
   function soltar(task: ClientTask) {
     void guardar(task, { started_at: null, started_by: null });
+  }
+
+  /** Pone o quita a alguien de una tarea. Pueden ser varios. */
+  async function alternarPersona(task: ClientTask, profileId: string, estaba: boolean) {
+    setAsignados((prev) => {
+      const actuales = prev[task.id] ?? [];
+      return {
+        ...prev,
+        [task.id]: estaba
+          ? actuales.filter((x) => x !== profileId)
+          : [...actuales, profileId],
+      };
+    });
+    await alternarAsignado(supabase, task.id, profileId, estaba);
   }
 
   async function quitar(task: ClientTask) {
@@ -178,7 +206,7 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
   const hechas = tasks.filter((t) => t.done);
 
   function fila(t: ClientTask) {
-    const responsable = t.assignee_id ? profileById[t.assignee_id] : null;
+    const quienes = (asignados[t.id] ?? []).map((id) => profileById[id]).filter(Boolean);
     const abierto = abierta === t.id;
     const enProceso = !t.done && !!t.started_at;
     const quienLaLleva = t.started_by ? profileById[t.started_by] : null;
@@ -214,14 +242,15 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
           <button type="button" className="task__text" onClick={() => setAbierta(abierto ? null : t.id)}>
             {t.text}
           </button>
-          {responsable && (
+          {quienes.map((p) => (
             <Stamp
-              label={responsable.initials}
-              color={responsable.color}
-              foto={responsable.avatar_url}
-              title={`Lo lleva ${responsable.full_name}`}
+              key={p.id}
+              label={p.initials}
+              color={p.color}
+              foto={p.avatar_url}
+              title={`La lleva ${p.full_name}`}
             />
-          )}
+          ))}
           {t.due_date && <span className="task__due">{formatDue(t.due_date)}</span>}
           {t.notes && !abierto && <span className="task__flag" title="Tiene indicaciones">✎</span>}
 
@@ -273,21 +302,6 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
         {abierto && (
           <div className="task__panel">
             <div className="task__fields">
-              <label className="task__field">
-                <span>Quién lo hace</span>
-                <select
-                  className="input-inline"
-                  value={t.assignee_id ?? ""}
-                  onChange={(e) => void guardar(t, { assignee_id: e.target.value || null })}
-                >
-                  <option value="">Sin asignar</option>
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.full_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
 
               <label className="task__field">
                 <span>Prioridad</span>
@@ -313,6 +327,15 @@ export default function Tareas({ clientId, me, profiles, profileById, onCount }:
                   onChange={(e) => void guardar(t, { due_date: e.target.value || null })}
                 />
               </label>
+            </div>
+
+            <div className="task__field task__field--ancho">
+              <span>Quién la hace</span>
+              <QuienLaHace
+                profiles={profiles}
+                elegidos={asignados[t.id] ?? []}
+                onAlternar={(id, estaba) => void alternarPersona(t, id, estaba)}
+              />
             </div>
 
             <label className="task__field">

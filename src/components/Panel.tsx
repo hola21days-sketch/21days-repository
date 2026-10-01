@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
 import { etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import type { BoardColumn, ClientTask, Prioridad, Profile } from "@/lib/types";
+import { leerAsignados, type Asignados } from "@/lib/asignados";
 
 type ClienteDePanel = { id: string; name: string; kind: string; priority: Prioridad };
 
@@ -77,6 +78,7 @@ export default function Panel({
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [avance, setAvance] = useState<Avance[]>([]);
+  const [asignados, setAsignados] = useState<Asignados>({});
   const [cargando, setCargando] = useState(true);
   const [anyo, setAnyo] = useState(() => new Date().getFullYear());
   const [mesElegido, setMesElegido] = useState(() => new Date().getMonth());
@@ -101,6 +103,7 @@ export default function Panel({
     ]);
     setTasks((t.data ?? []) as ClientTask[]);
     setAvance((a.data ?? []) as Avance[]);
+    setAsignados(await leerAsignados(supabase));
     setCargando(false);
   }, [supabase, mes]);
 
@@ -176,7 +179,9 @@ export default function Panel({
   const totalCasillas = clients.length * fases.length;
 
   function filaDeTarea(t: ClientTask) {
-    const quien = t.assignee_id ? profileById[t.assignee_id] : null;
+    const quienes = (asignados[t.id] ?? [])
+      .map((id: string) => profileById[id])
+      .filter(Boolean);
     return (
       <li key={t.id}>
         <button type="button" className="panel__objetivo" onClick={() => onAbrirCliente(t.client_id)}>
@@ -185,10 +190,12 @@ export default function Panel({
             <span className="panel__objetivo-texto">{t.text}</span>
             <span className="panel__objetivo-meta">{nombreDeCliente[t.client_id] ?? "Cliente"}</span>
           </span>
-          {quien ? (
+          {quienes.length > 0 ? (
             <span className="panel__quien">
-              <Stamp label={quien.initials} color={quien.color} foto={quien.avatar_url} title={quien.full_name} />
-              {quien.full_name.split(" ")[0]}
+              {quienes.map((q) => (
+                <Stamp key={q.id} label={q.initials} color={q.color} foto={q.avatar_url} title={q.full_name} />
+              ))}
+              {quienes.length === 1 && quienes[0].full_name.split(" ")[0]}
             </span>
           ) : (
             <span className="panel__quien is-libre">Sin asignar</span>

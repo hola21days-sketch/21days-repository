@@ -16,7 +16,9 @@ usuario y datos persistentes.
 
 ## Qué hace
 
-- **Índice de clientes** — con el número de tareas pendientes. El canal sale **en negrita** cuando
+- **Índice de clientes** — el número de la derecha es **lo que te has perdido** desde la última vez
+  que abriste ese canal, no un total: al entrar se queda a cero y desaparece. El canal sale **en
+  negrita** cuando
   **otra persona** ha hecho algo desde la última vez que se abrió —lo propio no cuenta, que si no
   el canal del equipo estaría siempre en negrita—, y con un icono que dice de qué se trata: 💬 si
   han escrito, ✎ si han tocado las tareas, los dos si las dos cosas. Abrirlo lo da por visto y la

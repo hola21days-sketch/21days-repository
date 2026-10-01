@@ -6,9 +6,6 @@ import type {Notice, Profile} from "@/lib/types";
 
 type Props = {
   clientId: string;
-  pendingTasks: number;
-  /** Pendientes cuya fecha de entrega ya pasó. */
-  tareasAtrasadas: number;
   me: Profile;
 };
 
@@ -20,7 +17,7 @@ type Props = {
  * algo que decir: si no hay atrasos ni avisos, esos huecos no ocupan sitio.
  * Los avisos se despliegan al pulsar, para no robarle alto al tablero.
  */
-export default function Resumen({ clientId, pendingTasks, tareasAtrasadas, me }: Props) {
+export default function Resumen({ clientId, me }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [abierto, setAbierto] = useState(false);
@@ -63,22 +60,14 @@ export default function Resumen({ clientId, pendingTasks, tareasAtrasadas, me }:
   }
 
   // «En producción» y «en report» contaban tarjetas del tablero, que ya no
-  // existe: se quedaron enseñando números de algo que nadie puede abrir. Lo
-  // que se mira ahora de un cliente son sus pendientes y lo que lleva retraso.
-  const atrasadas = tareasAtrasadas;
+  // El recuento de pendientes y de entregas pasadas vivía aquí arriba,
+  // repetido en cada canal al lado de la pestaña Tareas, que ya lleva su
+  // número. Dos veces lo mismo es ruido, así que en la cabecera se queda solo
+  // lo que no está en ninguna otra parte: los avisos del mes.
 
   return (
     <section className="digest" aria-label="Estado del cliente">
       <div className="digest__line">
-        <span className="digest__stat">
-          <b>{pendingTasks}</b> {pendingTasks === 1 ? "tarea pendiente" : "tareas pendientes"}
-        </span>
-        {atrasadas > 0 && (
-          <span className="digest__stat is-alerta">
-            <b>{atrasadas}</b> con la entrega pasada
-          </span>
-        )}
-
         <button
           type="button"
           className="digest__toggle"

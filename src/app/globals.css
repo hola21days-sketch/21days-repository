@@ -2899,3 +2899,10 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 @media (max-width: 780px) {
   .explica__campos { grid-template-columns: 1fr; }
 }
+
+/* El número de lo que te has perdido: se ve, pero no grita. */
+.count-chip--nuevo {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}

@@ -87,6 +87,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * propios mensajes y la negrita dejaría de significar nada.
    */
   const [lastMsgAt, setLastMsgAt] = useState<Record<string, string | null>>({});
+  /**
+   * Cuándo escribió o puso una tarea otra persona en cada canal, una entrada
+   * por cada cosa. Se guarda la lista y no solo la última para poder decir
+   * cuántas hay sin ver: el número del listado es eso, lo que te has perdido
+   * desde la última vez que entraste, y se pone a cero al entrar. No es el
+   * total de tareas pendientes, que no se vacía nunca y no significaba nada.
+   */
+  const [cosasDeOtros, setCosasDeOtros] = useState<
+    { client_id: string; created_at: string; tipo: "chat" | "tarea" }[]
+  >([]);
   const [reads, setReads] = useState<Record<string, string>>(() =>
     Object.fromEntries(initial.reads.map((r) => [r.client_id, r.last_read_at])),
   );
@@ -95,10 +105,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * `lastMsgAt` para decidir si el canal sale en negrita: da igual si la
    * novedad es un mensaje o una tarea, lo que importa es que hay algo nuevo.
    */
-  const [lastTaskAt, setLastTaskAt] = useState<Record<string, string>>({});
 
   const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
-  const [tab, setTab] = useState<"chat" | "tareas" | "claves">("tareas");
+  const [tab, setTab] = useState<"chat" | "tareas" | "claves">("chat");
   const [railOpen, setRailOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
 
@@ -109,9 +118,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [progreso, setProgreso] = useState<number | null>(null);
   const [pendingTasks, setPendingTasks] = useState(0);
-  const [tareasAtrasadas, setTareasAtrasadas] = useState(0);
-  /** Pendientes por cliente, para el número del listado de la izquierda. */
-  const [pendientesPorCliente, setPendientesPorCliente] = useState<Record<string, number>>({});
   const [vista, setVista] = useState<Vista>("cliente");
   const [dmUnread, setDmUnread] = useState(0);
   const [fichaAbierta, setFichaAbierta] = useState(false);
@@ -190,15 +196,29 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * una tarea, o las dos cosas. Se distingue para poder enseñar el icono que
    * toca en el listado, en vez de un punto que no dice nada.
    */
+  /**
+   * Qué te has perdido en un canal desde la última vez que lo abriste: cuántas
+   * cosas, y si son mensajes, tareas o las dos. Estando dentro, nada.
+   */
   const novedadesDe = useCallback(
     (clientId: string) => {
-      if (clientId === activeId) return { chat: false, tarea: false };
+      if (clientId === activeId && vista === "cliente") {
+        return { nuevas: 0, chat: false, tarea: false };
+      }
       const read = reads[clientId] ? new Date(reads[clientId]).getTime() : 0;
-      const masNuevo = (f: string | null | undefined) =>
-        !!f && new Date(f).getTime() > read;
-      return { chat: masNuevo(lastMsgAt[clientId]), tarea: masNuevo(lastTaskAt[clientId]) };
+      let nuevas = 0;
+      let chat = false;
+      let tarea = false;
+      for (const c of cosasDeOtros) {
+        if (c.client_id !== clientId) continue;
+        if (new Date(c.created_at).getTime() <= read) continue;
+        nuevas += 1;
+        if (c.tipo === "chat") chat = true;
+        else tarea = true;
+      }
+      return { nuevas, chat, tarea };
     },
-    [activeId, reads, lastMsgAt, lastTaskAt],
+    [activeId, vista, reads, cosasDeOtros],
   );
 
   // Se da por cerrado lo que llega a la última columna del tablero (hoy,
@@ -230,10 +250,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         // El número de la derecha son sus tareas pendientes. Antes contaba
         // tarjetas del tablero, que ya no existe: enseñaba un número de algo
         // que nadie podía abrir.
-        openCount: pendientesPorCliente[c.id] ?? 0,
         ...novedadesDe(c.id),
       })),
-    [clients, pendientesPorCliente, novedadesDe],
+    [clients, novedadesDe],
   );
 
   // ---------------------------------------------------------------- recargas
@@ -330,6 +349,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           // escrito tú.
           if (row.author_id !== me.id) {
             setLastMsgAt((prev) => ({ ...prev, [row.client_id]: row.created_at }));
+            setCosasDeOtros((prev) => [
+              ...prev,
+              { client_id: row.client_id, created_at: row.created_at, tipo: "chat" },
+            ]);
             sonarAviso();
           }
         },
@@ -430,16 +453,12 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     if (!activeId) return;
     let vigente = true;
     void (async () => {
-      const hoy = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
+      const { count } = await supabase
         .from("client_tasks")
-        .select("due_date")
+        .select("id", { count: "exact", head: true })
         .eq("client_id", activeId)
         .eq("done", false);
-      if (!vigente) return;
-      const filas = (data ?? []) as { due_date: string | null }[];
-      setPendingTasks(filas.length);
-      setTareasAtrasadas(filas.filter((t) => t.due_date && t.due_date < hoy).length);
+      if (vigente) setPendingTasks(count ?? 0);
     })();
     return () => {
       vigente = false;
@@ -459,12 +478,17 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         .order("created_at", { ascending: false })
         .limit(1000);
       if (!data) return;
+      const filas = data as { client_id: string; created_at: string }[];
       const mapa: Record<string, string> = {};
-      for (const f of data as { client_id: string; created_at: string }[]) {
+      for (const f of filas) {
         // Vienen de más nuevo a más viejo: el primero de cada canal es el suyo.
         if (!mapa[f.client_id]) mapa[f.client_id] = f.created_at;
       }
       setLastMsgAt(mapa);
+      setCosasDeOtros((prev) => [
+        ...prev.filter((c) => c.tipo !== "chat"),
+        ...filas.map((f) => ({ ...f, tipo: "chat" as const })),
+      ]);
     })();
   }, [supabase, me.id]);
 
@@ -473,13 +497,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * después se va actualizando con lo que llegue por realtime.
    */
   useEffect(() => {
-    const resumir = (filas: { client_id: string; created_at: string }[]) => {
-      const mapa: Record<string, string> = {};
-      for (const f of filas) {
-        if (!mapa[f.client_id] || f.created_at > mapa[f.client_id]) mapa[f.client_id] = f.created_at;
-      }
-      setLastTaskAt(mapa);
-    };
     void (async () => {
       const { data } = await supabase
         .from("client_tasks")
@@ -491,13 +508,16 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           done: boolean;
           author_id: string | null;
         }[];
-        // Para la negrita solo cuenta lo que ha puesto otra persona.
-        resumir(filas.filter((f) => f.author_id !== me.id));
-        const cuenta: Record<string, number> = {};
-        for (const f of filas) {
-          if (!f.done) cuenta[f.client_id] = (cuenta[f.client_id] ?? 0) + 1;
-        }
-        setPendientesPorCliente(cuenta);
+        // Para el aviso solo cuenta lo que ha puesto otra persona.
+        const deOtros = filas.filter((f) => f.author_id !== me.id);
+        setCosasDeOtros((prev) => [
+          ...prev.filter((c) => c.tipo !== "tarea"),
+          ...deOtros.map((f) => ({
+            client_id: f.client_id,
+            created_at: f.created_at,
+            tipo: "tarea" as const,
+          })),
+        ]);
       }
     })();
 
@@ -513,7 +533,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             author_id: string | null;
           };
           if (fila.author_id === me.id) return;
-          setLastTaskAt((prev) => ({ ...prev, [fila.client_id]: fila.created_at }));
+          setCosasDeOtros((prev) => [
+            ...prev,
+            { client_id: fila.client_id, created_at: fila.created_at, tipo: "tarea" },
+          ]);
         },
       )
       .subscribe();
@@ -521,6 +544,19 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       void supabase.removeChannel(canal);
     };
   }, [supabase, me.id]);
+
+  /**
+   * Al cambiar de canal se vuelve al chat, que es lo primero que se mira al
+   * entrar en un cliente. Salvo que se haya llegado pidiendo otra pestaña: al
+   * pulsar «Ir al canal» desde una tarea lo que quieres son las tareas, no el
+   * chat.
+   */
+  const tabAlAbrir = useRef<"chat" | "tareas" | "claves" | null>(null);
+  useEffect(() => {
+    if (!activeId) return;
+    setTab(tabAlAbrir.current ?? "chat");
+    tabAlAbrir.current = null;
+  }, [activeId]);
 
   // Abrir el canal da lo de dentro por visto, sea la pestaña que sea: así la
   // negrita se quita igual si la novedad era un mensaje o una tarea.
@@ -929,8 +965,6 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             <Resumen
               key={activeClient.id}
               clientId={activeClient.id}
-              pendingTasks={pendingTasks}
-              tareasAtrasadas={tareasAtrasadas}
               me={me}
             />
           )}
@@ -1000,9 +1034,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             profileById={profileById}
             me={me}
             onAbrirCliente={(id) => {
+              tabAlAbrir.current = "tareas";
               setActiveId(id);
               setVista("cliente");
-              setTab("tareas");
             }}
             onPrioridadCliente={(id, priority) => {
               setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
@@ -1017,9 +1051,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             profiles={profiles}
             clientNames={clientNames}
             onAbrirCliente={(id) => {
+              tabAlAbrir.current = "tareas";
               setActiveId(id);
               setVista("cliente");
-              setTab("tareas");
             }}
           />
         )}
@@ -1033,9 +1067,9 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               me={me}
               clientNames={clientNames}
               onAbrirCliente={(id) => {
+                tabAlAbrir.current = "tareas";
                 setActiveId(id);
                 setVista("cliente");
-                setTab("tareas");
               }}
             />
           </section>

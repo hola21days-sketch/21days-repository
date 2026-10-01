@@ -17,10 +17,11 @@ export type RailClient = {
   kind: string;
   /** Los canales del equipo van aparte, arriba y destacados. */
   internal: boolean;
-  openCount: number;
+  /** Cuántas cosas te has perdido desde la última vez que lo abriste. */
+  nuevas: number;
   /** Ha escrito alguien desde la última vez que se abrió. */
   chat: boolean;
-  /** Alguien ha puesto o movido una tarea desde la última vez. */
+  /** Alguien ha puesto una tarea desde la última vez. */
   tarea: boolean;
 };
 
@@ -107,7 +108,10 @@ export default function Rail({
             </div>
           </div>
           <div className="client-item__meta">
-            {!destacado && <span className="count-chip">{c.openCount}</span>}
+            {/* El número es lo que te has perdido, no un total: al entrar se
+                queda a cero y desaparece. Un número que no se vacía nunca no
+                dice nada. */}
+            {c.nuevas > 0 && <span className="count-chip count-chip--nuevo">{c.nuevas}</span>}
             {/* El icono dice qué es lo nuevo, que es lo que uno quiere saber
                 antes de entrar: si le han escrito o si le han puesto trabajo. */}
             {c.chat && (

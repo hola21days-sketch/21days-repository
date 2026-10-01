@@ -58,9 +58,15 @@ usuario y datos persistentes.
 - **Archivos que se ven** — en los canales y en los mensajes directos: una imagen sale grande y se abre a pantalla completa al pulsarla, un
   vídeo se reproduce en el chat y un audio trae su barra de reproducción. Lo demás sigue siendo una
   tarjeta con su nombre y su tamaño. Descargar siempre está a mano, y el original no se toca.
-- **Aviso al llegar un mensaje** — la campana de la cabecera enciende o apaga un sonido corto
-  cuando alguien escribe, en un canal o por mensaje directo. Los propios no suenan. Se guarda por
-  aparato, así que puede estar encendido en el ordenador y apagado en el móvil.
+- **Aviso al llegar algo** — la campana de la cabecera enciende o apaga el aviso. Suena **alto**:
+  tres notas que suben, dos veces, con compresión para que se oigan por encima de la música o del
+  ruido de la oficina. Suena **todo** lo que llega de otra persona: un mensaje en un canal, un
+  mensaje directo, una tarea nueva y que te repartan una tarea. También cuando el tiempo real se
+  cae y los mensajes entran por la vía de repuesto, que antes llegaban callados. Lo propio no
+  suena. Si la ventana está detrás de otra cosa, además salta el **aviso del ordenador** —se pide
+  permiso al encender la campana, no al entrar— y el título de la pestaña pasa a `(3) Bitácora`,
+  que se pone a cero al volver. Se guarda por aparato, así que puede estar encendido en el
+  ordenador y apagado en el móvil.
 - **Foto de perfil** — la misma que cada uno tiene en Slack, en los chats, en los mensajes
   directos, en las tareas y en los paneles. Lo traído de Slack también sale con su foto: se empareja
   por el nombre, así que «Aina» y «Aina Viciano» son la misma persona y ya no aparece dos veces en

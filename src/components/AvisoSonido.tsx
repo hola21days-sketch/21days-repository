@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { avisoActivo, ponerAviso, probarAviso } from "@/lib/aviso";
+import { avisoActivo, pedirPermisoAvisos, ponerAviso, prepararAviso, probarAviso } from "@/lib/aviso";
 
 /**
  * El interruptor del sonido de mensaje nuevo.
@@ -14,19 +14,29 @@ import { avisoActivo, ponerAviso, probarAviso } from "@/lib/aviso";
 export default function AvisoSonido() {
   const [activo, setActivo] = useState(true);
   // El estado real se lee después de pintar: en el servidor no hay navegador.
-  useEffect(() => setActivo(avisoActivo()), []);
+  useEffect(() => {
+    setActivo(avisoActivo());
+    // Deja el sonido listo a la primera que se toque algo, para que el primer
+    // mensaje del día ya se oiga.
+    prepararAviso();
+  }, []);
 
   return (
     <button
       type="button"
       className="btn btn--icon"
       aria-pressed={activo}
-      title={activo ? "Sonido de mensaje nuevo: encendido" : "Sonido de mensaje nuevo: apagado"}
+      title={activo ? "Avisos de mensaje nuevo: encendidos" : "Avisos de mensaje nuevo: apagados"}
       onClick={() => {
         const siguiente = !activo;
         setActivo(siguiente);
         ponerAviso(siguiente);
-        if (siguiente) probarAviso();
+        if (siguiente) {
+          probarAviso();
+          // Al encenderlo se pide también el aviso del ordenador: el sonido
+          // solo sirve si estás delante de esta ventana.
+          pedirPermisoAvisos();
+        }
       }}
     >
       {activo ? "🔔" : "🔕"}

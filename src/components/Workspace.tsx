@@ -14,7 +14,7 @@ import Agenda from "./Agenda";
 import MiCuenta from "./MiCuenta";
 import AgendaTrabajo from "./AgendaTrabajo";
 import AvisoSonido from "./AvisoSonido";
-import { sonarAviso } from "@/lib/aviso";
+import { avisar } from "@/lib/aviso";
 import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
@@ -140,8 +140,13 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     const canal = supabase
       .channel("dm-aviso")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages" }, (payload) => {
-        const fila = payload.new as { recipient_id: string };
-        if (fila.recipient_id === me.id) sonarAviso();
+        const fila = payload.new as { recipient_id: string; sender_id: string; body: string };
+        if (fila.recipient_id === me.id) {
+          avisar(
+            `Mensaje de ${quienEs(fila.sender_id)}`,
+            fila.body?.slice(0, 140) || "Te ha escrito",
+          );
+        }
         void contar();
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "dm_messages" }, () => {
@@ -157,6 +162,20 @@ export default function Workspace({ initial }: { initial: InitialData }) {
     () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
     [profiles],
   );
+
+  /**
+   * Los nombres, para poder escribirlos en el aviso del ordenador. Van en una
+   * referencia y no en las dependencias a propósito: si no, cada vez que
+   * cambia un nombre habría que volver a suscribirse a todo el realtime, y en
+   * ese hueco se pierden mensajes.
+   */
+  const nombres = useRef({ clientes: {} as Record<string, string>, gente: {} as Record<string, string> });
+  nombres.current = {
+    clientes: Object.fromEntries(clients.map((c) => [c.id, c.name])),
+    gente: Object.fromEntries(profiles.map((p) => [p.id, p.full_name])),
+  };
+  const quienEs = (id: string | null) => (id ? (nombres.current.gente[id] ?? "Alguien") : "Alguien");
+  const canalDe = (id: string) => nombres.current.clientes[id] ?? "un canal";
 
   const activeClient = useMemo(
     () => clients.find((c) => c.id === activeId) ?? null,
@@ -353,7 +372,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               ...prev,
               { client_id: row.client_id, created_at: row.created_at, tipo: "chat" },
             ]);
-            sonarAviso();
+            avisar(
+              `${quienEs(row.author_id)} en ${canalDe(row.client_id)}`,
+              row.body?.slice(0, 140) || "Ha escrito un mensaje",
+            );
           }
         },
       )
@@ -531,12 +553,29 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             client_id: string;
             created_at: string;
             author_id: string | null;
+            text: string;
           };
           if (fila.author_id === me.id) return;
           setCosasDeOtros((prev) => [
             ...prev,
             { client_id: fila.client_id, created_at: fila.created_at, tipo: "tarea" },
           ]);
+          // Una tarea nueva también es algo de lo que enterarse: antes entraba
+          // en silencio y solo se veía si mirabas el listado.
+          avisar(
+            `Tarea nueva en ${canalDe(fila.client_id)}`,
+            fila.text?.slice(0, 140) || `La ha puesto ${quienEs(fila.author_id)}`,
+          );
+        },
+      )
+      // Y que te repartan una tarea, aunque la tarea ya existiera.
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "client_task_assignees" },
+        (payload) => {
+          const fila = payload.new as { profile_id: string };
+          if (fila.profile_id !== me.id) return;
+          avisar("Te han asignado una tarea", "Míralo en Tareas del equipo");
         },
       )
       .subscribe();
@@ -591,6 +630,14 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       const { data } = await q;
       if (!data || data.length === 0) return;
       for (const m of data as Message[]) upsertMessage(clientId, m);
+      // Esta consulta es la red de seguridad de cuando el realtime se cae. Si
+      // ha pescado algo que ha escrito otra persona, también tiene que sonar:
+      // antes entraba callado y por eso había mensajes de los que uno no se
+      // enteraba. Solo cuando ya había conversación cargada, para que no suene
+      // al abrir un canal por primera vez.
+      if (ultimo && (data as Message[]).some((m) => m.author_id !== me.id)) {
+        avisar(`Mensajes nuevos en ${canalDe(clientId)}`, "Hay mensajes que no has visto");
+      }
       const ids = (data as Message[]).map((m) => m.id);
       const { data: files } = await supabase
         .from("message_attachments")
@@ -598,7 +645,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         .in("message_id", ids);
       if (files) mergeAttachments(files as Attachment[]);
     },
-    [supabase, messagesByClient, upsertMessage, mergeAttachments],
+    [supabase, messagesByClient, upsertMessage, mergeAttachments, me.id],
   );
 
   const traerNuevosRef = useRef(traerNuevos);

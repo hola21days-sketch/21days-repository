@@ -3,14 +3,27 @@
 import { useState } from "react";
 
 type Props = {
+  /** Desde dónde se ha pedido el alta, para marcar lo que toca. */
+  desde: "canal" | "panel";
   onCancel: () => void;
-  onCreate: (name: string, kind: string, prefix: string) => Promise<string | null>;
+  onCreate: (
+    name: string,
+    kind: string,
+    prefix: string,
+    enPanel: boolean,
+    enCanales: boolean,
+  ) => Promise<string | null>;
 };
 
-export default function NewClientDialog({ onCancel, onCreate }: Props) {
+export default function NewClientDialog({ desde, onCancel, onCreate }: Props) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState("");
   const [prefix, setPrefix] = useState("");
+  // El tablero del mes y el listado de canales son dos cosas distintas. Se
+  // marca de entrada el sitio desde el que se ha pedido el alta, que es el que
+  // se quiere casi siempre, y el otro se añade si hace falta.
+  const [enPanel, setEnPanel] = useState(desde === "panel");
+  const [enCanales, setEnCanales] = useState(desde === "canal");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +32,13 @@ export default function NewClientDialog({ onCancel, onCreate }: Props) {
     if (!name.trim()) return;
     setBusy(true);
     setError(null);
-    const problem = await onCreate(name.trim(), kind.trim(), prefix.trim().toUpperCase());
+    const problem = await onCreate(
+      name.trim(),
+      kind.trim(),
+      prefix.trim().toUpperCase(),
+      enPanel,
+      enCanales,
+    );
     setBusy(false);
     if (problem) setError(problem);
   }
@@ -64,11 +83,33 @@ export default function NewClientDialog({ onCancel, onCreate }: Props) {
           />
         </div>
 
+        <fieldset className="field alta__donde">
+          <legend>¿Dónde sale?</legend>
+          <label className="alta__op">
+            <input type="checkbox" checked={enPanel} onChange={(e) => setEnPanel(e.target.checked)} />
+            <span>
+              <strong>En el tablero del mes</strong>
+              <small>La fila con sus fases: idear, grabar, editar, planificar, programar.</small>
+            </span>
+          </label>
+          <label className="alta__op">
+            <input type="checkbox" checked={enCanales} onChange={(e) => setEnCanales(e.target.checked)} />
+            <span>
+              <strong>En el listado de canales</strong>
+              <small>Con su chat, sus tareas y sus claves.</small>
+            </span>
+          </label>
+        </fieldset>
+
         <div className="modal__actions">
           <button type="button" className="btn btn--ghost" onClick={onCancel}>
             Cancelar
           </button>
-          <button type="submit" className="btn btn--primary" disabled={busy || !name.trim()}>
+          <button
+            type="submit"
+            className="btn btn--primary"
+            disabled={busy || !name.trim() || (!enPanel && !enCanales)}
+          >
             {busy ? "Creando…" : "Crear cliente"}
           </button>
         </div>

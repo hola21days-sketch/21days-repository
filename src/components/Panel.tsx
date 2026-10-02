@@ -33,6 +33,8 @@ type Props = {
   onAbrirCliente: (clientId: string) => void;
   onPrioridadCliente: (clientId: string, priority: Prioridad) => void;
   onNuevoCliente: () => void;
+  /** Lo saca del tablero y nada más: su canal, su chat y sus tareas siguen. */
+  onQuitarDelPanel: (clientId: string) => void;
   onBorrarCliente: (clientId: string) => void;
 };
 
@@ -84,6 +86,7 @@ export default function Panel({
   onAbrirCliente,
   onPrioridadCliente,
   onNuevoCliente,
+  onQuitarDelPanel,
   onBorrarCliente,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
@@ -100,6 +103,12 @@ export default function Panel({
   >(null);
   /** El menú del botón derecho sobre el nombre de un cliente. */
   const [menuCliente, setMenuCliente] = useState<{ id: string; x: number; y: number } | null>(null);
+  /**
+   * Lo que falta en una casilla a medias, para leerlo al pasar por encima.
+   * Se pinta suelto y no dentro de la tabla porque la tabla se desplaza de
+   * lado y le cortaría los bordes.
+   */
+  const [pista, setPista] = useState<{ texto: string; x: number; y: number } | null>(null);
 
   const mes = primeroDeMes(anyo, mesElegido);
   const esteMes = new Date().getFullYear() === anyo && new Date().getMonth() === mesElegido;
@@ -240,8 +249,11 @@ export default function Panel({
 
   const atrasadas = tasks.filter((t) => t.due_date && t.due_date < hoy).length;
   const urgentes = tasks.filter((t) => t.priority === "urgente").length;
-  const marcadas = avance.filter((a) => a.done).length;
-  const aMedias = avance.filter((a) => a.partial && !a.done).length;
+  const clavesDeFase = useMemo(() => new Set(fases.map((f) => f.key)), [fases]);
+  const marcadas = avance.filter((a) => a.done && clavesDeFase.has(a.phase_key)).length;
+  const aMedias = avance.filter(
+    (a) => a.partial && !a.done && clavesDeFase.has(a.phase_key),
+  ).length;
   const totalCasillas = clients.length * fases.length;
 
   function filaDeTarea(t: ClientTask) {
@@ -423,9 +435,16 @@ export default function Panel({
                             }`}
                             title={
                               a?.note
-                                ? `A medias: ${a.note}`
+                                ? undefined
                                 : "Pulsa para cambiarlo · botón derecho para decir qué falta"
                             }
+                            onMouseEnter={(e) => {
+                              if (!a?.note) return;
+                              const r = e.currentTarget.getBoundingClientRect();
+                              setPista({ texto: a.note, x: r.left + r.width / 2, y: r.top });
+                            }}
+                            onMouseLeave={() => setPista(null)}
+                            onBlur={() => setPista(null)}
                             onClick={(e) => {
                               // Sin esto, el mismo clic llegaría a la ventana y
                               // cerraría el cuadro que acaba de abrir.
@@ -527,6 +546,17 @@ export default function Panel({
         ))}
       </div>
 
+      {pista && (
+        <div
+          className="casilla__globo"
+          role="tooltip"
+          style={{ left: pista.x, top: pista.y }}
+        >
+          <span className="casilla__globo-tit">A medias · falta</span>
+          {pista.texto}
+        </div>
+      )}
+
       {casillaAbierta && (
         <CuadroCasilla
           x={casillaAbierta.x}
@@ -565,13 +595,24 @@ export default function Panel({
           </button>
           <button
             type="button"
+            className="menu-canal__normal"
+            onClick={() => {
+              const id = menuCliente.id;
+              setMenuCliente(null);
+              onQuitarDelPanel(id);
+            }}
+          >
+            Quitar del tablero
+          </button>
+          <button
+            type="button"
             onClick={() => {
               const id = menuCliente.id;
               setMenuCliente(null);
               onBorrarCliente(id);
             }}
           >
-            Eliminar cliente
+            Eliminar el cliente del todo
           </button>
         </div>
       )}

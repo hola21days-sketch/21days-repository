@@ -39,17 +39,26 @@ usuario y datos persistentes.
   leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
   igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Las fases del mes** — idear, grabar, editar, **planificar** y programar. *Report* ya no está en
+  el tablero porque no se lleva desde aquí; lo que se marcó en su día no se ha borrado, solo deja de
+  verse y de contar.
+- **El tablero y el listado de canales van por separado** — son dos sitios distintos y ya no
+  arrastran el uno al otro. Hay clientes a los que se les lleva el contenido sin abrirles un canal, y
+  canales que no son un cliente al que seguir mes a mes. Al dar de alta se dice **dónde sale** —en el
+  tablero, en el listado, o en los dos—, y viene marcado el sitio desde el que se ha pedido el alta.
+  Con el botón derecho, **Quitar del tablero** y **Quitar del listado** sacan de esa lista y de nada
+  más; **Eliminar del todo** sigue estando aparte, con su confirmación.
 - **Fases a medias** — en la rejilla del mes, una casilla ya no es sí o no: se pulsa y va pasando
   por **sin empezar → a medias → hecha**. *A medias* sale en ámbar, para distinguirlo de un vistazo
   de lo que está cerrado. Al dejar algo a medias se abre un hueco para escribir **qué falta** —«falta
-  grabar la parte de la consulta»—, que se queda como nota de esa casilla y sale al pasar el ratón
-  por encima, con un puntito que avisa de que hay algo escrito. Al darlo por hecho, la nota se va
+  grabar la parte de la consulta»—, que se queda como nota de esa casilla y **se lee al pasar el ratón
+  por encima**, en un globo, con un puntito en la casilla que avisa de que hay algo escrito. Al darlo por hecho, la nota se va
   sola. Arriba, junto a las fases hechas, se cuenta cuántas están a medias.
 - **Añadir y quitar clientes desde el tablero** — al final de la rejilla hay **+ Añadir cliente**:
   lo que se dé de alta se queda, y los meses siguientes lo traen solo. Con el **botón derecho** sobre
-  el nombre de un cliente se abre el canal o se **elimina**, pidiendo que se escriba el nombre para
-  confirmarlo, porque se lleva por delante su chat, sus tareas y sus archivos. Borrar es cosa de
-  administradores.
+  el nombre se abre el canal, se quita del tablero o se elimina del todo, esto último pidiendo que se
+  escriba el nombre para confirmarlo, porque se lleva por delante su chat, sus tareas y sus archivos.
+  Borrar es cosa de administradores.
 - **Una tarea, varias personas** — hay trabajo que se reparte, así que una tarea puede llevarla
   más de uno: dos, tres o los que hagan falta. Donde antes había un desplegable que solo dejaba
   elegir a una persona —en el canal del cliente, en *Tareas del equipo* y en la agenda— ahora

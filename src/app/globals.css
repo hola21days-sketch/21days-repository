@@ -1698,6 +1698,40 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   background: var(--amber);
 }
 
+/* Lo que falta, al pasar por encima. Va suelto sobre la página y no dentro de
+   la tabla: la tabla se desplaza de lado y le cortaría los bordes. */
+.casilla__globo {
+  position: fixed;
+  z-index: 90;
+  transform: translate(-50%, calc(-100% - 8px));
+  max-width: 260px;
+  background: var(--ink);
+  color: var(--surface);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+.casilla__globo-tit {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.65;
+  margin-bottom: 0.1rem;
+}
+.casilla__globo::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--ink);
+}
+
 .casilla__cuadro { min-width: 236px; padding: 0.55rem; display: grid; gap: 0.4rem; }
 .casilla__cuadro-tit {
   margin: 0;
@@ -3020,3 +3054,25 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--accent-ink);
 }
 .quien__nadie { font-size: 0.78rem; color: var(--ink-faint); }
+
+/* ============ Alta de cliente: dónde sale ============ */
+/* El tablero del mes y el listado de canales son dos sitios distintos, y hay
+   clientes que están en uno y no en el otro. */
+.alta__donde {
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  padding: 0.6rem 0.7rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.alta__donde legend {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  padding: 0 0.3rem;
+}
+.alta__op { display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; }
+.alta__op input { margin-top: 0.15rem; accent-color: var(--accent); flex: none; }
+.alta__op strong { display: block; font-size: 0.86rem; font-weight: 600; }
+.alta__op small { display: block; font-size: 0.74rem; color: var(--ink-faint); line-height: 1.35; }

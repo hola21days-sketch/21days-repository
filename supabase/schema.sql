@@ -1318,3 +1318,89 @@ insert into public.client_task_assignees (task_id, profile_id)
 -- ============================================================================
 alter table public.client_month_progress
   add column if not exists partial boolean not null default false;
+
+-- ============================================================================
+-- 30. El tablero y el listado de canales son dos cosas
+-- ----------------------------------------------------------------------------
+-- Hasta ahora una fila de `clients` era las dos cosas a la vez: salía en la
+-- rejilla del mes y en el listado de canales, y quitarla de un sitio la
+-- quitaba del otro. Pero hay clientes a los que se les lleva el contenido sin
+-- abrirles un canal, y canales que no son un cliente al que seguir mes a mes.
+-- Con estas dos marcas cada lista va por su lado: quitar de una no toca la
+-- otra, y borrar de verdad sigue siendo una cosa aparte.
+-- ============================================================================
+alter table public.clients
+  add column if not exists en_panel   boolean not null default true,
+  add column if not exists en_canales boolean not null default true;
+
+-- ============================================================================
+-- 31. Planificar entra, Report sale
+-- ----------------------------------------------------------------------------
+-- Entre editar y programar hay un paso que se hacía y no se apuntaba. Report,
+-- en cambio, no se llevaba desde aquí. Lo marcado en Report no se borra: deja
+-- de verse y de contar, y si algún día vuelve la columna, vuelve con lo suyo.
+-- ============================================================================
+update public.board_columns
+   set key = 'planificar', label = 'Planificar', position = 4
+ where key = 'report';
+
+update public.board_columns set position = 1 where key = 'idear';
+update public.board_columns set position = 2 where key = 'grabar';
+update public.board_columns set position = 3 where key = 'editar';
+update public.board_columns set position = 5 where key = 'programar';
+
+-- El alta crea ya las columnas nuevas, y dice en qué lista entra el cliente.
+create or replace function public.create_client(
+  p_name       text,
+  p_kind       text default '',
+  p_prefix     text default null,
+  p_en_panel   boolean default true,
+  p_en_canales boolean default true
+)
+returns public.clients
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_client public.clients;
+  v_prefix text;
+begin
+  v_prefix := upper(coalesce(nullif(p_prefix, ''), left(regexp_replace(p_name, '[^a-zA-Z]', '', 'g'), 1)));
+  if v_prefix is null or v_prefix = '' then
+    v_prefix := 'C';
+  end if;
+
+  insert into public.clients (name, kind, ref_prefix, position, en_panel, en_canales)
+  values (p_name, coalesce(p_kind, ''), v_prefix,
+          coalesce((select max(position) + 1 from public.clients), 0),
+          coalesce(p_en_panel, true), coalesce(p_en_canales, true))
+  returning * into v_client;
+
+  insert into public.board_columns (client_id, key, label, position) values
+    (v_client.id, 'idear',      'Idear',      1),
+    (v_client.id, 'grabar',     'Grabar',     2),
+    (v_client.id, 'editar',     'Editar',     3),
+    (v_client.id, 'planificar', 'Planificar', 4),
+    (v_client.id, 'programar',  'Programar',  5);
+
+  return v_client;
+end;
+$$;
+
+grant execute on function public.create_client(text, text, text, boolean, boolean) to authenticated;
+
+-- La de tres argumentos se queda por compatibilidad, pero sin cuerpo propio:
+-- así no hay dos sitios donde se creen las columnas del tablero.
+create or replace function public.create_client(
+  p_name   text,
+  p_kind   text default '',
+  p_prefix text default null
+)
+returns public.clients
+language sql
+security invoker
+set search_path = public
+as $$
+  select public.create_client(p_name, p_kind, p_prefix, true, true);
+$$;

@@ -38,6 +38,8 @@ type Props = {
   onVista: (v: Vista) => void;
   dmUnread: number;
   puedeBorrar: boolean;
+  /** Lo saca del listado y nada más: su fila del tablero del mes sigue. */
+  onQuitarDelRail: (id: string) => void;
   onBorrarCliente: (id: string) => void;
   onMiCuenta: () => void;
 };
@@ -55,6 +57,7 @@ export default function Rail({
   onVista,
   dmUnread,
   puedeBorrar,
+  onQuitarDelRail,
   onBorrarCliente,
   onMiCuenta,
 }: Props) {
@@ -294,13 +297,24 @@ export default function Rail({
         >
           <button
             type="button"
+            className="menu-canal__normal"
+            onClick={() => {
+              const id = menu.id;
+              setMenu(null);
+              onQuitarDelRail(id);
+            }}
+          >
+            Quitar del listado
+          </button>
+          <button
+            type="button"
             onClick={() => {
               const id = menu.id;
               setMenu(null);
               onBorrarCliente(id);
             }}
           >
-            Borrar canal
+            Borrar el canal del todo
           </button>
         </div>
       )}

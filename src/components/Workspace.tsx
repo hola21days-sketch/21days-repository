@@ -42,6 +42,10 @@ type ClientRow = {
   pinterest_url: string;
   priority: Prioridad;
   internal: boolean;
+  /** Sale en la rejilla del mes. */
+  en_panel: boolean;
+  /** Sale en el listado de canales, con su chat y sus tareas. */
+  en_canales: boolean;
 };
 type MemberRow = { client_id: string; profile_id: string };
 type AssigneeRow = { card_id: string; profile_id: string };
@@ -106,10 +110,14 @@ export default function Workspace({ initial }: { initial: InitialData }) {
    * novedad es un mensaje o una tarea, lo que importa es que hay algo nuevo.
    */
 
-  const [activeId, setActiveId] = useState<string | null>(initial.clients[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(
+    // El primero que sea canal: hay clientes que solo están en el tablero del
+    // mes y abrirlos aquí no enseñaría nada.
+    initial.clients.find((c) => c.en_canales)?.id ?? initial.clients[0]?.id ?? null,
+  );
   const [tab, setTab] = useState<"chat" | "tareas" | "claves">("chat");
   const [railOpen, setRailOpen] = useState(false);
-  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [newClientOpen, setNewClientOpen] = useState<null | "canal" | "panel">(null);
 
   const [messagesByClient, setMessagesByClient] = useState<Record<string, Message[]>>({});
   const [attachmentsByMessage, setAttachmentsByMessage] = useState<Record<string, Attachment[]>>({});
@@ -261,7 +269,11 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
   const railClients = useMemo(
     () =>
-      clients.map((c) => ({
+      // Solo lo que es canal: hay clientes que se siguen en el tablero del mes
+      // y no tienen chat, y no tienen por qué ocupar sitio aquí.
+      clients
+        .filter((c) => c.en_canales)
+        .map((c) => ({
         id: c.id,
         name: c.name,
         kind: c.kind,
@@ -814,21 +826,55 @@ export default function Workspace({ initial }: { initial: InitialData }) {
 
   // --------------------------------------------------------------- tarjetas
   // --------------------------------------------------------------- clientes
-  async function createClientRecord(name: string, kind: string, prefix: string) {
+  /**
+   * Da de alta un cliente.
+   * -------------------------------------------------------------------------
+   * El tablero del mes y el listado de canales son dos cosas distintas: hay
+   * clientes a los que se les lleva el contenido pero no se les abre un canal,
+   * y canales que no son un cliente al que seguir mes a mes. Por eso el alta
+   * pregunta dónde va, y por defecto marca el sitio desde el que se ha pedido.
+   */
+  async function createClientRecord(
+    name: string,
+    kind: string,
+    prefix: string,
+    enPanel: boolean,
+    enCanales: boolean,
+  ) {
     const { data, error } = await supabase.rpc("create_client", {
       p_name: name,
       p_kind: kind,
       p_prefix: prefix || null,
+      p_en_panel: enPanel,
+      p_en_canales: enCanales,
     });
     if (error) return error.message;
     await refreshClients();
     const created = data as ClientRow | null;
-    if (created?.id) {
+    // Solo se salta al canal nuevo si lo tiene: si se ha dado de alta para el
+    // tablero, lo que se quiere es seguir viendo el tablero.
+    if (created?.id && enCanales) {
       setActiveId(created.id);
       setTab("tareas");
+      setVista("cliente");
     }
-    setNewClientOpen(false);
+    setNewClientOpen(null);
     return null;
+  }
+
+  /** Quitar de un sitio no es borrar: lo saca de esa lista y nada más. */
+  async function quitarDe(clientId: string, donde: "en_panel" | "en_canales") {
+    setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, [donde]: false } : c)));
+    // Si era el canal abierto, hay que irse a otro: ya no está en el listado.
+    if (donde === "en_canales" && activeId === clientId) {
+      setFichaAbierta(false);
+      setActiveId(clients.find((c) => c.id !== clientId && c.en_canales)?.id ?? null);
+    }
+    const { error } = await supabase.from("clients").update({ [donde]: false }).eq("id", clientId);
+    if (error) {
+      await refreshClients();
+      alert(`No se ha podido quitar: ${error.message}`);
+    }
   }
 
   /**
@@ -895,7 +941,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           setRailOpen(false);
         }}
         onNewClient={() => {
-          setNewClientOpen(true);
+          setNewClientOpen("canal");
           setRailOpen(false);
         }}
         onClose={() => setRailOpen(false)}
@@ -904,6 +950,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           setCuentaAbierta(true);
         }}
         puedeBorrar={me.role === "admin"}
+        onQuitarDelRail={(id) => void quitarDe(id, "en_canales")}
         onBorrarCliente={(id) => void deleteClient(id)}
         vista={vista}
         dmUnread={dmUnread}
@@ -1070,7 +1117,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         {vista === "panel" && (
           <Panel
             clients={clients
-              .filter((c) => !c.internal)
+              .filter((c) => !c.internal && c.en_panel)
               .map((c) => ({
                 id: c.id,
                 name: c.name,
@@ -1089,7 +1136,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
               void supabase.from("clients").update({ priority }).eq("id", id);
             }}
-            onNuevoCliente={() => setNewClientOpen(true)}
+            onNuevoCliente={() => setNewClientOpen("panel")}
+            onQuitarDelPanel={(id) => void quitarDe(id, "en_panel")}
             onBorrarCliente={(id) => void deleteClient(id)}
           />
         )}
@@ -1184,7 +1232,11 @@ export default function Workspace({ initial }: { initial: InitialData }) {
       </main>
 
       {newClientOpen && (
-        <NewClientDialog onCancel={() => setNewClientOpen(false)} onCreate={createClientRecord} />
+        <NewClientDialog
+          desde={newClientOpen}
+          onCancel={() => setNewClientOpen(null)}
+          onCreate={createClientRecord}
+        />
       )}
     </div>
   );

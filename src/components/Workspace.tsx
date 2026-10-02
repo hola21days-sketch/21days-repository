@@ -1138,6 +1138,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             }}
             onNuevoCliente={() => setNewClientOpen("panel")}
             onQuitarDelPanel={(id) => void quitarDe(id, "en_panel")}
+            onFasesCambiadas={() => void refreshClients()}
             onBorrarCliente={(id) => void deleteClient(id)}
           />
         )}

@@ -1404,3 +1404,18 @@ set search_path = public
 as $$
   select public.create_client(p_name, p_kind, p_prefix, true, true);
 $$;
+
+-- ============================================================================
+-- 32. Cada cliente con sus fases
+-- ----------------------------------------------------------------------------
+-- No todos llevan lo mismo. El contenido sí casi todos; ads, influencers o la
+-- web solo algunos. Las fases ya vivían por cliente en `board_columns`, pero
+-- el tablero las trataba como si fueran iguales para todos y pintaba una
+-- casilla vacía donde no había nada que hacer, que es imposible de distinguir
+-- de algo pendiente. Ahora el tablero enseña una columna por cada fase que
+-- lleve alguien, y donde un cliente no la lleva sale un guion.
+--
+-- No hace falta tabla nueva: se ponen y se quitan filas de `board_columns`
+-- desde la propia aplicación. Lo marcado no se borra al quitar una fase, así
+-- que devolverla la devuelve con lo suyo.
+-- ============================================================================

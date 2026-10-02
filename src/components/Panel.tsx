@@ -7,6 +7,7 @@ import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
 import { etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
 import type { BoardColumn, ClientTask, Prioridad, Profile } from "@/lib/types";
 import { leerAsignados, type Asignados } from "@/lib/asignados";
+import { claveDeFase, FASES_CONOCIDAS } from "@/lib/fases";
 
 type ClienteDePanel = { id: string; name: string; kind: string; priority: Prioridad };
 
@@ -35,6 +36,8 @@ type Props = {
   onNuevoCliente: () => void;
   /** Lo saca del tablero y nada más: su canal, su chat y sus tareas siguen. */
   onQuitarDelPanel: (clientId: string) => void;
+  /** Para releer las columnas cuando se cambia qué lleva un cliente. */
+  onFasesCambiadas: () => void;
   onBorrarCliente: (clientId: string) => void;
 };
 
@@ -87,6 +90,7 @@ export default function Panel({
   onPrioridadCliente,
   onNuevoCliente,
   onQuitarDelPanel,
+  onFasesCambiadas,
   onBorrarCliente,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
@@ -109,17 +113,36 @@ export default function Panel({
    * lado y le cortaría los bordes.
    */
   const [pista, setPista] = useState<{ texto: string; x: number; y: number } | null>(null);
+  /** El cuadro de qué fases lleva un cliente. */
+  const [fasesAbierta, setFasesAbierta] = useState<{ id: string; x: number; y: number } | null>(null);
 
   const mes = primeroDeMes(anyo, mesElegido);
   const esteMes = new Date().getFullYear() === anyo && new Date().getMonth() === mesElegido;
 
-  /** Las fases salen de las columnas, que son iguales para todos los clientes. */
+  /**
+   * Las columnas del tablero son todas las fases que lleva alguien. No todos
+   * los clientes llevan lo mismo —ads o influencers solo algunos—, así que la
+   * columna aparece en cuanto hay un cliente con esa fase, y los demás salen
+   * con un guion en vez de con una casilla vacía.
+   */
   const fases = useMemo(() => {
-    const vistas = new Map<string, string>();
-    for (const c of [...columns].sort((a, b) => a.position - b.position)) {
-      if (!vistas.has(c.key)) vistas.set(c.key, c.label);
+    const vistas = new Map<string, { label: string; position: number }>();
+    for (const c of columns) {
+      const antes = vistas.get(c.key);
+      if (!antes || c.position < antes.position) vistas.set(c.key, { label: c.label, position: c.position });
     }
-    return [...vistas.entries()].map(([key, label]) => ({ key, label }));
+    return [...vistas.entries()]
+      .map(([key, v]) => ({ key, label: v.label, position: v.position }))
+      .sort((a, b) => a.position - b.position || a.label.localeCompare(b.label));
+  }, [columns]);
+
+  /** Qué lleva cada cliente. */
+  const fasesDe = useMemo(() => {
+    const mapa: Record<string, Set<string>> = {};
+    for (const c of columns) {
+      (mapa[c.client_id] ??= new Set()).add(c.key);
+    }
+    return mapa;
   }, [columns]);
 
   const cargar = useCallback(async () => {
@@ -140,10 +163,11 @@ export default function Panel({
   // Los cuadros flotantes se cierran al pulsar fuera o con Escape, como todo
   // lo demás de la aplicación.
   useEffect(() => {
-    if (!casillaAbierta && !menuCliente) return;
+    if (!casillaAbierta && !menuCliente && !fasesAbierta) return;
     const fuera = () => {
       setCasillaAbierta(null);
       setMenuCliente(null);
+      setFasesAbierta(null);
     };
     const tecla = (e: KeyboardEvent) => {
       if (e.key === "Escape") fuera();
@@ -154,7 +178,7 @@ export default function Panel({
       window.removeEventListener("click", fuera);
       window.removeEventListener("keydown", tecla);
     };
-  }, [casillaAbierta, menuCliente]);
+  }, [casillaAbierta, menuCliente, fasesAbierta]);
 
   const hecho = useCallback(
     (clientId: string, phase: string) =>
@@ -202,6 +226,26 @@ export default function Panel({
       { ...fila, done_at: estado === "hecha" ? new Date().toISOString() : null },
       { onConflict: "client_id,month,phase_key" },
     );
+  }
+
+  /**
+   * Pone o quita una fase a un cliente.
+   * -------------------------------------------------------------------------
+   * Lo marcado no se borra al quitar una fase: se deja de ver y deja de
+   * contar, y si la fase vuelve, vuelve con lo suyo. Quitar una fase por
+   * error no cuesta nada.
+   */
+  async function alternarFase(clientId: string, key: string, label: string, lleva: boolean) {
+    if (lleva) {
+      await supabase.from("board_columns").delete().eq("client_id", clientId).eq("key", key);
+    } else {
+      const conocida = FASES_CONOCIDAS.find((f) => f.key === key);
+      const position = conocida?.position ?? Math.max(8, ...columns.map((c) => c.position)) + 1;
+      await supabase
+        .from("board_columns")
+        .insert({ client_id: clientId, key, label: conocida?.label ?? label, position });
+    }
+    onFasesCambiadas();
   }
 
   /** Pulsar una casilla la va pasando por los tres estados. */
@@ -254,7 +298,12 @@ export default function Panel({
   const aMedias = avance.filter(
     (a) => a.partial && !a.done && clavesDeFase.has(a.phase_key),
   ).length;
-  const totalCasillas = clients.length * fases.length;
+  // Cada cliente tiene las suyas, así que el total es la suma de lo de cada
+  // uno y no clientes por columnas.
+  const totalCasillas = clients.reduce(
+    (n, c) => n + [...(fasesDe[c.id] ?? [])].filter((k) => clavesDeFase.has(k)).length,
+    0,
+  );
 
   function filaDeTarea(t: ClientTask) {
     const quienes = (asignados[t.id] ?? [])
@@ -412,6 +461,16 @@ export default function Panel({
                       </select>
                     </td>
                     {fases.map((f) => {
+                      // Lo que este cliente no lleva no es una casilla sin
+                      // marcar: es que no va. Un guion lo dice y una casilla
+                      // vacía no.
+                      if (!(fasesDe[c.id] ?? new Set()).has(f.key)) {
+                        return (
+                          <td key={f.key} className="rejilla__casilla is-nova">
+                            <span title={`${c.name} no lleva ${f.label}`}>—</span>
+                          </td>
+                        );
+                      }
                       const a = hecho(c.id, f.key);
                       const estado = estadoDe(c.id, f.key);
                       // A propósito no se dice quién la marcó: da igual quién lo
@@ -508,8 +567,9 @@ export default function Panel({
             <span className="casilla casilla--hecha" aria-hidden>
               ✓
             </span>
-            hecho — pulsa la casilla para pasar de una a otra, y con el botón derecho dices qué falta.
-            Sobre el nombre de un cliente, el botón derecho lo abre o lo borra.
+            hecho · <strong>—</strong> no lo lleva. Pulsa la casilla para pasar de una a otra, y con el
+            botón derecho dices qué falta. Sobre el nombre de un cliente, el botón derecho elige qué
+            lleva, lo abre o lo quita.
           </p>
         )}
       </div>
@@ -557,6 +617,17 @@ export default function Panel({
         </div>
       )}
 
+      {fasesAbierta && (
+        <CuadroFases
+          x={fasesAbierta.x}
+          y={fasesAbierta.y}
+          cliente={nombreDeCliente[fasesAbierta.id] ?? ""}
+          lleva={fasesDe[fasesAbierta.id] ?? new Set()}
+          enUso={fases}
+          onAlternar={(key, label, tiene) => void alternarFase(fasesAbierta.id, key, label, tiene)}
+        />
+      )}
+
       {casillaAbierta && (
         <CuadroCasilla
           x={casillaAbierta.x}
@@ -592,6 +663,17 @@ export default function Panel({
             }}
           >
             Abrir el canal
+          </button>
+          <button
+            type="button"
+            className="menu-canal__normal"
+            onClick={() => {
+              const m = menuCliente;
+              setMenuCliente(null);
+              setFasesAbierta({ id: m.id, x: m.x, y: m.y });
+            }}
+          >
+            Qué lleva este cliente
           </button>
           <button
             type="button"
@@ -695,6 +777,92 @@ function CuadroCasilla({
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Qué lleva un cliente.
+ * ---------------------------------------------------------------------------
+ * Casi todos llevan las cinco de contenido; ads, influencers o la web solo
+ * algunos. Aquí se marca lo que lleva cada uno, y el tablero enseña una
+ * columna por cada fase que lleve alguien. Si hace falta una que no está, se
+ * escribe y ya existe: no hay que pedir nada a nadie.
+ */
+function CuadroFases({
+  x,
+  y,
+  cliente,
+  lleva,
+  enUso,
+  onAlternar,
+}: {
+  x: number;
+  y: number;
+  cliente: string;
+  lleva: Set<string>;
+  enUso: { key: string; label: string }[];
+  onAlternar: (key: string, label: string, tiene: boolean) => void;
+}) {
+  const [nueva, setNueva] = useState("");
+
+  // Las de serie, más cualquiera que ya se haya inventado para otro cliente.
+  const opciones = [...FASES_CONOCIDAS.map((f) => ({ key: f.key, label: f.label }))];
+  for (const f of enUso) {
+    if (!opciones.some((o) => o.key === f.key)) opciones.push({ key: f.key, label: f.label });
+  }
+
+  function anadir() {
+    const texto = nueva.trim();
+    if (!texto) return;
+    const key = claveDeFase(texto);
+    if (!key || lleva.has(key)) return;
+    onAlternar(key, texto, false);
+    setNueva("");
+  }
+
+  return (
+    <div
+      className="menu-canal casilla__cuadro"
+      style={{ top: y, left: Math.min(x, typeof window === "undefined" ? x : window.innerWidth - 256) }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="casilla__cuadro-tit">Qué lleva {cliente}</p>
+      <div className="casilla__estados">
+        {opciones.map((o) => {
+          const tiene = lleva.has(o.key);
+          return (
+            <button
+              key={o.key}
+              type="button"
+              className={tiene ? "casilla__estado is-on" : "casilla__estado"}
+              onClick={() => onAlternar(o.key, o.label, tiene)}
+            >
+              {tiene ? "✓ " : ""}
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      <label className="casilla__cuadro-lab" htmlFor="fase-nueva">
+        ¿Falta alguna?
+      </label>
+      <input
+        id="fase-nueva"
+        className="input-inline"
+        value={nueva}
+        placeholder="Email marketing"
+        onChange={(e) => setNueva(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            anadir();
+          }
+        }}
+      />
+      <button type="button" className="btn btn--primary" onClick={anadir} disabled={!nueva.trim()}>
+        Añadir fase
+      </button>
     </div>
   );
 }

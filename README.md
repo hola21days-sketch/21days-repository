@@ -39,9 +39,14 @@ usuario y datos persistentes.
   leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
   igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
-- **Las fases del mes** — idear, grabar, editar, **planificar** y programar. *Report* ya no está en
-  el tablero porque no se lleva desde aquí; lo que se marcó en su día no se ha borrado, solo deja de
-  verse y de contar.
+- **Las fases del mes, las de cada cliente** — de serie, idear, grabar, editar, **planificar** y
+  programar. Pero no todos llevan lo mismo: hay clientes con **ads**, con **influencers** o con
+  **web**, y otros no. Con el botón derecho sobre el nombre, **Qué lleva este cliente** marca las
+  suyas, y si falta alguna se escribe y ya existe. El tablero saca una columna por cada fase que
+  lleve alguien, y donde un cliente no la lleva sale un **guion** en vez de una casilla vacía, que es
+  lo que no dejaba distinguir «no hecho» de «no va». Las cifras de arriba cuentan solo lo que de
+  verdad toca. *Report* ya no está de serie porque no se lleva desde aquí; lo que se marcó en su día
+  no se ha borrado, y devolver la columna a un cliente la devuelve con lo suyo.
 - **El tablero y el listado de canales van por separado** — son dos sitios distintos y ya no
   arrastran el uno al otro. Hay clientes a los que se les lleva el contenido sin abrirles un canal, y
   canales que no son un cliente al que seguir mes a mes. Al dar de alta se dice **dónde sale** —en el

@@ -3076,3 +3076,7 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 .alta__op input { margin-top: 0.15rem; accent-color: var(--accent); flex: none; }
 .alta__op strong { display: block; font-size: 0.86rem; font-weight: 600; }
 .alta__op small { display: block; font-size: 0.74rem; color: var(--ink-faint); line-height: 1.35; }
+
+/* Una fase que este cliente no lleva: un guion, no una casilla sin marcar. */
+.rejilla__casilla.is-nova { color: var(--ink-faint); background: var(--surface-alt); }
+.rejilla__casilla.is-nova span { cursor: default; }

@@ -16,7 +16,14 @@ type Avance = {
   phase_key: string;
   done: boolean;
   done_by: string | null;
+  /** Empezado pero sin terminar: lo típico de grabar en dos días. */
+  partial: boolean;
+  /** Qué falta, cuando está a medias. */
+  note: string;
 };
+
+/** Los tres estados de una casilla, en el orden en que se van pulsando. */
+type Estado = "no" | "medias" | "hecha";
 
 type Props = {
   clients: ClienteDePanel[];
@@ -25,6 +32,8 @@ type Props = {
   me: Profile;
   onAbrirCliente: (clientId: string) => void;
   onPrioridadCliente: (clientId: string, priority: Prioridad) => void;
+  onNuevoCliente: () => void;
+  onBorrarCliente: (clientId: string) => void;
 };
 
 /** El día 1 de un mes, que es como se guarda el avance. */
@@ -74,6 +83,8 @@ export default function Panel({
   me,
   onAbrirCliente,
   onPrioridadCliente,
+  onNuevoCliente,
+  onBorrarCliente,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
@@ -83,6 +94,12 @@ export default function Panel({
   const [anyo, setAnyo] = useState(() => new Date().getFullYear());
   const [mesElegido, setMesElegido] = useState(() => new Date().getMonth());
   const [ventana, setVentana] = useState<"hoy" | "semana" | "mes" | "todo">("semana");
+  /** La casilla abierta para decir qué falta, y dónde pintar su cuadro. */
+  const [casillaAbierta, setCasillaAbierta] = useState<
+    { clientId: string; phase: string; x: number; y: number } | null
+  >(null);
+  /** El menú del botón derecho sobre el nombre de un cliente. */
+  const [menuCliente, setMenuCliente] = useState<{ id: string; x: number; y: number } | null>(null);
 
   const mes = primeroDeMes(anyo, mesElegido);
   const esteMes = new Date().getFullYear() === anyo && new Date().getMonth() === mesElegido;
@@ -111,28 +128,76 @@ export default function Panel({
     void cargar();
   }, [cargar]);
 
+  // Los cuadros flotantes se cierran al pulsar fuera o con Escape, como todo
+  // lo demás de la aplicación.
+  useEffect(() => {
+    if (!casillaAbierta && !menuCliente) return;
+    const fuera = () => {
+      setCasillaAbierta(null);
+      setMenuCliente(null);
+    };
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") fuera();
+    };
+    window.addEventListener("click", fuera);
+    window.addEventListener("keydown", tecla);
+    return () => {
+      window.removeEventListener("click", fuera);
+      window.removeEventListener("keydown", tecla);
+    };
+  }, [casillaAbierta, menuCliente]);
+
   const hecho = useCallback(
     (clientId: string, phase: string) =>
       avance.find((a) => a.client_id === clientId && a.phase_key === phase),
     [avance],
   );
 
-  async function marcar(clientId: string, phase: string, valor: boolean) {
+  /** En qué estado está una casilla. */
+  const estadoDe = useCallback(
+    (clientId: string, phase: string): Estado => {
+      const a = hecho(clientId, phase);
+      if (a?.done) return "hecha";
+      if (a?.partial) return "medias";
+      return "no";
+    },
+    [hecho],
+  );
+
+  /**
+   * Guarda una casilla.
+   * -------------------------------------------------------------------------
+   * Hay cosas que no se terminan de una sentada —grabar en dos días es lo
+   * normal—, así que una casilla no es sí o no: está sin empezar, a medias o
+   * hecha. Y cuando está a medias se puede escribir qué falta, que es lo que
+   * de verdad hace falta saber al día siguiente.
+   */
+  async function guardar(clientId: string, phase: string, estado: Estado, nota?: string) {
+    const previa = hecho(clientId, phase);
     const fila: Avance = {
       client_id: clientId,
       month: mes,
       phase_key: phase,
-      done: valor,
-      done_by: valor ? me.id : null,
+      done: estado === "hecha",
+      done_by: estado === "no" ? null : me.id,
+      partial: estado === "medias",
+      // La nota solo tiene sentido mientras está a medias: al darla por hecha
+      // se va sola, para que no quede un «falta la mitad» en algo terminado.
+      note: estado === "medias" ? (nota ?? previa?.note ?? "") : "",
     };
     setAvance((prev) => [
       ...prev.filter((a) => !(a.client_id === clientId && a.phase_key === phase)),
       fila,
     ]);
     await supabase.from("client_month_progress").upsert(
-      { ...fila, done_at: valor ? new Date().toISOString() : null },
+      { ...fila, done_at: estado === "hecha" ? new Date().toISOString() : null },
       { onConflict: "client_id,month,phase_key" },
     );
+  }
+
+  /** Pulsar una casilla la va pasando por los tres estados. */
+  function siguienteEstado(estado: Estado): Estado {
+    return estado === "no" ? "medias" : estado === "medias" ? "hecha" : "no";
   }
 
   const hoy = hoyISO();
@@ -176,6 +241,7 @@ export default function Panel({
   const atrasadas = tasks.filter((t) => t.due_date && t.due_date < hoy).length;
   const urgentes = tasks.filter((t) => t.priority === "urgente").length;
   const marcadas = avance.filter((a) => a.done).length;
+  const aMedias = avance.filter((a) => a.partial && !a.done).length;
   const totalCasillas = clients.length * fases.length;
 
   function filaDeTarea(t: ClientTask) {
@@ -220,7 +286,10 @@ export default function Panel({
             {marcadas}
             <small>/{totalCasillas}</small>
           </span>
-          <span className="stat__label">fases hechas este mes</span>
+          <span className="stat__label">
+            fases hechas este mes
+            {aMedias > 0 && ` · ${aMedias} a medias`}
+          </span>
         </div>
         <div className="panel__cifra">
           <span className="stat__num">{tasks.length}</span>
@@ -300,7 +369,14 @@ export default function Panel({
               <tbody>
                 {clientesOrdenados.map((c) => (
                   <tr key={c.id}>
-                    <th scope="row">
+                    <th
+                      scope="row"
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setCasillaAbierta(null);
+                        setMenuCliente({ id: c.id, x: e.clientX, y: e.clientY });
+                      }}
+                    >
                       <button type="button" className="rejilla__cliente" onClick={() => onAbrirCliente(c.id)}>
                         <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
                         <span>
@@ -325,25 +401,97 @@ export default function Panel({
                     </td>
                     {fases.map((f) => {
                       const a = hecho(c.id, f.key);
+                      const estado = estadoDe(c.id, f.key);
                       // A propósito no se dice quién la marcó: da igual quién lo
-                      // hizo, lo que importa es si está hecho o no.
+                      // hizo, lo que importa es por dónde va.
                       return (
-                        <td key={f.key} className={a?.done ? "rejilla__casilla is-hecha" : "rejilla__casilla"}>
-                          <label title={`${f.label} de ${c.name}`}>
-                            <input
-                              type="checkbox"
-                              checked={!!a?.done}
-                              onChange={(e) => void marcar(c.id, f.key, e.target.checked)}
-                            />
-                          </label>
+                        <td
+                          key={f.key}
+                          className={
+                            estado === "hecha"
+                              ? "rejilla__casilla is-hecha"
+                              : estado === "medias"
+                                ? "rejilla__casilla is-medias"
+                                : "rejilla__casilla"
+                          }
+                        >
+                          <button
+                            type="button"
+                            className={`casilla casilla--${estado}`}
+                            aria-label={`${f.label} de ${c.name}: ${
+                              estado === "hecha" ? "hecho" : estado === "medias" ? "a medias" : "sin empezar"
+                            }`}
+                            title={
+                              a?.note
+                                ? `A medias: ${a.note}`
+                                : "Pulsa para cambiarlo · botón derecho para decir qué falta"
+                            }
+                            onClick={(e) => {
+                              // Sin esto, el mismo clic llegaría a la ventana y
+                              // cerraría el cuadro que acaba de abrir.
+                              e.stopPropagation();
+                              const siguiente = siguienteEstado(estado);
+                              void guardar(c.id, f.key, siguiente);
+                              setMenuCliente(null);
+                              // Al dejarlo a medias se abre solo el cuadro de
+                              // «qué falta»: es justo cuando hay algo que decir.
+                              setCasillaAbierta(
+                                siguiente === "medias"
+                                  ? { clientId: c.id, phase: f.key, x: e.clientX, y: e.clientY }
+                                  : null,
+                              );
+                            }}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              setMenuCliente(null);
+                              setCasillaAbierta({
+                                clientId: c.id,
+                                phase: f.key,
+                                x: e.clientX,
+                                y: e.clientY,
+                              });
+                            }}
+                          >
+                            {estado === "hecha" ? "✓" : estado === "medias" ? "◧" : ""}
+                          </button>
+                          {a?.note && <span className="casilla__pista" title={a.note} />}
                         </td>
                       );
                     })}
                   </tr>
                 ))}
+                {/* El alta vive al final de la tabla, que es donde se mira
+                    cuando se ve que falta alguien. Lo que se dé de alta queda
+                    para siempre: los meses siguientes lo traen solo. */}
+                <tr className="rejilla__alta">
+                  <th scope="row">
+                    <button type="button" className="rejilla__nuevo" onClick={onNuevoCliente}>
+                      + Añadir cliente
+                    </button>
+                  </th>
+                  <td colSpan={fases.length + 1} className="rejilla__alta-nota">
+                    Se queda guardado y sale también los meses siguientes.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
+        )}
+
+        {!cargando && (
+          <p className="rejilla__leyenda">
+            <span className="casilla casilla--no" aria-hidden />
+            sin empezar
+            <span className="casilla casilla--medias" aria-hidden>
+              ◧
+            </span>
+            a medias
+            <span className="casilla casilla--hecha" aria-hidden>
+              ✓
+            </span>
+            hecho — pulsa la casilla para pasar de una a otra, y con el botón derecho dices qué falta.
+            Sobre el nombre de un cliente, el botón derecho lo abre o lo borra.
+          </p>
         )}
       </div>
 
@@ -378,6 +526,134 @@ export default function Panel({
           </div>
         ))}
       </div>
+
+      {casillaAbierta && (
+        <CuadroCasilla
+          x={casillaAbierta.x}
+          y={casillaAbierta.y}
+          estado={estadoDe(casillaAbierta.clientId, casillaAbierta.phase)}
+          nota={hecho(casillaAbierta.clientId, casillaAbierta.phase)?.note ?? ""}
+          fase={fases.find((f) => f.key === casillaAbierta.phase)?.label ?? ""}
+          cliente={nombreDeCliente[casillaAbierta.clientId] ?? ""}
+          onGuardar={(estado, nota) => {
+            void guardar(casillaAbierta.clientId, casillaAbierta.phase, estado, nota);
+            setCasillaAbierta(null);
+          }}
+        />
+      )}
+
+      {menuCliente && (
+        <div
+          className="menu-canal"
+          style={{
+            top: menuCliente.y,
+            left: Math.min(menuCliente.x, typeof window === "undefined" ? menuCliente.x : window.innerWidth - 170),
+          }}
+          role="menu"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="menu-canal__normal"
+            onClick={() => {
+              const id = menuCliente.id;
+              setMenuCliente(null);
+              onAbrirCliente(id);
+            }}
+          >
+            Abrir el canal
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const id = menuCliente.id;
+              setMenuCliente(null);
+              onBorrarCliente(id);
+            }}
+          >
+            Eliminar cliente
+          </button>
+        </div>
+      )}
     </section>
+  );
+}
+
+/**
+ * El cuadro de una casilla: en qué punto está y qué falta.
+ * ---------------------------------------------------------------------------
+ * «Grabado a medias» no dice gran cosa por sí solo: lo que hace falta saber al
+ * día siguiente es qué queda. Por eso, además de los tres estados, hay un
+ * hueco para escribirlo, y lo escrito sale al pasar por encima de la casilla.
+ */
+function CuadroCasilla({
+  x,
+  y,
+  estado,
+  nota,
+  fase,
+  cliente,
+  onGuardar,
+}: {
+  x: number;
+  y: number;
+  estado: Estado;
+  nota: string;
+  fase: string;
+  cliente: string;
+  onGuardar: (estado: Estado, nota: string) => void;
+}) {
+  const [texto, setTexto] = useState(nota);
+  const [elegido, setElegido] = useState<Estado>(estado);
+
+  return (
+    <div
+      className="menu-canal casilla__cuadro"
+      style={{ top: y, left: Math.min(x, typeof window === "undefined" ? x : window.innerWidth - 256) }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="casilla__cuadro-tit">
+        {fase} · {cliente}
+      </p>
+      <div className="casilla__estados">
+        {(["no", "medias", "hecha"] as const).map((e) => (
+          <button
+            key={e}
+            type="button"
+            className={elegido === e ? "casilla__estado is-on" : "casilla__estado"}
+            onClick={() => {
+              setElegido(e);
+              // Dar algo por hecho o por no empezado no necesita explicación:
+              // se guarda y se cierra. A medias es lo único que pide decir qué
+              // falta, así que ahí se queda el cuadro abierto.
+              if (e !== "medias") onGuardar(e, "");
+            }}
+          >
+            {e === "no" ? "Sin empezar" : e === "medias" ? "◧ A medias" : "✓ Hecho"}
+          </button>
+        ))}
+      </div>
+      {elegido === "medias" && (
+        <>
+          <label className="casilla__cuadro-lab" htmlFor="casilla-nota">
+            ¿Qué falta?
+          </label>
+          <input
+            id="casilla-nota"
+            autoFocus
+            className="input-inline"
+            value={texto}
+            placeholder="Falta grabar la parte de la consulta"
+            onChange={(ev) => setTexto(ev.target.value)}
+            onKeyDown={(ev) => {
+              if (ev.key === "Enter") onGuardar("medias", texto.trim());
+            }}
+          />
+          <button type="button" className="btn btn--primary" onClick={() => onGuardar("medias", texto.trim())}>
+            Guardar
+          </button>
+        </>
+      )}
+    </div>
   );
 }

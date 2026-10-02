@@ -39,6 +39,17 @@ usuario y datos persistentes.
   leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
   igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **Fases a medias** — en la rejilla del mes, una casilla ya no es sí o no: se pulsa y va pasando
+  por **sin empezar → a medias → hecha**. *A medias* sale en ámbar, para distinguirlo de un vistazo
+  de lo que está cerrado. Al dejar algo a medias se abre un hueco para escribir **qué falta** —«falta
+  grabar la parte de la consulta»—, que se queda como nota de esa casilla y sale al pasar el ratón
+  por encima, con un puntito que avisa de que hay algo escrito. Al darlo por hecho, la nota se va
+  sola. Arriba, junto a las fases hechas, se cuenta cuántas están a medias.
+- **Añadir y quitar clientes desde el tablero** — al final de la rejilla hay **+ Añadir cliente**:
+  lo que se dé de alta se queda, y los meses siguientes lo traen solo. Con el **botón derecho** sobre
+  el nombre de un cliente se abre el canal o se **elimina**, pidiendo que se escriba el nombre para
+  confirmarlo, porque se lleva por delante su chat, sus tareas y sus archivos. Borrar es cosa de
+  administradores.
 - **Una tarea, varias personas** — hay trabajo que se reparte, así que una tarea puede llevarla
   más de uno: dos, tres o los que hagan falta. Donde antes había un desplegable que solo dejaba
   elegir a una persona —en el canal del cliente, en *Tareas del equipo* y en la agenda— ahora

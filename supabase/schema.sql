@@ -1306,3 +1306,15 @@ alter publication supabase_realtime add table public.client_task_assignees;
 insert into public.client_task_assignees (task_id, profile_id)
   select id, assignee_id from public.client_tasks where assignee_id is not null
   on conflict do nothing;
+
+-- ============================================================================
+-- 29. Fases a medias
+-- ----------------------------------------------------------------------------
+-- Una fase del mes no es sí o no. Grabar se parte en dos días más veces de las
+-- que se termina de una sentada, y dejarlo sin marcar es mentira igual que
+-- marcarlo. Con esto la casilla tiene tres estados: sin empezar, a medias y
+-- hecha. La columna «note», que ya estaba, pasa a usarse para lo único que
+-- hace falta saber al día siguiente: qué falta.
+-- ============================================================================
+alter table public.client_month_progress
+  add column if not exists partial boolean not null default false;

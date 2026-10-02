@@ -1652,18 +1652,104 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--ink-faint);
 }
 .rejilla__prio { font-size: 0.74rem; padding: 0.1rem 0.3rem; min-width: 110px; }
-.rejilla__casilla { text-align: center; }
-/* La casilla entera es zona de clic: solo interesa si está hecho o no, así
-   que no hay nada más dentro y se aprovecha todo el hueco. */
-.rejilla__casilla label {
-  display: flex;
+.rejilla__casilla { text-align: center; position: relative; }
+.rejilla__casilla.is-hecha { background: var(--accent-soft); }
+/* A medias se ve distinto de hecho a propósito: en un vistazo tiene que
+   quedar claro qué está cerrado y qué está empezado. */
+.rejilla__casilla.is-medias { background: var(--amber-soft); }
+
+/* La casilla: sin empezar, a medias o hecha. Se pulsa y va pasando por las
+   tres, que es más rápido que abrir nada. */
+.casilla {
+  width: 19px;
+  height: 19px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.3rem 0;
+  border: 1.5px solid var(--ink-faint);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--on-accent);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.casilla:hover { border-color: var(--accent); }
+.casilla--medias {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--on-accent);
+}
+.casilla--hecha {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+/* El puntito de que hay algo escrito en el «qué falta». */
+.casilla__pista {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.casilla__cuadro { min-width: 236px; padding: 0.55rem; display: grid; gap: 0.4rem; }
+.casilla__cuadro-tit {
+  margin: 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.casilla__cuadro-lab { font-size: 0.72rem; color: var(--ink-muted); }
+.casilla__estados { display: grid; gap: 0.2rem; }
+.casilla__estado {
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink);
   cursor: pointer;
 }
-.rejilla__casilla input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent); }
-.rejilla__casilla.is-hecha { background: var(--accent-soft); }
+.casilla__estado:hover { background: var(--bg); }
+.casilla__estado.is-on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Alta de cliente al final de la tabla. */
+.rejilla__alta td, .rejilla__alta th { border-bottom: none; }
+.rejilla tbody tr.rejilla__alta:hover { background: none; cursor: default; }
+.rejilla__nuevo {
+  border: 1px dashed var(--rule);
+  border-radius: 7px;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rejilla__nuevo:hover { border-color: var(--accent); background: var(--accent-soft); }
+.rejilla__alta-nota { font-size: 0.74rem; color: var(--ink-faint); }
+
+.rejilla__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+}
+.rejilla__leyenda .casilla { cursor: default; }
 .rejilla__num { text-align: center; font-variant-numeric: tabular-nums; }
 .is-rojo { color: var(--danger); }
 
@@ -2304,8 +2390,9 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .btn--icon { width: 38px; height: 38px; }
   .rail-toggle { width: 38px; height: 38px; }
   input[type="checkbox"] { width: 20px; height: 20px; }
-  .task__row input[type="checkbox"],
-  .rejilla__casilla input { width: 22px; height: 22px; }
+  .task__row input[type="checkbox"] { width: 22px; height: 22px; }
+  /* La casilla del tablero se pulsa con el dedo, así que necesita cuerpo. */
+  .rejilla__casilla .casilla { width: 24px; height: 24px; font-size: 0.92rem; }
   .checklist__remove, .clave__ojo, .clave__copiar, .clave__editar, .task__accion {
     min-height: 32px;
   }

@@ -1089,6 +1089,8 @@ export default function Workspace({ initial }: { initial: InitialData }) {
               setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
               void supabase.from("clients").update({ priority }).eq("id", id);
             }}
+            onNuevoCliente={() => setNewClientOpen(true)}
+            onBorrarCliente={(id) => void deleteClient(id)}
           />
         )}
 

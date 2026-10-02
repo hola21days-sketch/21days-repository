@@ -1652,15 +1652,41 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--ink-faint);
 }
 .rejilla__prio { font-size: 0.74rem; padding: 0.1rem 0.3rem; min-width: 110px; }
-.rejilla__casilla { text-align: center; position: relative; }
+/* Los anchos se fijan: todas las fases miden lo mismo y el nombre del cliente
+   se queda con lo que sobra. Sin esto el navegador se lo daba todo a la última
+   columna. */
+.rejilla--fases { table-layout: fixed; min-width: 760px; }
+/* Con un ancho para cada columna, lo que sobra se reparte entre todas en
+   proporción: ninguna se queda con todo el hueco, que era lo que pasaba. */
+.rejilla--fases .col--cliente { width: 270px; }
+.rejilla--fases .col--prio { width: 142px; }
+.rejilla--fases .col--fase { width: 104px; }
+.rejilla--fases th, .rejilla--fases td { padding: 0; }
+.rejilla--fases thead th, .rejilla--fases tbody th { padding: 0.4rem 0.6rem; }
+.rejilla--fases tbody td:first-of-type { padding: 0.4rem 0.6rem; }
+
+.rejilla__casilla { text-align: center; position: relative; padding: 0 !important; }
 .rejilla__casilla.is-hecha { background: var(--accent-soft); }
 /* A medias se ve distinto de hecho a propósito: en un vistazo tiene que
    quedar claro qué está cerrado y qué está empezado. */
 .rejilla__casilla.is-medias { background: var(--amber-soft); }
+.rejilla thead th.rejilla__casilla { text-align: center; padding: 0.4rem 0.3rem !important; }
 
-/* La casilla: sin empezar, a medias o hecha. Se pulsa y va pasando por las
-   tres, que es más rápido que abrir nada. */
+/* La casilla ocupa toda la celda: el cuadradito mide 19px y había que
+   acertarle con el ratón para que saliera la nota. Ahora vale cualquier punto
+   de la celda, para pulsarla y para leerla. */
 .casilla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.casilla__caja {
   width: 19px;
   height: 19px;
   display: inline-flex;
@@ -1672,31 +1698,55 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--on-accent);
   font-size: 0.8rem;
   line-height: 1;
-  cursor: pointer;
-  padding: 0;
   transition: background 0.12s, border-color 0.12s;
 }
-.casilla:hover { border-color: var(--accent); }
-.casilla--medias {
+.casilla:hover .casilla__caja { border-color: var(--accent); }
+.casilla--medias .casilla__caja {
   border-color: var(--amber);
   background: var(--amber);
   color: var(--on-accent);
 }
-.casilla--hecha {
+.casilla--hecha .casilla__caja {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--on-accent);
 }
+.casilla__nova {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  color: var(--ink-faint);
+}
 /* El puntito de que hay algo escrito en el «qué falta». */
 .casilla__pista {
   position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 5px;
-  height: 5px;
+  top: 9px;
+  right: calc(50% - 19px);
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--amber);
+  pointer-events: none;
 }
+
+/* El nombre del cliente, con su botón de opciones a la derecha. */
+.rejilla__fila { display: flex; align-items: center; gap: 0.3rem; }
+/* El botón va pegado al nombre, no al otro extremo de la columna. */
+.rejilla__fila .rejilla__cliente { flex: 0 1 auto; min-width: 0; }
+.rejilla__mas {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.rejilla__mas:hover { border-color: var(--accent); color: var(--accent-ink); }
 
 /* Lo que falta, al pasar por encima. Va suelto sobre la página y no dentro de
    la tabla: la tabla se desplaza de lado y le cortaría los bordes. */
@@ -1730,6 +1780,15 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   margin-left: -5px;
   border: 5px solid transparent;
   border-top-color: var(--ink);
+}
+/* Si la casilla está arriba del todo, el globo sale por debajo: si no, tapaba
+   la cabecera de la tabla. */
+.casilla__globo.is-abajo { transform: translate(-50%, calc(100% + 30px)); }
+.casilla__globo.is-abajo::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--ink);
 }
 
 .casilla__cuadro { min-width: 236px; padding: 0.55rem; display: grid; gap: 0.4rem; }
@@ -1783,7 +1842,8 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-size: 0.74rem;
   color: var(--ink-faint);
 }
-.rejilla__leyenda .casilla { cursor: default; }
+.rejilla__leyenda .casilla { cursor: default; width: auto; min-height: 0; }
+.rejilla__leyenda .casilla__caja { cursor: default; }
 .rejilla__num { text-align: center; font-variant-numeric: tabular-nums; }
 .is-rojo { color: var(--danger); }
 
@@ -2425,8 +2485,10 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .rail-toggle { width: 38px; height: 38px; }
   input[type="checkbox"] { width: 20px; height: 20px; }
   .task__row input[type="checkbox"] { width: 22px; height: 22px; }
-  /* La casilla del tablero se pulsa con el dedo, así que necesita cuerpo. */
-  .rejilla__casilla .casilla { width: 24px; height: 24px; font-size: 0.92rem; }
+  /* El cuadrado se ve más grande, pero quien se pulsa con el dedo es la celda
+     entera: el botón ocupa todo el hueco. */
+  .rejilla__casilla .casilla__caja { width: 24px; height: 24px; font-size: 0.92rem; }
+  .rejilla__casilla .casilla { min-height: 44px; }
   .checklist__remove, .clave__ojo, .clave__copiar, .clave__editar, .task__accion {
     min-height: 32px;
   }

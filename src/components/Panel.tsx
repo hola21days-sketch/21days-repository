@@ -112,7 +112,12 @@ export default function Panel({
    * Se pinta suelto y no dentro de la tabla porque la tabla se desplaza de
    * lado y le cortaría los bordes.
    */
-  const [pista, setPista] = useState<{ texto: string; x: number; y: number } | null>(null);
+  const [pista, setPista] = useState<{
+    texto: string;
+    x: number;
+    y: number;
+    abajo: boolean;
+  } | null>(null);
   /** El cuadro de qué fases lleva un cliente. */
   const [fasesAbierta, setFasesAbierta] = useState<{ id: string; x: number; y: number } | null>(null);
 
@@ -246,6 +251,16 @@ export default function Panel({
         .insert({ client_id: clientId, key, label: conocida?.label ?? label, position });
     }
     onFasesCambiadas();
+  }
+
+  /**
+   * Enseña lo que falta en una casilla. Sale encima, salvo que la casilla esté
+   * arriba del todo: ahí taparía la cabecera de la tabla y sale por debajo.
+   */
+  function mostrarPista(nota: string | undefined, el: HTMLElement) {
+    if (!nota) return;
+    const r = el.getBoundingClientRect();
+    setPista({ texto: nota, x: r.left + r.width / 2, y: r.top, abajo: r.top < 150 });
   }
 
   /** Pulsar una casilla la va pasando por los tres estados. */
@@ -417,13 +432,25 @@ export default function Panel({
 
         {!cargando && (
           <div className="panel__rejillawrap">
-            <table className="rejilla">
+            <table className="rejilla rejilla--fases">
+              {/* Los anchos se fijan aquí. Sin esto, el navegador reparte lo
+                  que sobra en la última columna y Programar salía el triple de
+                  ancha que las demás. */}
+              <colgroup>
+                <col className="col--cliente" />
+                <col className="col--prio" />
+                {fases.map((f) => (
+                  <col key={f.key} className="col--fase" />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
                   <th>Cliente</th>
                   <th>Prioridad</th>
                   {fases.map((f) => (
-                    <th key={f.key}>{f.label}</th>
+                    <th key={f.key} className="rejilla__casilla">
+                      {f.label}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -438,13 +465,35 @@ export default function Panel({
                         setMenuCliente({ id: c.id, x: e.clientX, y: e.clientY });
                       }}
                     >
-                      <button type="button" className="rejilla__cliente" onClick={() => onAbrirCliente(c.id)}>
-                        <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
-                        <span>
-                          <span className="rejilla__nombre">{c.name}</span>
-                          <span className="rejilla__tipo">{c.kind}</span>
-                        </span>
-                      </button>
+                      <div className="rejilla__fila">
+                        <button
+                          type="button"
+                          className="rejilla__cliente"
+                          onClick={() => onAbrirCliente(c.id)}
+                        >
+                          <Stamp label={initialsOf(c.name)} color={stampColor(c.id)} />
+                          <span>
+                            <span className="rejilla__nombre">{c.name}</span>
+                            <span className="rejilla__tipo">{c.kind}</span>
+                          </span>
+                        </button>
+                        {/* El botón derecho no se le ocurre a nadie, así que
+                            el menú tiene también su botón a la vista. */}
+                        <button
+                          type="button"
+                          className="rejilla__mas"
+                          title={`Qué lleva ${c.name}, quitarlo del tablero…`}
+                          aria-label={`Opciones de ${c.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCasillaAbierta(null);
+                            setFasesAbierta(null);
+                            setMenuCliente({ id: c.id, x: e.clientX, y: e.clientY });
+                          }}
+                        >
+                          ⋯
+                        </button>
+                      </div>
                     </th>
                     <td>
                       <select
@@ -467,7 +516,9 @@ export default function Panel({
                       if (!(fasesDe[c.id] ?? new Set()).has(f.key)) {
                         return (
                           <td key={f.key} className="rejilla__casilla is-nova">
-                            <span title={`${c.name} no lleva ${f.label}`}>—</span>
+                            <span className="casilla__nova" title={`${c.name} no lleva ${f.label}`}>
+                              —
+                            </span>
                           </td>
                         );
                       }
@@ -491,17 +542,14 @@ export default function Panel({
                             className={`casilla casilla--${estado}`}
                             aria-label={`${f.label} de ${c.name}: ${
                               estado === "hecha" ? "hecho" : estado === "medias" ? "a medias" : "sin empezar"
-                            }`}
+                            }${a?.note ? `. Falta: ${a.note}` : ""}`}
                             title={
                               a?.note
                                 ? undefined
                                 : "Pulsa para cambiarlo · botón derecho para decir qué falta"
                             }
-                            onMouseEnter={(e) => {
-                              if (!a?.note) return;
-                              const r = e.currentTarget.getBoundingClientRect();
-                              setPista({ texto: a.note, x: r.left + r.width / 2, y: r.top });
-                            }}
+                            onMouseEnter={(e) => mostrarPista(a?.note, e.currentTarget)}
+                            onFocus={(e) => mostrarPista(a?.note, e.currentTarget)}
                             onMouseLeave={() => setPista(null)}
                             onBlur={() => setPista(null)}
                             onClick={(e) => {
@@ -530,7 +578,9 @@ export default function Panel({
                               });
                             }}
                           >
-                            {estado === "hecha" ? "✓" : estado === "medias" ? "◧" : ""}
+                            <span className="casilla__caja">
+                              {estado === "hecha" ? "✓" : estado === "medias" ? "◧" : ""}
+                            </span>
                           </button>
                           {a?.note && <span className="casilla__pista" title={a.note} />}
                         </td>
@@ -558,18 +608,21 @@ export default function Panel({
 
         {!cargando && (
           <p className="rejilla__leyenda">
-            <span className="casilla casilla--no" aria-hidden />
+            <span className="casilla casilla--no" aria-hidden>
+              <span className="casilla__caja" />
+            </span>
             sin empezar
             <span className="casilla casilla--medias" aria-hidden>
-              ◧
+              <span className="casilla__caja">◧</span>
             </span>
             a medias
             <span className="casilla casilla--hecha" aria-hidden>
-              ✓
+              <span className="casilla__caja">✓</span>
             </span>
-            hecho · <strong>—</strong> no lo lleva. Pulsa la casilla para pasar de una a otra, y con el
-            botón derecho dices qué falta. Sobre el nombre de un cliente, el botón derecho elige qué
-            lleva, lo abre o lo quita.
+            hecho · <strong>—</strong> no lo lleva. Pulsa una casilla para pasar de un estado a otro;
+            con el botón derecho escribes qué falta, y pasando el ratón por encima lo lees. El botón{" "}
+            <strong>⋯</strong> de cada cliente elige <strong>qué lleva</strong> —ads, influencers,
+            web— y es lo que hace aparecer esas columnas.
           </p>
         )}
       </div>
@@ -608,7 +661,7 @@ export default function Panel({
 
       {pista && (
         <div
-          className="casilla__globo"
+          className={pista.abajo ? "casilla__globo is-abajo" : "casilla__globo"}
           role="tooltip"
           style={{ left: pista.x, top: pista.y }}
         >

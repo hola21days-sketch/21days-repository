@@ -39,6 +39,11 @@ usuario y datos persistentes.
   leer sale **en negrita y con un 💬**, sin número: da igual que sean dos mensajes o nueve, se entra
   igual. Al abrir la conversación se quita al momento. Los archivos de un mensaje directo los leen solo sus dos dueños, no el equipo. Solo la ven los dos. Al
   programar una videollamada, todo el que sigue al cliente recibe el aviso por aquí.
+- **La página no se mueve** — la aplicación mide lo que mide la pantalla y lo que se desplaza es lo
+  de dentro. El listado de clientes se queda quieto —con su fichaje y su pie siempre abajo, y la
+  lista corriendo por el medio—, la cabecera del canal se queda arriba y el cuadro de escribir
+  abajo: lo único que baja son los mensajes. Lo mismo en el resto de pantallas: el tablero, las
+  tareas o los informes se desplazan por dentro, debajo de su cabecera.
 - **Las fases del mes, las de cada cliente** — de serie, idear, grabar, editar, **planificar** y
   programar. Pero no todos llevan lo mismo: hay clientes con **ads**, con **influencers** o con
   **web**, y otros no. Con el botón derecho sobre el nombre, **Qué lleva este cliente** marca las

@@ -114,7 +114,9 @@ export default function Rail({
             {/* El número es lo que te has perdido, no un total: al entrar se
                 queda a cero y desaparece. Un número que no se vacía nunca no
                 dice nada. */}
-            {c.nuevas > 0 && <span className="count-chip count-chip--nuevo">{c.nuevas}</span>}
+            {c.nuevas > 0 && (
+              <span className="count-chip count-chip--nuevo">{c.nuevas}</span>
+            )}
             {/* El icono dice qué es lo nuevo, que es lo que uno quiere saber
                 antes de entrar: si le han escrito o si le han puesto trabajo. */}
             {c.chat && (
@@ -123,7 +125,10 @@ export default function Rail({
               </span>
             )}
             {c.tarea && (
-              <span className="aviso aviso--tarea" title="Hay novedades en las tareas">
+              <span
+                className="aviso aviso--tarea"
+                title="Hay novedades en las tareas"
+              >
                 ✎
               </span>
             )}
@@ -193,7 +198,10 @@ export default function Rail({
         >
           Mensajes directos
           {dmUnread > 0 && (
-            <span className="aviso aviso--chat" title="Tienes mensajes sin leer">
+            <span
+              className="aviso aviso--chat"
+              title="Tienes mensajes sin leer"
+            >
               💬
             </span>
           )}
@@ -214,44 +222,49 @@ export default function Rail({
         )}
       </nav>
 
-      {internos.length > 0 && (
-        <ul className="rail__list rail__list--equipo">
-          {internos.map((c) => entrada(c, true))}
-        </ul>
-      )}
-
-      <div className="rail__section-label">
-        <span>Clientes activos</span>
-        <button
-          type="button"
-          className="btn btn--ghost"
-          style={{
-            padding: "0.1rem 0.35rem",
-            fontSize: "0.85rem",
-            lineHeight: 1,
-          }}
-          onClick={onNewClient}
-          title="Añadir cliente"
-          aria-label="Añadir cliente"
-        >
-          +
-        </button>
-      </div>
-
-      <ul className="rail__list">
-        {externos.length === 0 && (
-          <li
-            style={{
-              padding: "0.6rem",
-              fontSize: "0.82rem",
-              color: "var(--ink-faint)",
-            }}
-          >
-            Todavía no hay clientes. Añade el primero con el botón +.
-          </li>
+      {/* Lo que se desplaza es esto, no la página: la marca y los atajos se
+          quedan arriba, el fichaje y el pie abajo, y la lista de clientes
+          corre por dentro aunque sean cincuenta. */}
+      <div className="rail__scroll">
+        {internos.length > 0 && (
+          <ul className="rail__list rail__list--equipo">
+            {internos.map((c) => entrada(c, true))}
+          </ul>
         )}
-        {externos.map((c) => entrada(c))}
-      </ul>
+
+        <div className="rail__section-label">
+          <span>Clientes activos</span>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            style={{
+              padding: "0.1rem 0.35rem",
+              fontSize: "0.85rem",
+              lineHeight: 1,
+            }}
+            onClick={onNewClient}
+            title="Añadir cliente"
+            aria-label="Añadir cliente"
+          >
+            +
+          </button>
+        </div>
+
+        <ul className="rail__list">
+          {externos.length === 0 && (
+            <li
+              style={{
+                padding: "0.6rem",
+                fontSize: "0.82rem",
+                color: "var(--ink-faint)",
+              }}
+            >
+              Todavía no hay clientes. Añade el primero con el botón +.
+            </li>
+          )}
+          {externos.map((c) => entrada(c))}
+        </ul>
+      </div>
 
       <div className="rail__punch">
         <Fichaje me={me} profiles={profiles} clients={clients} />

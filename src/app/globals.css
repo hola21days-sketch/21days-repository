@@ -100,11 +100,15 @@ a { color: var(--accent-ink); }
 [hidden] { display: none !important; }
 
 /* ============ App shell ============ */
+/* La página entera no se mueve nunca: mide lo que mide la pantalla y lo que
+   se desplaza es lo de dentro. Antes bajaba todo a la vez, así que al leer un
+   chat largo se te iban el listado de clientes y el cuadro de escribir. */
 .app {
   display: grid;
   grid-template-columns: 248px 1fr;
   height: 100dvh;
   min-height: 560px;
+  overflow: hidden;
 }
 /* ============ Rail (índice de clientes) ============ */
 .rail {
@@ -113,7 +117,12 @@ a { color: var(--accent-ink); }
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
+/* La marca y los atajos arriba, el fichaje y el pie abajo; por el medio corre
+   la lista de clientes, sean diez o sean cincuenta. */
+.rail__scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .rail__brand {
   padding: 0.7rem 0.9rem 0.6rem;
   border-bottom: 1px solid var(--rule);
@@ -291,7 +300,26 @@ a { color: var(--accent-ink); }
 .rail__footer { flex-wrap: wrap; }
 
 /* ============ Panel principal ============ */
-.main { display: flex; flex-direction: column; min-width: 0; }
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+
+/* Cada pantalla se desplaza por dentro, debajo de su cabecera, que se queda
+   fija. `min-height: 0` hace falta para que un hijo de un flex pueda ser más
+   bajo que su contenido: sin eso, crece y empuja la página. */
+.main > .panel,
+.main > .tasks,
+.main > .claves,
+.main > .report,
+.main > .dm,
+.main > .agenda,
+.main > .empty {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* El chat es la excepción: aquí quien se desplaza es la lista de mensajes
+   —eso ya lo hace `.chat__log`—, para que el cuadro de escribir se quede
+   abajo del todo y no se vaya con ellos. */
+.main > .chat { flex: 1; min-height: 0; overflow: hidden; }
 .main__header {
   display: flex;
   align-items: center;

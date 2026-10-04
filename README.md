@@ -151,9 +151,8 @@ usuario y datos persistentes.
 - **Cronómetro por tarjeta** — *Iniciar proceso* / *Parar* dentro de cada encargo. Guarda quién,
   qué cliente y en qué fase estaba (Idear, Grabar, Editar…), y en el tablero se ve qué tarjetas
   están en proceso ahora mismo.
-- **Panel de clientes** — la primera parada: la rejilla del mes y, debajo, todos los pendientes
-  agrupados **por prioridad**, con su responsable y su fecha de entrega, filtrables por hoy, esta
-  semana, este mes o todo.
+- **Panel de clientes** — la primera parada: solo la rejilla del mes, sin cifras ni listas de
+  pendientes debajo. Los pendientes están en cada canal, en *Tareas del equipo* y en *Mi agenda*.
 - **Tareas del equipo** — el reparto en una tabla: cuántas lleva cada persona, cuántas son
   urgentes, cuántas van con retraso, cuántas ha cerrado y cuál es su próxima entrega. Al pulsar en
   alguien se ven sus tareas, y desde ahí se cambia la prioridad, la fecha o se dan por hechas.

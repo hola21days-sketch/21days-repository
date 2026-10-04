@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
-import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
-import { etiqueta, pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
-import type { BoardColumn, ClientTask, Prioridad, Profile } from "@/lib/types";
-import { leerAsignados, type Asignados } from "@/lib/asignados";
+import { initialsOf, stampColor } from "@/lib/format";
+import { pesoPrioridad, PRIORIDADES } from "@/lib/prioridad";
+import type { BoardColumn, Prioridad, Profile } from "@/lib/types";
 import { claveDeFase, FASES_CONOCIDAS } from "@/lib/fases";
 
 type ClienteDePanel = { id: string; name: string; kind: string; priority: Prioridad };
@@ -56,30 +55,13 @@ function nombreDeMes(iso: string): string {
   return `${MESES[m - 1]} de ${y}`;
 }
 
-function hoyISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function finDeSemanaISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + (6 - ((d.getDay() + 6) % 7)));
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function finDeMesISO(): string {
-  const d = new Date();
-  const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, "0")}-${String(fin.getDate()).padStart(2, "0")}`;
-}
-
 /**
  * Panel de clientes: el estado de todas las cuentas en una pantalla.
  * ---------------------------------------------------------------------------
  * Arriba, la rejilla del mes: una fila por cliente y una casilla por fase
  * (Idear, Grabar, Editar, Programar, Report). Marcarla deja constancia de
- * quién la dio por hecha. Debajo, los pendientes de todos los clientes
- * agrupados por prioridad, con su responsable y su fecha de entrega.
+ * quién la dio por hecha. Solo la tabla: los pendientes viven en cada canal,
+ * en Tareas del equipo y en Mi agenda.
  */
 export default function Panel({
   clients,
@@ -94,13 +76,10 @@ export default function Panel({
   onBorrarCliente,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
-  const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [avance, setAvance] = useState<Avance[]>([]);
-  const [asignados, setAsignados] = useState<Asignados>({});
   const [cargando, setCargando] = useState(true);
   const [anyo, setAnyo] = useState(() => new Date().getFullYear());
   const [mesElegido, setMesElegido] = useState(() => new Date().getMonth());
-  const [ventana, setVentana] = useState<"hoy" | "semana" | "mes" | "todo">("semana");
   /** La casilla abierta para decir qué falta, y dónde pintar su cuadro. */
   const [casillaAbierta, setCasillaAbierta] = useState<
     { clientId: string; phase: string; x: number; y: number } | null
@@ -151,13 +130,8 @@ export default function Panel({
   }, [columns]);
 
   const cargar = useCallback(async () => {
-    const [t, a] = await Promise.all([
-      supabase.from("client_tasks").select("*").eq("done", false),
-      supabase.from("client_month_progress").select("*").eq("month", mes),
-    ]);
-    setTasks((t.data ?? []) as ClientTask[]);
+    const a = await supabase.from("client_month_progress").select("*").eq("month", mes);
     setAvance((a.data ?? []) as Avance[]);
-    setAsignados(await leerAsignados(supabase));
     setCargando(false);
   }, [supabase, mes]);
 
@@ -268,34 +242,10 @@ export default function Panel({
     return estado === "no" ? "medias" : estado === "medias" ? "hecha" : "no";
   }
 
-  const hoy = hoyISO();
-  const topes = { hoy, semana: finDeSemanaISO(), mes: finDeMesISO(), todo: "9999-12-31" };
 
   const nombreDeCliente = useMemo(
     () => Object.fromEntries(clients.map((c) => [c.id, c.name])),
     [clients],
-  );
-
-  /** Los pendientes de todos los clientes, ya ordenados. */
-  const pendientes = useMemo(
-    () =>
-      tasks
-        .filter((t) => !t.due_date || t.due_date <= topes[ventana] || t.due_date < hoy)
-        .sort(
-          (a, b) =>
-            pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
-            (a.due_date ?? "9999-99-99").localeCompare(b.due_date ?? "9999-99-99"),
-        ),
-    [tasks, ventana, topes, hoy],
-  );
-
-  const porPrioridad = useMemo(
-    () =>
-      PRIORIDADES.map((p) => ({
-        ...p,
-        items: pendientes.filter((t) => t.priority === p.key),
-      })).filter((g) => g.items.length > 0),
-    [pendientes],
   );
 
   const clientesOrdenados = useMemo(
@@ -306,81 +256,9 @@ export default function Panel({
     [clients],
   );
 
-  const atrasadas = tasks.filter((t) => t.due_date && t.due_date < hoy).length;
-  const urgentes = tasks.filter((t) => t.priority === "urgente").length;
-  const clavesDeFase = useMemo(() => new Set(fases.map((f) => f.key)), [fases]);
-  const marcadas = avance.filter((a) => a.done && clavesDeFase.has(a.phase_key)).length;
-  const aMedias = avance.filter(
-    (a) => a.partial && !a.done && clavesDeFase.has(a.phase_key),
-  ).length;
-  // Cada cliente tiene las suyas, así que el total es la suma de lo de cada
-  // uno y no clientes por columnas.
-  const totalCasillas = clients.reduce(
-    (n, c) => n + [...(fasesDe[c.id] ?? [])].filter((k) => clavesDeFase.has(k)).length,
-    0,
-  );
-
-  function filaDeTarea(t: ClientTask) {
-    const quienes = (asignados[t.id] ?? [])
-      .map((id: string) => profileById[id])
-      .filter(Boolean);
-    return (
-      <li key={t.id}>
-        <button type="button" className="panel__objetivo" onClick={() => onAbrirCliente(t.client_id)}>
-          <Stamp label={initialsOf(nombreDeCliente[t.client_id] ?? "?")} color={stampColor(t.client_id)} />
-          <span className="panel__objetivo-cuerpo">
-            <span className="panel__objetivo-texto">{t.text}</span>
-            <span className="panel__objetivo-meta">{nombreDeCliente[t.client_id] ?? "Cliente"}</span>
-          </span>
-          {quienes.length > 0 ? (
-            <span className="panel__quien">
-              {quienes.map((q) => (
-                <Stamp key={q.id} label={q.initials} color={q.color} foto={q.avatar_url} title={q.full_name} />
-              ))}
-              {quienes.length === 1 && quienes[0].full_name.split(" ")[0]}
-            </span>
-          ) : (
-            <span className="panel__quien is-libre">Sin asignar</span>
-          )}
-          {t.due_date ? (
-            <span className={isOverdue(t.due_date) ? "panel__due is-overdue" : "panel__due"}>
-              {formatDue(t.due_date)}
-            </span>
-          ) : (
-            <span className="panel__due is-vacio">Sin fecha</span>
-          )}
-        </button>
-      </li>
-    );
-  }
 
   return (
     <section className="panel">
-      <div className="panel__cifras">
-        <div className="panel__cifra">
-          <span className="stat__num">
-            {marcadas}
-            <small>/{totalCasillas}</small>
-          </span>
-          <span className="stat__label">
-            fases hechas este mes
-            {aMedias > 0 && ` · ${aMedias} a medias`}
-          </span>
-        </div>
-        <div className="panel__cifra">
-          <span className="stat__num">{tasks.length}</span>
-          <span className="stat__label">tareas abiertas</span>
-        </div>
-        <div className={atrasadas > 0 ? "panel__cifra is-alerta" : "panel__cifra"}>
-          <span className="stat__num">{atrasadas}</span>
-          <span className="stat__label">con la entrega pasada</span>
-        </div>
-        <div className="panel__cifra">
-          <span className="stat__num">{urgentes}</span>
-          <span className="stat__label">urgentes</span>
-        </div>
-      </div>
-
       <div className="panel__bloque">
         <div className="panel__cabecera">
           <h2 className="panel__titulo">Avance del mes</h2>
@@ -625,38 +503,6 @@ export default function Panel({
             web— y es lo que hace aparecer esas columnas.
           </p>
         )}
-      </div>
-
-      <div className="panel__bloque">
-        <div className="panel__cabecera">
-          <h2 className="panel__titulo">Pendientes por prioridad</h2>
-          <div className="report__switch">
-            {(["hoy", "semana", "mes", "todo"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                className={ventana === v ? "tab is-active" : "tab"}
-                onClick={() => setVentana(v)}
-              >
-                {v === "hoy" ? "Hoy" : v === "semana" ? "Esta semana" : v === "mes" ? "Este mes" : "Todo"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {!cargando && porPrioridad.length === 0 && (
-          <p className="panel__vacio">No hay nada pendiente en este plazo.</p>
-        )}
-
-        {porPrioridad.map((g) => (
-          <div key={g.key} className="panel__grupo">
-            <div className="panel__grupo-cab">
-              <span className={`prio prio--${g.key}`}>{etiqueta(g.key)}</span>
-              <span className="count-chip">{g.items.length}</span>
-            </div>
-            <ul className="panel__objetivos">{g.items.map(filaDeTarea)}</ul>
-          </div>
-        ))}
       </div>
 
       {pista && (

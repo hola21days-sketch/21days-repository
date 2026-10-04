@@ -19,7 +19,7 @@ import Tareas from "./Tareas";
 import Claves from "./Claves";
 import MensajesDirectos from "./MensajesDirectos";
 import ThemeToggle from "./ThemeToggle";
-import Stamp from "./Stamp";
+import QuienEsta from "./QuienEsta";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { ErrorDeSubida, MAX_MB, subirArchivo } from "@/lib/subir";
@@ -1087,21 +1087,24 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                 Pinterest
               </a>
             )}
+            {/* Seguir un cliente es lo que hace que te lleguen sus avisos. Antes
+                iba escondido en las caras de quien lo sigue; ahora esas caras
+                son las de quien anda por aquí, y esto va aparte. */}
             {activeClient && vista === "cliente" && (
               <button
                 type="button"
+                className={iAmMember ? "btn btn--ghost" : "btn"}
                 onClick={toggleMembership}
-                title={iAmMember ? "Dejar de seguir este cliente" : "Seguir este cliente"}
-                style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }}
+                title={
+                  iAmMember
+                    ? `Lo sigues: te llegan sus avisos. Pulsa para dejar de seguirlo (${activeMembers.length} lo siguen)`
+                    : `Seguir este cliente para que te lleguen sus avisos (${activeMembers.length} lo siguen)`
+                }
               >
-                <div className="avatar-stack">
-                  {activeMembers.map((p) => (
-                    <Stamp key={p.id} label={p.initials} color={p.color} title={p.full_name} foto={p.avatar_url} />
-                  ))}
-                  {!iAmMember && <Stamp label="+" color="var(--ink-faint)" title="Seguir este cliente" />}
-                </div>
+                {iAmMember ? "Siguiendo" : "+ Seguir"}
               </button>
             )}
+            <QuienEsta profileById={profileById} />
             <ThemeToggle />
           </div>
         </header>

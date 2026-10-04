@@ -88,6 +88,11 @@ usuario y datos persistentes.
 - **Archivos que se ven** — en los canales y en los mensajes directos: una imagen sale grande y se abre a pantalla completa al pulsarla, un
   vídeo se reproduce en el chat y un audio trae su barra de reproducción. Lo demás sigue siendo una
   tarjeta con su nombre y su tamaño. Descargar siempre está a mano, y el original no se toca.
+- **Quién anda por aquí** — arriba a la derecha salen las caras de quien ha hecho algo en la
+  aplicación en los **últimos 15 minutos** (pulsar, escribir, desplazarse, mover el ratón). Tenerla
+  abierta todo el día en una pestaña sin tocarla no cuenta. Al pasar por encima de una cara dice
+  hace cuánto. Seguir un cliente, que es lo que hace que te lleguen sus avisos, va en su botón
+  **+ Seguir / Siguiendo**, al lado.
 - **Aviso al llegar algo** — la campana de la cabecera enciende o apaga el aviso. Suena **alto**:
   tres notas que suben, dos veces, con compresión para que se oigan por encima de la música o del
   ruido de la oficina. Suena **todo** lo que llega de otra persona: un mensaje en un canal, un

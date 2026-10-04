@@ -1419,3 +1419,70 @@ $$;
 -- desde la propia aplicación. Lo marcado no se borra al quitar una fase, así
 -- que devolverla la devuelve con lo suyo.
 -- ============================================================================
+
+-- ============================================================================
+-- 33. Quién anda por aquí
+-- ----------------------------------------------------------------------------
+-- Arriba a la derecha salen las personas que han hecho algo en la aplicación
+-- en los últimos 15 minutos: pulsar, escribir, desplazarse, mover el ratón.
+-- Tenerla abierta todo el día en una pestaña olvidada no cuenta.
+--
+-- La hora la pone la base de datos (now()), no el ordenador de cada uno, para
+-- que un reloj mal puesto no deje a nadie siempre conectado o siempre fuera.
+-- Cada uno solo puede escribir su propia fila.
+-- ============================================================================
+create table if not exists public.actividad (
+  profile_id   uuid primary key references public.profiles(id) on delete cascade,
+  last_seen_at timestamptz not null default now()
+);
+
+alter table public.actividad enable row level security;
+
+drop policy if exists actividad_select on public.actividad;
+create policy actividad_select on public.actividad
+  for select to authenticated using (true);
+
+drop policy if exists actividad_insert on public.actividad;
+create policy actividad_insert on public.actividad
+  for insert to authenticated with check (profile_id = auth.uid());
+
+drop policy if exists actividad_update on public.actividad;
+create policy actividad_update on public.actividad
+  for update to authenticated
+  using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+drop policy if exists actividad_solo_equipo on public.actividad;
+create policy actividad_solo_equipo on public.actividad
+  as restrictive to authenticated
+  using (public.es_equipo()) with check (public.es_equipo());
+
+create or replace function public.marcar_actividad()
+returns void
+language sql
+security invoker
+set search_path = public
+as $$
+  insert into public.actividad (profile_id, last_seen_at)
+  values (auth.uid(), now())
+  on conflict (profile_id) do update set last_seen_at = now();
+$$;
+
+create or replace function public.activos_recientes(p_minutos int default 15)
+returns table (profile_id uuid, hace_min int)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select a.profile_id,
+         floor(extract(epoch from now() - a.last_seen_at) / 60)::int
+  from public.actividad a
+  join public.profiles p on p.id = a.profile_id and p.active
+  where a.last_seen_at > now() - make_interval(mins => p_minutos)
+  order by a.last_seen_at desc;
+$$;
+
+revoke execute on function public.marcar_actividad() from anon, public;
+revoke execute on function public.activos_recientes(int) from anon, public;
+grant execute on function public.marcar_actividad() to authenticated;
+grant execute on function public.activos_recientes(int) to authenticated;

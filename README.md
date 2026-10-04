@@ -116,11 +116,14 @@ usuario y datos persistentes.
   uno que no es trabajo, con su fecha y sus apuntes. **Solo lo ve quien lo escribe**, y no por estar
   escondido: la base de datos únicamente deja leer y escribir las filas propias, tenga el perfil que
   tenga. Debajo, **mi trabajo**: las tareas que uno tiene asignadas en los clientes, más lo de trabajo que es **solo para uno** y de ningún cliente (eligiendo *Solo para mí* al añadirlo; no lo ve nadie más), repartidas
-  en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
-  los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
-  cliente y en el panel del equipo. Desde ahí también se **añaden** tareas: se dice qué hay que
-  hacer, de qué cliente y para qué día, y la tarea aparece en el canal de ese cliente asignada a
-  quien la escribió. **La tiene todo el equipo**, no solo los administradores: cada
+  en un tablero como el de **Trello**: una lista por día —*hoy, mañana, pasado, más adelante, sin
+  día*—, tarjetas que se arrastran de una a otra y un **+ Añadir una tarjeta** al pie de cada lista
+  (texto, cliente o *Solo para mí*, y Enter; el día es el de la lista). Al pulsar una tarjeta se
+  **abre**: título, fecha, cliente, prioridad, quién la hace y descripción, todo editable, más
+  *Dar por hecha*, *Ir al canal* y *Borrar*. Mover o cambiar una tarea de cliente no es una copia:
+  se ve igual en su canal y en el panel del equipo, y lo que se añade desde aquí aparece en el canal
+  asignado a quien lo escribió.
+  **La tiene todo el equipo**, no solo los administradores: cada
   uno la suya, y lo personal de cada cual no lo ve nadie más.
 - **En el móvil** — se añade a la pantalla de inicio como una app más, con su icono, y se abre a
   pantalla completa. Toda la aplicación está adaptada a pantalla estrecha: los canales salen del

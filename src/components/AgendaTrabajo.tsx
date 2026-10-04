@@ -1,29 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stamp from "./Stamp";
+import QuienLaHace from "./QuienLaHace";
 import { createClient } from "@/lib/supabase/client";
-import { initialsOf, stampColor } from "@/lib/format";
-import { etiqueta, pesoPrioridad, destaca } from "@/lib/prioridad";
-import type { ClientTask, PersonalNote, Profile } from "@/lib/types";
-import { leerAsignados } from "@/lib/asignados";
+import { formatDue, initialsOf, isOverdue, stampColor } from "@/lib/format";
+import { etiqueta, pesoPrioridad, destaca, PRIORIDADES } from "@/lib/prioridad";
+import { conEnlaces } from "@/lib/enlaces";
+import type { ClientTask, PersonalNote, Prioridad, Profile } from "@/lib/types";
+import { alternarAsignado, leerAsignados, type Asignados } from "@/lib/asignados";
 
 type Props = {
   me: Profile;
+  profiles: Profile[];
   clientNames: Record<string, string>;
   onAbrirCliente: (clientId: string) => void;
 };
 
 /** El valor del desplegable de cliente para lo que es solo tuyo. */
 const SOLO_MIO = "__solo_mio__";
+/** Dónde se recuerda el último cliente elegido al añadir, en este aparato. */
+const CLAVE_ULTIMO = "agenda-trabajo:ultimo-cliente";
 
 /**
- * Una tarjeta del planificador: o una tarea de un cliente, o una cosa de
- * trabajo tuya sin cliente (que vive en tu agenda privada y no la ve nadie).
+ * Una tarjeta del tablero: o una tarea de un cliente, o una cosa de trabajo
+ * tuya sin cliente (que vive en tu agenda privada y no la ve nadie).
  */
 type Item =
-  | { tipo: "cliente"; id: string; text: string; due_date: string | null; tarea: ClientTask }
-  | { tipo: "mia"; id: string; text: string; due_date: string | null; nota: PersonalNote };
+  | { tipo: "cliente"; id: string; text: string; notes: string; due_date: string | null; tarea: ClientTask }
+  | { tipo: "mia"; id: string; text: string; notes: string; due_date: string | null; nota: PersonalNote };
 
 /** Una fecha en ISO, sumando días a hoy. */
 function dia(suma: number): string {
@@ -33,12 +38,8 @@ function dia(suma: number): string {
 }
 
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-const MESES = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-];
 
-/** Las cuatro casillas fijas del planificador, más el cajón de lo que no tiene día. */
+/** Las cuatro listas fijas del tablero, más la de lo que no tiene día. */
 function casillas() {
   const hoy = dia(0);
   const mañana = dia(1);
@@ -53,58 +54,81 @@ function casillas() {
   ];
 }
 
+/** La fecha que corresponde a una lista. */
+function fechaDe(columna: string): string | null {
+  return columna === "" ? null : columna === "resto" ? dia(7) : columna;
+}
+
+function leerUltimo(): string {
+  try {
+    return localStorage.getItem(CLAVE_ULTIMO) ?? SOLO_MIO;
+  } catch {
+    return SOLO_MIO;
+  }
+}
+
 /**
- * Mi agenda de trabajo.
+ * Mi trabajo, como un tablero de Trello.
  * ---------------------------------------------------------------------------
- * Las mismas tareas que ya tienes asignadas en los canales de los clientes,
- * puestas aquí en columnas por día para poder repartirlas: hoy, mañana,
- * pasado, más adelante, y un cajón con las que todavía no tienen día.
+ * Una lista por día —hoy, mañana, pasado, más adelante y sin día— con las
+ * tareas que llevas en los clientes y lo de trabajo que es solo tuyo. Se
+ * arrastran de una lista a otra, cada lista tiene su «+ Añadir una tarjeta» y
+ * al pulsar una tarjeta se abre entera para leerla y cambiarla.
  *
- * Cambiar una de sitio es cambiarle la fecha de entrega, no una copia: lo que
- * se mueva aquí se ve en el canal del cliente y en el panel del equipo. No hay
- * dos verdades.
+ * Una tarea de cliente no es una copia: lo que cambies aquí (la fecha, el
+ * texto, quién la lleva) se ve en el canal del cliente y en el panel.
  */
-export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props) {
+export default function AgendaTrabajo({ me, profiles, clientNames, onAbrirCliente }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const cols = casillas();
   const [tareas, setTareas] = useState<ClientTask[]>([]);
   const [mias, setMias] = useState<PersonalNote[]>([]);
+  const [asignados, setAsignados] = useState<Asignados>({});
   const [cargando, setCargando] = useState(true);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [encima, setEncima] = useState<string | null>(null);
-  // Alta rápida: texto, de qué cliente y para qué día.
-  const [texto, setTexto] = useState("");
-  const [cliente, setCliente] = useState("");
-  const [cuando, setCuando] = useState<string>(dia(0));
-  const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+
+  // El «+ Añadir una tarjeta» abierto, en qué lista, y lo que se va escribiendo.
+  const [componiendo, setComponiendo] = useState<string | null>(null);
+  const [nuevoTexto, setNuevoTexto] = useState("");
+  const [nuevoCliente, setNuevoCliente] = useState<string>(SOLO_MIO);
+  const [guardando, setGuardando] = useState(false);
+  const campoNuevo = useRef<HTMLTextAreaElement>(null);
+
+  // La tarjeta abierta.
+  const [abierta, setAbierta] = useState<string | null>(null);
+  const [borrador, setBorrador] = useState({ text: "", notes: "" });
+
+  useEffect(() => setNuevoCliente(leerUltimo()), []);
 
   const cargar = useCallback(async () => {
     // Lo mío sin cliente: privado, solo lo leo yo.
-    const propias = await supabase
-      .from("personal_notes")
-      .select("*")
-      .eq("profile_id", me.id)
-      .eq("trabajo", true)
-      .eq("done", false);
+    const [propias, todos] = await Promise.all([
+      supabase
+        .from("personal_notes")
+        .select("*")
+        .eq("profile_id", me.id)
+        .eq("trabajo", true)
+        .eq("done", false),
+      leerAsignados(supabase),
+    ]);
     setMias((propias.data ?? []) as PersonalNote[]);
-    // Las que llevo yo, que ahora pueden llevarlas varios: primero mis
-    // asignaciones y después esas tareas.
-    const asignados = await leerAsignados(supabase);
-    const mias = Object.entries(asignados)
+    setAsignados(todos);
+    // Las que llevo yo, que pueden llevarlas varios.
+    const ids = Object.entries(todos)
       .filter(([, gente]) => gente.includes(me.id))
       .map(([id]) => id);
-    if (mias.length === 0) {
+    if (ids.length === 0) {
       setTareas([]);
-      setCargando(false);
-      return;
+    } else {
+      const { data } = await supabase
+        .from("client_tasks")
+        .select("*")
+        .in("id", ids)
+        .eq("done", false);
+      setTareas((data ?? []) as ClientTask[]);
     }
-    const { data } = await supabase
-      .from("client_tasks")
-      .select("*")
-      .in("id", mias)
-      .eq("done", false);
-    setTareas((data ?? []) as ClientTask[]);
     setCargando(false);
   }, [supabase, me.id]);
 
@@ -118,13 +142,9 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
       .on("postgres_changes", { event: "*", schema: "public", table: "client_tasks" }, () => {
         void cargar();
       })
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "client_task_assignees" },
-        () => {
-          void cargar();
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_task_assignees" }, () => {
+        void cargar();
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "personal_notes" }, () => {
         void cargar();
       })
@@ -134,74 +154,114 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     };
   }, [supabase, me.id, cargar]);
 
+  const items = useMemo<Item[]>(
+    () => [
+      ...tareas.map((t) => ({
+        tipo: "cliente" as const,
+        id: t.id,
+        text: t.text,
+        notes: t.notes ?? "",
+        due_date: t.due_date,
+        tarea: t,
+      })),
+      ...mias.map((n) => ({
+        tipo: "mia" as const,
+        id: n.id,
+        text: n.text,
+        notes: n.notes ?? "",
+        due_date: n.due_date,
+        nota: n,
+      })),
+    ],
+    [tareas, mias],
+  );
+
+  // ------------------------------------------------------------- añadir
+
+  function abrirComposer(columna: string) {
+    setComponiendo(columna);
+    setNuevoTexto("");
+    setAviso(null);
+    setTimeout(() => campoNuevo.current?.focus(), 0);
+  }
+
   /**
-   * Añade una tarea desde aquí. Va al canal del cliente como cualquier otra
-   * —no es una lista aparte— y se asigna a quien la escribe, que es el sentido
-   * de crearla desde tu propia agenda.
+   * Añade una tarjeta en la lista donde se ha escrito. Si es de un cliente va
+   * a su canal como cualquier otra tarea y te la quedas tú; si es «Solo para
+   * mí», a tu agenda privada. El cuadro se queda abierto para seguir
+   * escribiendo, como en Trello.
    */
-  async function añadir() {
-    const t = texto.trim();
-    if (guardando) return;
-    if (!t) {
-      setAviso("Escribe qué hay que hacer.");
-      return;
-    }
-    if (!cliente) {
-      setAviso("Elige de qué cliente es, o «Solo para mí» si no es de ninguno.");
-      return;
-    }
+  async function añadir(columna: string) {
+    const t = nuevoTexto.trim();
+    if (!t || guardando) return;
     setGuardando(true);
     setAviso(null);
-    const due = cuando === "" ? null : cuando === "resto" ? dia(7) : cuando;
-    if (cliente === SOLO_MIO) {
-      // Sin cliente: va a mi agenda privada, marcada como trabajo.
-      const { data: nota, error: fallo } = await supabase
+    const due = fechaDe(columna);
+    try {
+      localStorage.setItem(CLAVE_ULTIMO, nuevoCliente);
+    } catch {
+      /* sin almacenamiento: da igual, se vuelve a elegir */
+    }
+
+    if (nuevoCliente === SOLO_MIO) {
+      const { data, error } = await supabase
         .from("personal_notes")
         .insert({ profile_id: me.id, text: t, due_date: due, trabajo: true })
         .select("*")
         .single();
       setGuardando(false);
-      if (fallo || !nota) {
-        setAviso(`No se ha podido guardar. ${fallo?.message ?? ""}`.trim());
+      if (error || !data) {
+        setAviso(`No se ha podido guardar. ${error?.message ?? ""}`.trim());
         return;
       }
-      setMias((prev) => (prev.some((x) => x.id === nota.id) ? prev : [...prev, nota as PersonalNote]));
-      setTexto("");
-      return;
-    }
-    const { data, error } = await supabase
-      .from("client_tasks")
-      .insert({ client_id: cliente, text: t, due_date: due })
-      .select("*")
-      .single();
-    if (error || !data) {
+      setMias((prev) => (prev.some((x) => x.id === data.id) ? prev : [...prev, data as PersonalNote]));
+    } else {
+      const { data, error } = await supabase
+        .from("client_tasks")
+        .insert({ client_id: nuevoCliente, text: t, due_date: due, author_id: me.id })
+        .select("*")
+        .single();
+      if (error || !data) {
+        setGuardando(false);
+        setAviso(`No se ha podido guardar. ${error?.message ?? ""}`.trim());
+        return;
+      }
+      const nueva = data as ClientTask;
+      await supabase.from("client_task_assignees").insert({ task_id: nueva.id, profile_id: me.id });
       setGuardando(false);
-      setAviso(`No se ha podido guardar. ${error?.message ?? ""}`.trim());
-      return;
+      setAsignados((prev) => ({ ...prev, [nueva.id]: [me.id] }));
+      setTareas((prev) => (prev.some((x) => x.id === nueva.id) ? prev : [...prev, nueva]));
     }
-    // Creada desde mi agenda: me la quedo yo. Luego se puede repartir.
-    await supabase
-      .from("client_task_assignees")
-      .insert({ task_id: (data as ClientTask).id, profile_id: me.id });
-    setGuardando(false);
-    setTareas((prev) => [...prev, data as ClientTask]);
-    setTexto("");
+    setNuevoTexto("");
+    campoNuevo.current?.focus();
   }
 
-  /** Mover de columna es ponerle otra fecha de entrega. */
-  async function mover(t: Item, columna: string) {
-    const due = columna === "" ? null : columna === "resto" ? dia(7) : columna;
-    if (due === t.due_date) return;
+  // ------------------------------------------------------------- cambiar
+
+  /** Cambia una tarjeta, sea de cliente o tuya. */
+  async function cambiar(t: Item, patch: Partial<ClientTask> & Partial<PersonalNote>) {
     if (t.tipo === "mia") {
-      setMias((prev) => prev.map((x) => (x.id === t.id ? { ...x, due_date: due } : x)));
-      await supabase.from("personal_notes").update({ due_date: due }).eq("id", t.id);
+      const { text, notes, due_date, done, done_at } = patch;
+      const p = Object.fromEntries(
+        Object.entries({ text, notes, due_date, done, done_at }).filter(([, v]) => v !== undefined),
+      );
+      setMias((prev) => prev.map((x) => (x.id === t.id ? { ...x, ...p } : x)));
+      await supabase.from("personal_notes").update(p).eq("id", t.id);
       return;
     }
-    setTareas((prev) => prev.map((x) => (x.id === t.id ? { ...x, due_date: due } : x)));
-    await supabase.from("client_tasks").update({ due_date: due }).eq("id", t.id);
+    setTareas((prev) => prev.map((x) => (x.id === t.id ? { ...x, ...patch } : x)));
+    await supabase.from("client_tasks").update(patch).eq("id", t.id);
+  }
+
+  /** Mover de lista es ponerle otra fecha de entrega. */
+  async function mover(t: Item, columna: string) {
+    const due = fechaDe(columna);
+    if (due === t.due_date) return;
+    await cambiar(t, { due_date: due });
   }
 
   async function terminar(t: Item) {
+    if (abierta === t.id) setAbierta(null);
     const cambio = { done: true, done_at: new Date().toISOString() };
     if (t.tipo === "mia") {
       setMias((prev) => prev.filter((x) => x.id !== t.id));
@@ -212,13 +272,66 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     await supabase.from("client_tasks").update(cambio).eq("id", t.id);
   }
 
-  const items = useMemo<Item[]>(
-    () => [
-      ...tareas.map((t) => ({ tipo: "cliente" as const, id: t.id, text: t.text, due_date: t.due_date, tarea: t })),
-      ...mias.map((n) => ({ tipo: "mia" as const, id: n.id, text: n.text, due_date: n.due_date, nota: n })),
-    ],
-    [tareas, mias],
-  );
+  async function borrar(t: Item) {
+    const texto =
+      t.tipo === "mia"
+        ? `¿Borrar "${t.text}"? No se puede deshacer.`
+        : `¿Borrar "${t.text}"? Es una tarea del cliente: desaparece también de su canal y para todo el equipo. No se puede deshacer.`;
+    if (!confirm(texto)) return;
+    setAbierta(null);
+    if (t.tipo === "mia") {
+      setMias((prev) => prev.filter((x) => x.id !== t.id));
+      await supabase.from("personal_notes").delete().eq("id", t.id);
+      return;
+    }
+    setTareas((prev) => prev.filter((x) => x.id !== t.id));
+    await supabase.from("client_tasks").delete().eq("id", t.id);
+  }
+
+  async function alternarPersona(t: ClientTask, profileId: string, estaba: boolean) {
+    setAsignados((prev) => {
+      const actuales = prev[t.id] ?? [];
+      return {
+        ...prev,
+        [t.id]: estaba ? actuales.filter((x) => x !== profileId) : [...actuales, profileId],
+      };
+    });
+    await alternarAsignado(supabase, t.id, profileId, estaba);
+  }
+
+  // ------------------------------------------------------------- abrir
+
+  function abrir(t: Item) {
+    setAbierta(t.id);
+    setBorrador({ text: t.text, notes: t.notes });
+  }
+
+  const tarjeta = items.find((x) => x.id === abierta) ?? null;
+
+  /** Guarda el título y la descripción si han cambiado, y cierra. */
+  async function cerrar() {
+    const t = tarjeta;
+    setAbierta(null);
+    if (!t) return;
+    const text = borrador.text.trim();
+    const patch: { text?: string; notes?: string } = {};
+    if (text && text !== t.text) patch.text = text;
+    if (borrador.notes !== t.notes) patch.notes = borrador.notes;
+    if (Object.keys(patch).length > 0) await cambiar(t, patch);
+  }
+
+  // Escape cierra la tarjeta o el cuadro de añadir.
+  useEffect(() => {
+    function alPulsar(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      if (abierta) void cerrar();
+      else if (componiendo !== null) setComponiendo(null);
+    }
+    window.addEventListener("keydown", alPulsar);
+    return () => window.removeEventListener("keydown", alPulsar);
+  });
+
+  // ------------------------------------------------------------- listas
 
   const pasado = cols[2].clave;
 
@@ -235,7 +348,7 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     const mapa: Record<string, Item[]> = {};
     for (const c of cols) mapa[c.clave] = [];
     for (const t of items) mapa[enQue(t)].push(t);
-    // Lo mío sin cliente no tiene prioridad: cuenta como normal.
+    // Lo tuyo sin cliente no tiene prioridad: cuenta como normal.
     const peso = (t: Item) => pesoPrioridad(t.tipo === "cliente" ? t.tarea.priority : "normal");
     for (const k of Object.keys(mapa)) {
       mapa[k].sort(
@@ -246,6 +359,29 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
+  const clientesOrdenados = useMemo(
+    () => Object.entries(clientNames).sort((a, b) => a[1].localeCompare(b[1], "es")),
+    [clientNames],
+  );
+
+  const profileById = useMemo(
+    () => Object.fromEntries(profiles.map((p) => [p.id, p])) as Record<string, Profile>,
+    [profiles],
+  );
+
+  function etiquetaCliente(t: Item) {
+    if (t.tipo === "mia") {
+      return <span className="trello__cliente trello__cliente--mio">🔒 Solo tú</span>;
+    }
+    const nombre = clientNames[t.tarea.client_id] ?? "Cliente";
+    return (
+      <span className="trello__cliente">
+        <Stamp label={initialsOf(nombre)} color={stampColor(t.tarea.client_id)} />
+        {nombre}
+      </span>
+    );
+  }
+
   return (
     <div className="agenda__col">
       <div className="tasks__head">
@@ -253,81 +389,20 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
         <span className="count-chip">{items.length}</span>
       </div>
 
-      <p className="claves__aviso">
-        Tus tareas de los clientes, para repartirlas por días. Arrástralas de una columna a otra o
-        usa los botones: <b>lo que muevas aquí cambia su fecha de entrega</b> también en el canal
-        del cliente y en el panel del equipo. Lo que añadas como <b>«Solo para mí»</b> no es de
+      <p className="trello__pista">
+        Pulsa una tarjeta para abrirla, arrástrala para cambiarla de día y usa{" "}
+        <b>+ Añadir una tarjeta</b> en cada lista. Lo que elijas como <b>Solo para mí</b> no es de
         ningún cliente y no lo ve nadie más.
       </p>
 
-      {/* Alta rápida. Hace falta el cliente porque la tarea vive en su canal:
-          aquí no hay una lista aparte, es la misma de siempre vista por días. */}
-      <div className="plan__alta">
-        <input
-          className="input-inline plan__alta-texto"
-          placeholder="Qué hay que hacer…"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void añadir();
-            }
-          }}
-        />
-        <select
-          className="input-inline"
-          value={cliente}
-          onChange={(e) => setCliente(e.target.value)}
-          aria-label="De qué cliente"
-        >
-          <option value="">Cliente…</option>
-          <option value={SOLO_MIO}>Solo para mí (sin cliente)</option>
-          {Object.entries(clientNames)
-            .sort((a, b) => a[1].localeCompare(b[1]))
-            .map(([id, nombre]) => (
-              <option key={id} value={id}>
-                {nombre}
-              </option>
-            ))}
-        </select>
-        <select
-          className="input-inline"
-          value={cuando}
-          onChange={(e) => setCuando(e.target.value)}
-          aria-label="Para cuándo"
-        >
-          {cols.map((c) => (
-            <option key={c.clave} value={c.clave}>
-              {c.titulo}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => void añadir()}
-          disabled={guardando}
-        >
-          {guardando ? "Añadiendo…" : "Añadir"}
-        </button>
-      </div>
-
       {aviso && <div className="notice notice--error">{aviso}</div>}
-
       {cargando && <p className="panel__vacio">Cargando…</p>}
-      {!cargando && items.length === 0 && (
-        <p className="panel__vacio">
-          No tienes ninguna tarea asignada. Se asignan desde el canal de cada cliente, en{" "}
-          <b>Tareas</b>.
-        </p>
-      )}
 
-      <div className="plan">
+      <div className="trello">
         {cols.map((c) => (
           <section
             key={c.clave}
-            className={encima === c.clave ? "plan__col is-encima" : "plan__col"}
+            className={encima === c.clave ? "trello__lista is-encima" : "trello__lista"}
             onDragOver={(e) => {
               e.preventDefault();
               setEncima(c.clave);
@@ -341,81 +416,266 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
               setArrastrando(null);
             }}
           >
-            <header className="plan__cab">
-              <span className="plan__tit">{c.titulo}</span>
-              <span className="count-chip">{porColumna[c.clave].length}</span>
-              {c.sub && <span className="plan__sub">{c.sub}</span>}
+            <header className="trello__cab">
+              <span className="trello__tit">{c.titulo}</span>
+              {c.sub && <span className="trello__sub">{c.sub}</span>}
+              <span className="trello__num">{porColumna[c.clave].length}</span>
             </header>
 
-            <ul className="plan__lista">
-              {porColumna[c.clave].map((t) => (
-                <li
-                  key={t.id}
-                  className="plan__tarea"
-                  draggable
-                  onDragStart={() => setArrastrando(t.id)}
-                  onDragEnd={() => setArrastrando(null)}
-                >
-                  <div className="plan__tarea-cab">
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => void terminar(t)}
-                      title="Dar por hecha"
-                      aria-label={`Dar por hecha: ${t.text}`}
-                    />
-                    {t.tipo === "cliente" && destaca(t.tarea.priority) && (
-                      <span className={`prio prio--${t.tarea.priority}`}>
-                        {etiqueta(t.tarea.priority)}
-                      </span>
+            <ul className="trello__tarjetas">
+              {porColumna[c.clave].map((t) => {
+                const gente =
+                  t.tipo === "cliente"
+                    ? (asignados[t.id] ?? []).map((id) => profileById[id]).filter(Boolean)
+                    : [];
+                const prio = t.tipo === "cliente" ? t.tarea.priority : null;
+                return (
+                  <li
+                    key={t.id}
+                    className={arrastrando === t.id ? "trello__tarjeta is-arrastrando" : "trello__tarjeta"}
+                    draggable
+                    onDragStart={() => setArrastrando(t.id)}
+                    onDragEnd={() => setArrastrando(null)}
+                    onClick={() => abrir(t)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") abrir(t);
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Abrir: ${t.text}`}
+                  >
+                    {prio && destaca(prio) && (
+                      <span className={`prio prio--${prio}`}>{etiqueta(prio)}</span>
                     )}
-                  </div>
-
-                  <p className="plan__texto">{t.text}</p>
-
-                  {t.tipo === "cliente" ? (
+                    <p className="trello__texto">{t.text}</p>
+                    <div className="trello__pie">
+                      {etiquetaCliente(t)}
+                      {t.due_date && (
+                        <span className={isOverdue(t.due_date) ? "trello__fecha is-tarde" : "trello__fecha"}>
+                          🗓 {formatDue(t.due_date)}
+                        </span>
+                      )}
+                      {t.notes.trim() && (
+                        <span className="trello__icono" title="Tiene descripción">
+                          ≡
+                        </span>
+                      )}
+                      {gente.length > 0 && (
+                        <span className="avatar-stack trello__gente">
+                          {gente.map((p) => (
+                            <Stamp
+                              key={p.id}
+                              label={p.initials}
+                              color={p.color}
+                              foto={p.avatar_url}
+                              title={p.full_name}
+                            />
+                          ))}
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
-                      className="plan__cliente"
-                      onClick={() => onAbrirCliente(t.tarea.client_id)}
+                      className="trello__hecha"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void terminar(t);
+                      }}
+                      title="Dar por hecha"
+                      aria-label={`Dar por hecha: ${t.text}`}
                     >
-                      <Stamp
-                        label={initialsOf(clientNames[t.tarea.client_id] ?? "?")}
-                        color={stampColor(t.tarea.client_id)}
-                      />
-                      {clientNames[t.tarea.client_id] ?? "Cliente"}
+                      ✓
                     </button>
-                  ) : (
-                    <span className="plan__cliente plan__cliente--mio" title="Sin cliente: solo lo ves tú">
-                      🔒 Solo tú
-                    </span>
-                  )}
-
-                  {/* Los mismos movimientos sin arrastrar: en el móvil no se
-                      puede, y con el ratón a veces es más rápido pulsar. */}
-                  <div className="plan__mover">
-                    {cols
-                      .filter((x) => x.clave !== c.clave)
-                      .map((x) => (
-                        <button
-                          key={x.clave}
-                          type="button"
-                          className="plan__mover-op"
-                          onClick={() => void mover(t, x.clave)}
-                          title={`Mover a ${x.titulo}`}
-                        >
-                          {x.titulo}
-                        </button>
-                      ))}
-                  </div>
-                </li>
-              ))}
-
-              {porColumna[c.clave].length === 0 && <li className="plan__vacio">—</li>}
+                  </li>
+                );
+              })}
             </ul>
+
+            {componiendo === c.clave ? (
+              <div className="trello__nueva">
+                <textarea
+                  ref={campoNuevo}
+                  className="trello__nueva-texto"
+                  placeholder="Escribe un título para esta tarjeta…"
+                  value={nuevoTexto}
+                  rows={2}
+                  onChange={(e) => setNuevoTexto(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void añadir(c.clave);
+                    }
+                  }}
+                />
+                <select
+                  className="input-inline trello__nueva-cliente"
+                  value={nuevoCliente}
+                  onChange={(e) => setNuevoCliente(e.target.value)}
+                  aria-label="De qué cliente"
+                >
+                  <option value={SOLO_MIO}>🔒 Solo para mí (sin cliente)</option>
+                  {clientesOrdenados.map(([id, nombre]) => (
+                    <option key={id} value={id}>
+                      {nombre}
+                    </option>
+                  ))}
+                </select>
+                <div className="trello__nueva-botones">
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    onClick={() => void añadir(c.clave)}
+                    disabled={guardando || !nuevoTexto.trim()}
+                  >
+                    {guardando ? "Añadiendo…" : "Añadir tarjeta"}
+                  </button>
+                  <button
+                    type="button"
+                    className="trello__cerrar"
+                    onClick={() => setComponiendo(null)}
+                    aria-label="Cerrar"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" className="trello__anadir" onClick={() => abrirComposer(c.clave)}>
+                + Añadir una tarjeta
+              </button>
+            )}
           </section>
         ))}
       </div>
+
+      {tarjeta && (
+        <div className="modal" onClick={() => void cerrar()}>
+          <div
+            className="modal__panel trello__modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label={tarjeta.text}
+          >
+            <div className="trello__modal-cab">
+              {etiquetaCliente(tarjeta)}
+              <button type="button" className="trello__cerrar" onClick={() => void cerrar()} aria-label="Cerrar">
+                ×
+              </button>
+            </div>
+
+            <textarea
+              className="trello__modal-titulo"
+              value={borrador.text}
+              rows={1}
+              onChange={(e) => setBorrador({ ...borrador, text: e.target.value })}
+              onBlur={() => {
+                const text = borrador.text.trim();
+                if (text && text !== tarjeta.text) void cambiar(tarjeta, { text });
+              }}
+              aria-label="Título"
+            />
+
+            <div className="trello__modal-campos">
+              <label className="task__field">
+                <span>Fecha</span>
+                <input
+                  className="input-inline"
+                  type="date"
+                  value={tarjeta.due_date ?? ""}
+                  onChange={(e) => void cambiar(tarjeta, { due_date: e.target.value || null })}
+                />
+              </label>
+
+              {tarjeta.tipo === "cliente" && (
+                <>
+                  <label className="task__field">
+                    <span>Cliente</span>
+                    <select
+                      className="input-inline"
+                      value={tarjeta.tarea.client_id}
+                      onChange={(e) => void cambiar(tarjeta, { client_id: e.target.value })}
+                    >
+                      {!clientNames[tarjeta.tarea.client_id] && (
+                        <option value={tarjeta.tarea.client_id}>Cliente</option>
+                      )}
+                      {clientesOrdenados.map(([id, nombre]) => (
+                        <option key={id} value={id}>
+                          {nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="task__field">
+                    <span>Prioridad</span>
+                    <select
+                      className={`input-inline prio--${tarjeta.tarea.priority}`}
+                      value={tarjeta.tarea.priority}
+                      onChange={(e) => void cambiar(tarjeta, { priority: e.target.value as Prioridad })}
+                    >
+                      {PRIORIDADES.map((p) => (
+                        <option key={p.key} value={p.key}>
+                          {p.texto}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
+            </div>
+
+            {tarjeta.tipo === "cliente" && (
+              <div className="task__field task__field--ancho">
+                <span>Quién la hace</span>
+                <QuienLaHace
+                  profiles={profiles}
+                  elegidos={asignados[tarjeta.id] ?? []}
+                  onAlternar={(id, estaba) => void alternarPersona(tarjeta.tarea, id, estaba)}
+                />
+              </div>
+            )}
+
+            <div className="task__field task__field--ancho">
+              <span>Descripción</span>
+              <textarea
+                className="input-inline trello__modal-notas"
+                value={borrador.notes}
+                placeholder="Añade una descripción más detallada: cómo se hace, enlaces, referencias…"
+                onChange={(e) => setBorrador({ ...borrador, notes: e.target.value })}
+                onBlur={() => {
+                  if (borrador.notes !== tarjeta.notes) void cambiar(tarjeta, { notes: borrador.notes });
+                }}
+              />
+              {borrador.notes.trim() && (
+                <div className="explica__texto">{conEnlaces(borrador.notes, tarjeta.id)}</div>
+              )}
+            </div>
+
+            <div className="trello__modal-botones">
+              <button type="button" className="btn btn--primary" onClick={() => void cerrar()}>
+                Guardar
+              </button>
+              <button type="button" className="btn" onClick={() => void terminar(tarjeta)}>
+                ✓ Dar por hecha
+              </button>
+              {tarjeta.tipo === "cliente" && (
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => {
+                    void cerrar();
+                    onAbrirCliente(tarjeta.tarea.client_id);
+                  }}
+                >
+                  Ir al canal →
+                </button>
+              )}
+              <button type="button" className="btn btn--ghost trello__borrar" onClick={() => void borrar(tarjeta)}>
+                Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

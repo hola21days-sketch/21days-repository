@@ -1166,6 +1166,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             <Agenda me={me} />
             <AgendaTrabajo
               me={me}
+              profiles={profiles}
               clientNames={clientNames}
               onAbrirCliente={(id) => {
                 tabAlAbrir.current = "tareas";

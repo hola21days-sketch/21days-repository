@@ -2813,6 +2813,8 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
 }
 .plan__cliente .stamp { width: 18px; height: 18px; font-size: 0.5rem; outline: none; }
 .plan__cliente:hover { color: var(--accent-ink); }
+.plan__cliente--mio { cursor: default; }
+.plan__cliente--mio:hover { color: var(--ink-muted); }
 /* Los botones de mover salen al pasar por encima: si no, cada tarjeta parece
    un formulario y no se lee lo que pone. */
 .plan__mover { display: none; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.4rem; }

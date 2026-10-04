@@ -166,6 +166,8 @@ export type PersonalNote = {
   done_at: string | null;
   due_date: string | null;
   position: number;
+  /** Cosa de trabajo sin cliente: sale en «Mi trabajo», no en «Lo personal». */
+  trabajo: boolean;
   created_at: string;
 };
 

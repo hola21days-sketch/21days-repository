@@ -1486,3 +1486,14 @@ revoke execute on function public.marcar_actividad() from anon, public;
 revoke execute on function public.activos_recientes(int) from anon, public;
 grant execute on function public.marcar_actividad() to authenticated;
 grant execute on function public.activos_recientes(int) to authenticated;
+
+-- ============================================================================
+-- 34. Trabajo sin cliente en «Mi trabajo»
+-- ----------------------------------------------------------------------------
+-- Hay cosas de trabajo que no son de ningún cliente y que solo le tocan a uno.
+-- Van a la agenda privada de siempre (nadie más las lee), marcadas como
+-- trabajo, y salen en «Mi trabajo» junto a las tareas de los clientes en vez
+-- de en «Lo personal».
+-- ============================================================================
+alter table public.personal_notes
+  add column if not exists trabajo boolean not null default false;

@@ -34,6 +34,8 @@ export default function Agenda({ me }: Props) {
       .from("personal_notes")
       .select("*")
       .eq("profile_id", me.id)
+      // Lo de trabajo sin cliente va en «Mi trabajo», al lado.
+      .eq("trabajo", false)
       .order("done")
       .order("due_date", { nullsFirst: false })
       .order("created_at");

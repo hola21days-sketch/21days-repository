@@ -5,7 +5,7 @@ import Stamp from "./Stamp";
 import { createClient } from "@/lib/supabase/client";
 import { initialsOf, stampColor } from "@/lib/format";
 import { etiqueta, pesoPrioridad, destaca } from "@/lib/prioridad";
-import type { ClientTask, Profile } from "@/lib/types";
+import type { ClientTask, PersonalNote, Profile } from "@/lib/types";
 import { leerAsignados } from "@/lib/asignados";
 
 type Props = {
@@ -13,6 +13,17 @@ type Props = {
   clientNames: Record<string, string>;
   onAbrirCliente: (clientId: string) => void;
 };
+
+/** El valor del desplegable de cliente para lo que es solo tuyo. */
+const SOLO_MIO = "__solo_mio__";
+
+/**
+ * Una tarjeta del planificador: o una tarea de un cliente, o una cosa de
+ * trabajo tuya sin cliente (que vive en tu agenda privada y no la ve nadie).
+ */
+type Item =
+  | { tipo: "cliente"; id: string; text: string; due_date: string | null; tarea: ClientTask }
+  | { tipo: "mia"; id: string; text: string; due_date: string | null; nota: PersonalNote };
 
 /** Una fecha en ISO, sumando días a hoy. */
 function dia(suma: number): string {
@@ -57,6 +68,7 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
   const supabase = useMemo(() => createClient(), []);
   const cols = casillas();
   const [tareas, setTareas] = useState<ClientTask[]>([]);
+  const [mias, setMias] = useState<PersonalNote[]>([]);
   const [cargando, setCargando] = useState(true);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [encima, setEncima] = useState<string | null>(null);
@@ -68,6 +80,14 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
   const [aviso, setAviso] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
+    // Lo mío sin cliente: privado, solo lo leo yo.
+    const propias = await supabase
+      .from("personal_notes")
+      .select("*")
+      .eq("profile_id", me.id)
+      .eq("trabajo", true)
+      .eq("done", false);
+    setMias((propias.data ?? []) as PersonalNote[]);
     // Las que llevo yo, que ahora pueden llevarlas varios: primero mis
     // asignaciones y después esas tareas.
     const asignados = await leerAsignados(supabase);
@@ -105,6 +125,9 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
           void cargar();
         },
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "personal_notes" }, () => {
+        void cargar();
+      })
       .subscribe();
     return () => {
       void supabase.removeChannel(canal);
@@ -124,12 +147,28 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
       return;
     }
     if (!cliente) {
-      setAviso("Elige de qué cliente es: la tarea vive en su canal.");
+      setAviso("Elige de qué cliente es, o «Solo para mí» si no es de ninguno.");
       return;
     }
     setGuardando(true);
     setAviso(null);
     const due = cuando === "" ? null : cuando === "resto" ? dia(7) : cuando;
+    if (cliente === SOLO_MIO) {
+      // Sin cliente: va a mi agenda privada, marcada como trabajo.
+      const { data: nota, error: fallo } = await supabase
+        .from("personal_notes")
+        .insert({ profile_id: me.id, text: t, due_date: due, trabajo: true })
+        .select("*")
+        .single();
+      setGuardando(false);
+      if (fallo || !nota) {
+        setAviso(`No se ha podido guardar. ${fallo?.message ?? ""}`.trim());
+        return;
+      }
+      setMias((prev) => (prev.some((x) => x.id === nota.id) ? prev : [...prev, nota as PersonalNote]));
+      setTexto("");
+      return;
+    }
     const { data, error } = await supabase
       .from("client_tasks")
       .insert({ client_id: cliente, text: t, due_date: due })
@@ -150,24 +189,40 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
   }
 
   /** Mover de columna es ponerle otra fecha de entrega. */
-  async function mover(t: ClientTask, columna: string) {
+  async function mover(t: Item, columna: string) {
     const due = columna === "" ? null : columna === "resto" ? dia(7) : columna;
     if (due === t.due_date) return;
+    if (t.tipo === "mia") {
+      setMias((prev) => prev.map((x) => (x.id === t.id ? { ...x, due_date: due } : x)));
+      await supabase.from("personal_notes").update({ due_date: due }).eq("id", t.id);
+      return;
+    }
     setTareas((prev) => prev.map((x) => (x.id === t.id ? { ...x, due_date: due } : x)));
     await supabase.from("client_tasks").update({ due_date: due }).eq("id", t.id);
   }
 
-  async function terminar(t: ClientTask) {
+  async function terminar(t: Item) {
+    const cambio = { done: true, done_at: new Date().toISOString() };
+    if (t.tipo === "mia") {
+      setMias((prev) => prev.filter((x) => x.id !== t.id));
+      await supabase.from("personal_notes").update(cambio).eq("id", t.id);
+      return;
+    }
     setTareas((prev) => prev.filter((x) => x.id !== t.id));
-    await supabase
-      .from("client_tasks")
-      .update({ done: true, done_at: new Date().toISOString() })
-      .eq("id", t.id);
+    await supabase.from("client_tasks").update(cambio).eq("id", t.id);
   }
+
+  const items = useMemo<Item[]>(
+    () => [
+      ...tareas.map((t) => ({ tipo: "cliente" as const, id: t.id, text: t.text, due_date: t.due_date, tarea: t })),
+      ...mias.map((n) => ({ tipo: "mia" as const, id: n.id, text: n.text, due_date: n.due_date, nota: n })),
+    ],
+    [tareas, mias],
+  );
 
   const pasado = cols[2].clave;
 
-  function enQue(t: ClientTask): string {
+  function enQue(t: Item): string {
     if (!t.due_date) return "";
     // Lo vencido se enseña en Hoy: es lo que hay que resolver ya.
     if (t.due_date <= cols[0].clave) return cols[0].clave;
@@ -177,31 +232,32 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
   }
 
   const porColumna = useMemo(() => {
-    const mapa: Record<string, ClientTask[]> = {};
+    const mapa: Record<string, Item[]> = {};
     for (const c of cols) mapa[c.clave] = [];
-    for (const t of tareas) mapa[enQue(t)].push(t);
+    for (const t of items) mapa[enQue(t)].push(t);
+    // Lo mío sin cliente no tiene prioridad: cuenta como normal.
+    const peso = (t: Item) => pesoPrioridad(t.tipo === "cliente" ? t.tarea.priority : "normal");
     for (const k of Object.keys(mapa)) {
       mapa[k].sort(
-        (a, b) =>
-          pesoPrioridad(a.priority) - pesoPrioridad(b.priority) ||
-          (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999"),
+        (a, b) => peso(a) - peso(b) || (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999"),
       );
     }
     return mapa;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tareas]);
+  }, [items]);
 
   return (
     <div className="agenda__col">
       <div className="tasks__head">
         <h2 className="tasks__title">Mi trabajo</h2>
-        <span className="count-chip">{tareas.length}</span>
+        <span className="count-chip">{items.length}</span>
       </div>
 
       <p className="claves__aviso">
         Tus tareas de los clientes, para repartirlas por días. Arrástralas de una columna a otra o
         usa los botones: <b>lo que muevas aquí cambia su fecha de entrega</b> también en el canal
-        del cliente y en el panel del equipo.
+        del cliente y en el panel del equipo. Lo que añadas como <b>«Solo para mí»</b> no es de
+        ningún cliente y no lo ve nadie más.
       </p>
 
       {/* Alta rápida. Hace falta el cliente porque la tarea vive en su canal:
@@ -226,6 +282,7 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
           aria-label="De qué cliente"
         >
           <option value="">Cliente…</option>
+          <option value={SOLO_MIO}>Solo para mí (sin cliente)</option>
           {Object.entries(clientNames)
             .sort((a, b) => a[1].localeCompare(b[1]))
             .map(([id, nombre]) => (
@@ -259,7 +316,7 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
       {aviso && <div className="notice notice--error">{aviso}</div>}
 
       {cargando && <p className="panel__vacio">Cargando…</p>}
-      {!cargando && tareas.length === 0 && (
+      {!cargando && items.length === 0 && (
         <p className="panel__vacio">
           No tienes ninguna tarea asignada. Se asignan desde el canal de cada cliente, en{" "}
           <b>Tareas</b>.
@@ -279,7 +336,7 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
             onDrop={(e) => {
               e.preventDefault();
               setEncima(null);
-              const t = tareas.find((x) => x.id === arrastrando);
+              const t = items.find((x) => x.id === arrastrando);
               if (t) void mover(t, c.clave);
               setArrastrando(null);
             }}
@@ -307,24 +364,32 @@ export default function AgendaTrabajo({ me, clientNames, onAbrirCliente }: Props
                       title="Dar por hecha"
                       aria-label={`Dar por hecha: ${t.text}`}
                     />
-                    {destaca(t.priority) && (
-                      <span className={`prio prio--${t.priority}`}>{etiqueta(t.priority)}</span>
+                    {t.tipo === "cliente" && destaca(t.tarea.priority) && (
+                      <span className={`prio prio--${t.tarea.priority}`}>
+                        {etiqueta(t.tarea.priority)}
+                      </span>
                     )}
                   </div>
 
                   <p className="plan__texto">{t.text}</p>
 
-                  <button
-                    type="button"
-                    className="plan__cliente"
-                    onClick={() => onAbrirCliente(t.client_id)}
-                  >
-                    <Stamp
-                      label={initialsOf(clientNames[t.client_id] ?? "?")}
-                      color={stampColor(t.client_id)}
-                    />
-                    {clientNames[t.client_id] ?? "Cliente"}
-                  </button>
+                  {t.tipo === "cliente" ? (
+                    <button
+                      type="button"
+                      className="plan__cliente"
+                      onClick={() => onAbrirCliente(t.tarea.client_id)}
+                    >
+                      <Stamp
+                        label={initialsOf(clientNames[t.tarea.client_id] ?? "?")}
+                        color={stampColor(t.tarea.client_id)}
+                      />
+                      {clientNames[t.tarea.client_id] ?? "Cliente"}
+                    </button>
+                  ) : (
+                    <span className="plan__cliente plan__cliente--mio" title="Sin cliente: solo lo ves tú">
+                      🔒 Solo tú
+                    </span>
+                  )}
 
                   {/* Los mismos movimientos sin arrastrar: en el móvil no se
                       puede, y con el ratón a veces es más rápido pulsar. */}

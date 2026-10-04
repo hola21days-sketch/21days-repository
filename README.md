@@ -115,7 +115,7 @@ usuario y datos persistentes.
 - **Mi agenda** — dos agendas, una encima de la otra y a todo lo ancho. Arriba **lo personal**: lo de cada
   uno que no es trabajo, con su fecha y sus apuntes. **Solo lo ve quien lo escribe**, y no por estar
   escondido: la base de datos únicamente deja leer y escribir las filas propias, tenga el perfil que
-  tenga. Debajo, **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
+  tenga. Debajo, **mi trabajo**: las tareas que uno tiene asignadas en los clientes, más lo de trabajo que es **solo para uno** y de ningún cliente (eligiendo *Solo para mí* al añadirlo; no lo ve nadie más), repartidas
   en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
   los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
   cliente y en el panel del equipo. Desde ahí también se **añaden** tareas: se dice qué hay que

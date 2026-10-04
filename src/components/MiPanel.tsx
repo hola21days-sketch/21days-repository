@@ -76,6 +76,8 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   const [desplegada, setDesplegada] = useState<string | null>(null);
   // Lo que se está escribiendo en el desplegable. Nada se guarda hasta pulsar.
   const [borrador, setBorrador] = useState({ text: "", notes: "" });
+  /** La copia que se acaba de hacer, para ofrecer cambiarle el cliente. */
+  const [recienCopiada, setRecienCopiada] = useState<string | null>(null);
   const [guardandoTarea, setGuardandoTarea] = useState(false);
 
   const profileById = useMemo(
@@ -161,6 +163,12 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
 
   const hoy = hoyISO();
 
+  /** Los clientes por orden alfabético, para el desplegable de la tarea. */
+  const clientesParaElegir = useMemo(
+    () => Object.entries(clientNames).sort((a, b) => a[1].localeCompare(b[1], "es")),
+    [clientNames],
+  );
+
   /** Cambia la prioridad o la fecha sin salir de aquí. */
   async function guardar(task: ClientTask, patch: Partial<ClientTask>) {
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...patch } : t)));
@@ -178,6 +186,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   /** Abre el desplegable de una tarea con lo que tiene ahora. */
   function abrirTarea(t: ClientTask) {
     setDesplegada(t.id);
+    setRecienCopiada(null);
     setBorrador({ text: t.text, notes: t.notes });
   }
 
@@ -213,9 +222,9 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
   }
 
   /**
-   * Hace una copia de la tarea en el mismo cliente: el mismo título, la misma
-   * explicación, prioridad, fecha y las mismas personas. La copia sale sin
-   * empezar y sin marcar, y se abre para poder cambiarle lo que haga falta.
+   * Hace una copia de la tarea: el mismo título, la misma explicación,
+   * prioridad, fecha y las mismas personas. La copia sale sin empezar y sin
+   * marcar, y se abre con el cliente a mano por si es para otro.
    */
   async function duplicar(t: ClientTask) {
     // Si está abierta, se copia lo que hay escrito aunque no se haya guardado.
@@ -249,6 +258,7 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     setTasks((prev) => (prev.some((x) => x.id === copia.id) ? prev : [...prev, copia]));
     setAsignados((prev) => ({ ...prev, [copia.id]: personas }));
     abrirTarea(copia);
+    setRecienCopiada(copia.id);
   }
 
   async function borrar(ids: string[]) {
@@ -874,7 +884,34 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                         />
                       </div>
 
+                      {recienCopiada === t.id && (
+                        <p className="explica__copiada">
+                          Copia hecha. Si es para otro cliente, cámbialo aquí abajo.
+                        </p>
+                      )}
+
                       <div className="explica__campos">
+                        {/* Una tarea puede acabar siendo de otro cliente, sobre
+                            todo al duplicarla. Se guarda al momento. */}
+                        <label className="task__field">
+                          <span>Cliente</span>
+                          <select
+                            className="input-inline"
+                            value={t.client_id}
+                            autoFocus={recienCopiada === t.id}
+                            onChange={(e) => void guardar(t, { client_id: e.target.value })}
+                          >
+                            {!clientNames[t.client_id] && (
+                              <option value={t.client_id}>Cliente</option>
+                            )}
+                            {clientesParaElegir.map(([id, nombre]) => (
+                              <option key={id} value={id}>
+                                {nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
                         <label className="task__field">
                           <span>Prioridad</span>
                           <select

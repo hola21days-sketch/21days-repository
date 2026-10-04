@@ -3101,6 +3101,14 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-weight: 700;
 }
 
+.explica__copiada {
+  margin: 0.6rem 0 0;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.8rem;
+}
 .explica__campos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

@@ -151,6 +151,8 @@ usuario y datos persistentes.
   alguien se ven sus tareas, y desde ahí se cambia la prioridad, la fecha o se dan por hechas.
   Marcarlas no las borra: se quedan **tachadas** al final, las de los últimos quince días, para
   repasar de un vistazo lo que ha salido. Se desmarcan volviendo a pulsar la casilla.
+  Al abrir una tarea se le cambia también el **cliente**, y con **Duplicar** (o el botón derecho)
+  sale una copia con su explicación, prioridad, fecha y personas, lista para pasarla a otro cliente.
 - **Prioridades** — cada encargo, cada tarea y cada cliente se marcan como *Urgente*,
   *Importante*, *Normal* o *Puede esperar*. Las listas se ordenan solas por prioridad y, a
   igualdad, por fecha de entrega.

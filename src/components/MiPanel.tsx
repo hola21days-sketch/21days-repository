@@ -212,6 +212,45 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
     await alternarAsignado(supabase, t.id, profileId, estaba);
   }
 
+  /**
+   * Hace una copia de la tarea en el mismo cliente: el mismo título, la misma
+   * explicación, prioridad, fecha y las mismas personas. La copia sale sin
+   * empezar y sin marcar, y se abre para poder cambiarle lo que haga falta.
+   */
+  async function duplicar(t: ClientTask) {
+    // Si está abierta, se copia lo que hay escrito aunque no se haya guardado.
+    const abierta = desplegada === t.id;
+    const text = (abierta ? borrador.text.trim() : "") || t.text;
+    const notes = abierta ? borrador.notes : t.notes;
+    const { data, error } = await supabase
+      .from("client_tasks")
+      .insert({
+        client_id: t.client_id,
+        text,
+        notes,
+        due_date: t.due_date,
+        priority: t.priority,
+        position: t.position + 1,
+        author_id: me.id,
+      })
+      .select("*")
+      .single();
+    if (error || !data) {
+      alert(`No se ha podido duplicar la tarea. ${error?.message ?? ""}`.trim());
+      return;
+    }
+    const copia = data as ClientTask;
+    const personas = asignados[t.id] ?? [];
+    if (personas.length > 0) {
+      await supabase
+        .from("client_task_assignees")
+        .insert(personas.map((profile_id) => ({ task_id: copia.id, profile_id })));
+    }
+    setTasks((prev) => (prev.some((x) => x.id === copia.id) ? prev : [...prev, copia]));
+    setAsignados((prev) => ({ ...prev, [copia.id]: personas }));
+    abrirTarea(copia);
+  }
+
   async function borrar(ids: string[]) {
     if (ids.length === 0) return;
     const cuantas = ids.length;
@@ -606,6 +645,17 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
             type="button"
             className="menu-canal__normal"
             onClick={() => {
+              const t = tasks.find((x) => x.id === menu.id);
+              setMenu(null);
+              if (t) void duplicar(t);
+            }}
+          >
+            Duplicar esta tarea
+          </button>
+          <button
+            type="button"
+            className="menu-canal__normal"
+            onClick={() => {
               alternarSeleccion(menu.id);
               setMenu(null);
             }}
@@ -870,6 +920,14 @@ export default function MiPanel({ me, profiles, clientNames, onAbrirCliente }: P
                           onClick={() => setDesplegada(null)}
                         >
                           Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost"
+                          onClick={() => void duplicar(t)}
+                          title="Hace una copia de esta tarea, con su explicación, prioridad, fecha y personas"
+                        >
+                          ⧉ Duplicar
                         </button>
                         <button
                           type="button"

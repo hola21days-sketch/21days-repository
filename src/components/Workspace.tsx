@@ -1010,7 +1010,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
                         : vista === "mias"
                           ? "Qué lleva cada uno y para cuándo"
                           : vista === "agenda"
-                            ? "Lo tuyo a un lado, el trabajo al otro"
+                            ? "Lo tuyo arriba, el trabajo debajo"
                             : (activeClient?.kind ?? "Sin cliente seleccionado")}
                 </div>
 

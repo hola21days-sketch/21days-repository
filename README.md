@@ -107,10 +107,10 @@ usuario y datos persistentes.
 - **Mi cuenta** — en el pie del panel izquierdo: cada uno se cambia su propia contraseña cuando
   quiere, sin pedírselo a nadie. Va contra Supabase directamente, así que la nueva no pasa por
   ninguna tabla nuestra y se guarda cifrada de ida sin vuelta.
-- **Mi agenda** — dos agendas, una al lado de la otra. A la izquierda **lo personal**: lo de cada
+- **Mi agenda** — dos agendas, una encima de la otra y a todo lo ancho. Arriba **lo personal**: lo de cada
   uno que no es trabajo, con su fecha y sus apuntes. **Solo lo ve quien lo escribe**, y no por estar
   escondido: la base de datos únicamente deja leer y escribir las filas propias, tenga el perfil que
-  tenga. A la derecha **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
+  tenga. Debajo, **mi trabajo**: las tareas que uno tiene asignadas en los clientes, repartidas
   en columnas —*hoy, mañana, pasado, más adelante, sin día*— para organizarse arrastrándolas o con
   los botones. Mover una es cambiarle la fecha de entrega, no una copia: se ve igual en el canal del
   cliente y en el panel del equipo. Desde ahí también se **añaden** tareas: se dice qué hay que

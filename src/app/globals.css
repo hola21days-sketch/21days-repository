@@ -3302,3 +3302,12 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   .trello { grid-auto-columns: minmax(240px, 85vw); }
   .trello__lista { max-height: none; }
 }
+
+/* Negrita y cursiva al escribir */
+.composer__formatos { display: inline-flex; gap: 0.1rem; align-self: center; }
+.composer__formato {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: none; background: none; cursor: pointer;
+  color: var(--ink-muted); font-size: 0.95rem; font-family: Georgia, serif;
+}
+.composer__formato:hover { background: var(--surface-alt); color: var(--ink); }

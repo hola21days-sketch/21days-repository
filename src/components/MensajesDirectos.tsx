@@ -7,6 +7,7 @@ import Adjunto, { type ArchivoVisible } from "./Adjunto";
 import GrabadorVoz from "./GrabadorVoz";
 import { dayLabel, formatSize, formatTime } from "@/lib/format";
 import { conEnlaces } from "@/lib/enlaces";
+import { atajoDeFormato, BotonesFormato } from "@/lib/formato";
 import { subirArchivo, ErrorDeSubida, MAX_MB } from "@/lib/subir";
 import type { DirectMessage, Profile } from "@/lib/types";
 
@@ -43,6 +44,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
   const [progreso, setProgreso] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const campoRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
   const con = conId ? compañeros.find((p) => p.id === conId) ?? null : null;
@@ -327,6 +329,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                               value={borrador}
                               onChange={(e) => setBorrador(e.target.value)}
                               onKeyDown={(e) => {
+                                if (atajoDeFormato(e, setBorrador)) return;
                                 if (e.key === "Escape") setEditando(null);
                                 if (e.key === "Enter" && !e.shiftKey) {
                                   e.preventDefault();
@@ -435,7 +438,9 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                   disabled={subiendo !== null}
                   onGrabado={(nota) => setFiles((prev) => [...prev, nota])}
                 />
+                <BotonesFormato campo={campoRef} cambiar={setDraft} />
                 <textarea
+                  ref={campoRef}
                   className="composer__input"
                   rows={1}
                   value={draft}
@@ -446,6 +451,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
                     e.target.style.height = `${Math.min(e.target.scrollHeight, 90)}px`;
                   }}
                   onKeyDown={(e) => {
+                    if (atajoDeFormato(e, setDraft)) return;
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       void enviar();

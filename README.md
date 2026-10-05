@@ -82,6 +82,10 @@ usuario y datos persistentes.
   ha quedado a medio hacer, con su cliente. Al día siguiente sale lo primero en *Tareas del equipo*,
   con el nombre de quien lo dejó y el día, y se quita pulsando **Resuelto**. No es una tarea: es el
   recado para que nadie empiece a ciegas.
+- **Negrita y cursiva** — en los canales y en los mensajes directos, como en Slack: `*negrita*`,
+  `_cursiva_` y `~tachado~`. Se pueden escribir a mano, seleccionar el texto y pulsar **B** o *I*
+  junto al clip, o usar **Cmd/Ctrl+B** y **Cmd/Ctrl+I** (también al editar un mensaje). Lo que se
+  trajo de Slack con esas marcas ya se ve con su formato.
 - **Notas de voz** — en los canales y en los mensajes directos: el micrófono graba y la nota se va
   con el mensaje como un adjunto más, con su barra de reproducción y sus velocidades. Hay botón de
   tirarla antes de mandarla.

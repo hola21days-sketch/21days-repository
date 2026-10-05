@@ -1,4 +1,5 @@
 import React from "react";
+import { conFormato } from "./formato";
 
 /**
  * Convierte en enlaces pulsables las direcciones que aparecen en un texto.
@@ -30,6 +31,7 @@ export function conEnlaces(texto: string, clave = ""): React.ReactNode[] {
         </a>
       );
     }
-    return <React.Fragment key={`${clave}-t${i}`}>{t}</React.Fragment>;
+    // Lo que no es un enlace puede llevar *negrita*, _cursiva_ o ~tachado~.
+    return <React.Fragment key={`${clave}-t${i}`}>{conFormato(t, `${clave}-t${i}`)}</React.Fragment>;
   });
 }

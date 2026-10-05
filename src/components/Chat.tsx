@@ -8,6 +8,7 @@ import GrabadorVoz from "./GrabadorVoz";
 import { dayLabel, formatSize, formatTime, initialsOf, stampColor } from "@/lib/format";
 import { MAX_BYTES, MAX_MB } from "@/lib/subir";
 import { conEnlaces } from "@/lib/enlaces";
+import { atajoDeFormato, BotonesFormato } from "@/lib/formato";
 import type { Attachment, Meeting, Message, Profile } from "@/lib/types";
 
 type Props = {
@@ -536,6 +537,7 @@ export default function Chat({
                           value={borrador}
                           onChange={(e) => setBorrador(e.target.value)}
                           onKeyDown={(e) => {
+                            if (atajoDeFormato(e, setBorrador)) return;
                             if (e.key === "Escape") setEditando(null);
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault();
@@ -666,6 +668,7 @@ export default function Chat({
             disabled={uploading !== null}
             onGrabado={(nota) => setFiles((prev) => [...prev, nota])}
           />
+          <BotonesFormato campo={inputRef} cambiar={setDraft} />
           <textarea
             ref={inputRef}
             className="composer__input"
@@ -679,6 +682,7 @@ export default function Chat({
               e.target.style.height = `${Math.min(e.target.scrollHeight, 90)}px`;
             }}
             onKeyDown={(e) => {
+              if (atajoDeFormato(e, setDraft)) return;
               if (e.key === "Escape") setMenciones(null);
               if (e.key === "Enter" && !e.shiftKey && !menciones) {
                 e.preventDefault();

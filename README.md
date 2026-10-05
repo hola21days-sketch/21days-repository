@@ -97,10 +97,12 @@ usuario y datos persistentes.
   abierta todo el día en una pestaña sin tocarla no cuenta. Al pasar por encima de una cara dice
   hace cuánto. Seguir un cliente, que es lo que hace que te lleguen sus avisos, va en su botón
   **+ Seguir / Siguiendo**, al lado.
-- **Aviso al llegar algo** — la campana de la cabecera enciende o apaga el aviso. Suena **alto**:
-  tres notas que suben, dos veces, con compresión para que se oigan por encima de la música o del
-  ruido de la oficina. Suena **todo** lo que llega de otra persona: un mensaje en un canal, un
-  mensaje directo, una tarea nueva y que te repartan una tarea. También cuando el tiempo real se
+- **Aviso al llegar algo** — la campana de la cabecera enciende o apaga el aviso. Suena **alto**,
+  con compresión para que se oiga por encima de la música o del ruido de la oficina, y **cada cosa
+  suena distinto**: un **mensaje** (en un canal o directo) es un *ding-ding-ding* agudo de tres notas
+  que suben; una **tarea** (nueva o que te la repartan) es un *bom-bom* grave y seco de dos notas que
+  bajan. Al encender la campana suenan los dos seguidos, para aprender cuál es cuál.
+  Suena **todo** lo que llega de otra persona. También cuando el tiempo real se
   cae y los mensajes entran por la vía de repuesto, que antes llegaban callados. Lo propio no
   suena. Si la ventana está detrás de otra cosa, además salta el **aviso del ordenador** —se pide
   permiso al encender la campana, no al entrar— y el título de la pestaña pasa a `(3) Bitácora`,

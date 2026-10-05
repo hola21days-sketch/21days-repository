@@ -112,8 +112,16 @@ function nota(ctx: AudioContext, destino: AudioNode, hz: number, empieza: number
   }
 }
 
-/** El toque entero: tres notas que suben, y otra vez, para que no se escape. */
-function tocar(ctx: AudioContext, destino: AudioNode, desde: number) {
+/**
+ * Qué ha llegado. Cada cosa suena distinto para saber qué es sin mirar:
+ * - mensaje: «ding-ding-ding» agudo, tres notas que suben, limpias.
+ * - tarea: «bom-bom» grave y seco, dos notas que bajan, con un timbre de
+ *   madera (onda cuadrada filtrada). Otra altura, otro ritmo y otro color.
+ */
+export type TipoAviso = "mensaje" | "tarea";
+
+/** El toque de mensaje: tres notas que suben, y otra vez, para que no se escape. */
+function tocarMensaje(ctx: AudioContext, destino: AudioNode, desde: number) {
   for (const retraso of [0, 0.5]) {
     const t = desde + retraso;
     nota(ctx, destino, 987.8, t, 0.13);
@@ -122,7 +130,42 @@ function tocar(ctx: AudioContext, destino: AudioNode, desde: number) {
   }
 }
 
-async function suena() {
+/** Un golpe grave y seco, como un tambor de madera. */
+function golpe(ctx: AudioContext, destino: AudioNode, hz: number, empieza: number, dura: number) {
+  const filtro = ctx.createBiquadFilter();
+  filtro.type = "lowpass";
+  filtro.frequency.value = 1400;
+  filtro.Q.value = 4;
+  filtro.connect(destino);
+  for (const [tipo, frec, vol] of [
+    ["square", hz, 0.55],
+    ["sine", hz / 2, 0.9],
+  ] as const) {
+    const osc = ctx.createOscillator();
+    const gan = ctx.createGain();
+    osc.type = tipo;
+    // Un pelín de caída de tono al golpear: es lo que lo hace sonar a golpe.
+    osc.frequency.setValueAtTime(frec * 1.06, empieza);
+    osc.frequency.exponentialRampToValueAtTime(frec, empieza + 0.05);
+    gan.gain.setValueAtTime(0, empieza);
+    gan.gain.linearRampToValueAtTime(vol, empieza + 0.004);
+    gan.gain.exponentialRampToValueAtTime(0.0001, empieza + dura);
+    osc.connect(gan).connect(filtro);
+    osc.start(empieza);
+    osc.stop(empieza + dura + 0.02);
+  }
+}
+
+/** El toque de tarea: dos golpes graves que bajan, y otra vez. */
+function tocarTarea(ctx: AudioContext, destino: AudioNode, desde: number) {
+  for (const retraso of [0, 0.55]) {
+    const t = desde + retraso;
+    golpe(ctx, destino, 392, t, 0.18);
+    golpe(ctx, destino, 261.6, t + 0.17, 0.32);
+  }
+}
+
+async function suena(tipo: TipoAviso = "mensaje") {
   const ctx = dameContexto();
   if (!ctx || !salida) return;
   // Si el navegador lo tenía dormido (pestaña de fondo, o todavía sin tocar la
@@ -136,21 +179,34 @@ async function suena() {
     }
   }
   if (ctx.state !== "running") return;
-  tocar(ctx, salida, ctx.currentTime);
+  if (tipo === "tarea") tocarTarea(ctx, salida, ctx.currentTime);
+  else tocarMensaje(ctx, salida, ctx.currentTime);
 }
 
 /**
  * Suena el aviso de mensaje nuevo. Si está apagado, o el navegador todavía no
  * deja sonar, no hace nada y no se queja.
  */
-export function sonarAviso() {
+/** Cuándo sonó cada tipo por última vez. */
+const ultimoToque: Record<TipoAviso, number> = { mensaje: 0, tarea: 0 };
+
+export function sonarAviso(tipo: TipoAviso = "mensaje") {
   if (!avisoActivo()) return;
-  void suena();
+  // Una tarea nueva que además te asignan llega por dos sitios a la vez: que
+  // suene una vez, no dos montadas.
+  const ahora = Date.now();
+  if (ahora - ultimoToque[tipo] < 1500) return;
+  ultimoToque[tipo] = ahora;
+  void suena(tipo);
 }
 
-/** Para la prueba al encenderlo: que se oiga lo que se está activando. */
+/**
+ * Para la prueba al encenderlo: los dos, uno detrás de otro, para aprender
+ * cuál es cuál.
+ */
 export function probarAviso() {
-  void suena();
+  void suena("mensaje");
+  setTimeout(() => void suena("tarea"), 1400);
 }
 
 /* ========================================================================== */
@@ -187,13 +243,13 @@ export function pedirPermisoAvisos() {
 }
 
 /** Saca el aviso del sistema, solo si la ventana no está a la vista. */
-export function avisarEnPantalla(titulo: string, cuerpo: string) {
+export function avisarEnPantalla(titulo: string, cuerpo: string, tipo: TipoAviso = "mensaje") {
   if (!avisoActivo()) return;
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
   if (document.visibilityState === "visible") return;
   try {
-    const n = new Notification(titulo, { body: cuerpo, icon: "/icono-192.png", tag: "bitacora" });
+    const n = new Notification(titulo, { body: cuerpo, icon: "/icono-192.png", tag: `bitacora-${tipo}` });
     n.onclick = () => {
       window.focus();
       n.close();
@@ -209,11 +265,11 @@ export function avisarEnPantalla(titulo: string, cuerpo: string) {
  * la esquina del ordenador. Es lo que hay que llamar cuando llega algo nuevo;
  * así no se queda nunca a medias, que era lo que pasaba antes.
  */
-export function avisar(titulo: string, cuerpo: string) {
-  sonarAviso();
+export function avisar(titulo: string, cuerpo: string, tipo: TipoAviso = "mensaje") {
+  sonarAviso(tipo);
   if (typeof document !== "undefined" && document.visibilityState !== "visible") {
     sinVer += 1;
     marcarTitulo();
   }
-  avisarEnPantalla(titulo, cuerpo);
+  avisarEnPantalla(titulo, cuerpo, tipo);
 }

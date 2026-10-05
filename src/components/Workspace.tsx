@@ -577,6 +577,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
           avisar(
             `Tarea nueva en ${canalDe(fila.client_id)}`,
             fila.text?.slice(0, 140) || `La ha puesto ${quienEs(fila.author_id)}`,
+            "tarea",
           );
         },
       )
@@ -587,7 +588,7 @@ export default function Workspace({ initial }: { initial: InitialData }) {
         (payload) => {
           const fila = payload.new as { profile_id: string };
           if (fila.profile_id !== me.id) return;
-          avisar("Te han asignado una tarea", "Míralo en Tareas del equipo");
+          avisar("Te han asignado una tarea", "Míralo en Tareas del equipo", "tarea");
         },
       )
       .subscribe();

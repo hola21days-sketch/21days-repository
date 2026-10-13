@@ -117,16 +117,38 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
     [mensajes, conId, me.id],
   );
 
+  /** ¿Estás mirando la pantalla? Con la pestaña de fondo no se ha leído nada. */
+  const [aLaVista, setALaVista] = useState(
+    () => typeof document === "undefined" || document.visibilityState === "visible",
+  );
+  useEffect(() => {
+    const cambiar = () => setALaVista(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", cambiar);
+    return () => document.removeEventListener("visibilitychange", cambiar);
+  }, []);
+
+  /** Lo que te ha escrito la persona de la conversación abierta y aún no has visto. */
+  const hayNuevosDeEste = useMemo(
+    () =>
+      !!conId &&
+      mensajes.some((m) => m.sender_id === conId && m.recipient_id === me.id && !m.read_at),
+    [mensajes, conId, me.id],
+  );
+
   /**
-   * Al abrir una conversación, darla por leída entera.
+   * Dar por leída la conversación que tienes delante.
    * -------------------------------------------------------------------------
+   * Al abrirla y también cuando te llega algo con ella ya abierta: antes solo
+   * se marcaba al abrirla, así que lo que llegaba hablando en directo se veía
+   * pero se quedaba como no leído, y el 💬 del menú no se iba nunca.
+   *
    * Se marca por conversación y no por la lista de mensajes que esta pantalla
    * tenga cargada: si alguno se quedaba fuera de esa lista, no se marcaba
-   * nunca y el aviso no había forma de quitarlo. Así se marca todo lo que haya
-   * de esa persona, esté cargado o no.
+   * nunca y el aviso no había forma de quitarlo. Con la pestaña de fondo se
+   * espera a que vuelvas a mirarla.
    */
   useEffect(() => {
-    if (!conId) return;
+    if (!conId || !hayNuevosDeEste || !aLaVista) return;
     const ahora = new Date().toISOString();
     setMensajes((prev) =>
       prev.map((m) =>
@@ -141,7 +163,7 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
       .eq("sender_id", conId)
       .eq("recipient_id", me.id)
       .is("read_at", null);
-  }, [supabase, conId, me.id]);
+  }, [supabase, conId, me.id, hayNuevosDeEste, aLaVista]);
 
   useEffect(() => {
     const log = logRef.current;

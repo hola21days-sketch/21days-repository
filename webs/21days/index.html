@@ -71,7 +71,7 @@ button{font:inherit;color:inherit}
 .burger[aria-expanded="true"] span:first-child{top:23px;transform:rotate(45deg)}
 .burger[aria-expanded="true"] span:last-child{top:23px;transform:rotate(-45deg)}
 .sheet{display:none}
-@media (max-width:1020px){
+@media (max-width:1120px){
   .menu,.top .btn{display:none}
   .burger{display:block}
   .sheet{position:fixed;inset:calc(76px + env(safe-area-inset-top,0px)) 0 0;z-index:79;background:var(--paper);padding:24px var(--gutter-r) calc(32px + env(safe-area-inset-bottom,0px)) var(--gutter);flex-direction:column;justify-content:space-between;overflow:auto}
@@ -103,7 +103,7 @@ main{min-height:60vh}
 .hero{padding-top:clamp(28px,4vw,56px)}
 .hero-in{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(24px,4vw,56px);align-items:stretch}
 .hero-copy{display:flex;flex-direction:column;justify-content:center;padding-block:clamp(16px,3vw,40px) clamp(32px,5vw,72px)}
-.hero h1{font-size:clamp(52px,8.6vw,128px);letter-spacing:-.058em;line-height:.9;font-weight:850}
+.hero h1{font-size:clamp(48px,7.6vw,112px);letter-spacing:-.058em;line-height:.92;font-weight:850}
 .hero h1 span{display:block;animation:rise .9s cubic-bezier(.2,.7,.1,1) both}
 .hero h1 span:nth-child(2){animation-delay:.08s}
 .hero h1 span:nth-child(3){animation-delay:.16s}
@@ -153,7 +153,7 @@ a.reel:hover{transform:translateY(-4px)}
 .facts div{padding:24px 24px 0 0}
 .facts div + div{padding-left:24px;border-left:1px solid var(--hair)}
 .facts b{display:block;font-size:var(--t-lg);font-weight:800;letter-spacing:-.04em}
-.facts span{display:block;margin-top:6px;font-size:15px;color:var(--ink-2);max-width:28ch}
+.facts div > span{display:block;margin-top:6px;font-size:15px;color:var(--ink-2);max-width:28ch}
 @media (max-width:760px){.facts{grid-template-columns:1fr}.facts div + div{padding-left:0;border-left:0;border-top:1px solid var(--hair)}.facts div{padding:20px 0}}
 
 /* ── Casos (filas destacadas) ── */
@@ -396,8 +396,121 @@ footer{background:var(--panel)}
 .foot-bottom a:hover{color:var(--ink)}
 @media (max-width:820px){.foot-top{grid-template-columns:1fr}}
 
+/* ═══════════ Movimiento ═══════════ */
+.rise{transition:transform .9s cubic-bezier(.2,.7,.1,1)}
+.rise.pre{transform:translateY(36px)}
+
+/* Palabra que rota en el titular */
+.rot{position:relative;display:block;height:1.02em;overflow:hidden}
+.rot b{position:absolute;left:0;top:0;font-weight:inherit;white-space:nowrap;transform:translateY(105%);transition:transform .75s cubic-bezier(.7,0,.2,1)}
+.rot b.in{transform:none}
+.rot b.out{transform:translateY(-105%)}
+
+/* Contador en directo */
+.live{background:var(--white);border-block:1px solid var(--hair)}
+.live-in{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 28px;align-items:center;padding-block:22px}
+.live .on-air{display:inline-flex;align-items:center;gap:10px;font-size:var(--t-sm);font-weight:650}
+.pulse{position:relative;width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 1px rgba(26,26,26,.35)}
+.pulse::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--lime);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.6);opacity:0}}
+.live p{color:var(--ink-2);font-size:16px}
+.live p small{display:block;font-size:13px;color:var(--ink-3);margin-top:2px}
+.live .count{position:relative;font-size:clamp(34px,4vw,56px);font-weight:850;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.live .plus{position:absolute;right:0;top:-6px;font-size:14px;font-weight:700;letter-spacing:0;color:var(--ink);background:var(--lime);padding:2px 6px;border-radius:999px;animation:plus 1.2s ease-out forwards;pointer-events:none}
+@keyframes plus{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+@media (max-width:760px){.live-in{grid-template-columns:1fr auto}.live p{grid-column:1/-1;grid-row:2}}
+
+/* Clientes en movimiento */
+.trust{padding-block:clamp(36px,5vw,56px) clamp(28px,4vw,48px);border-block:0;overflow:hidden}
+.trust .kicker{margin-bottom:24px}
+.mq{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.mq + .mq{margin-top:8px}
+.mq-track{display:flex;width:max-content;animation:slide 70s linear infinite}
+.mq-track.rev{animation-direction:reverse;animation-duration:84s}
+.mq:hover .mq-track{animation-play-state:paused}
+.mq-track span{font-size:clamp(28px,3.4vw,48px);font-weight:750;letter-spacing:-.045em;color:var(--ink-3);white-space:nowrap;padding-right:clamp(28px,3vw,48px);transition:color .25s}
+.mq-track span:hover{color:var(--ink)}
+.mq-track span:nth-child(5n+2){color:var(--ink)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* Fases como historias de Instagram */
+.stories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,2vw,24px);margin-top:48px}
+.story{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.story:focus-visible{outline:2px solid var(--ink);outline-offset:6px;border-radius:4px}
+.story .bar{display:block;height:4px;border-radius:4px;background:var(--panel);overflow:hidden;margin-bottom:14px}
+.story .bar i{display:block;height:100%;width:0;background:var(--ink)}
+.story.done .bar i{width:100%}
+.story.on .bar i{animation:fill 4.2s linear forwards}
+@keyframes fill{to{width:100%}}
+.story em{font-style:normal;font-size:var(--t-sm);font-weight:600;color:var(--ink-3)}
+.story b{font-size:var(--t-md);font-weight:750;letter-spacing:-.02em;color:var(--ink-3);transition:color .3s}
+.story span.d{color:var(--ink-3);font-size:15.5px;transition:color .3s}
+.story.on b,.story.done b{color:var(--ink)}
+.story.on span.d{color:var(--ink-2)}
+@media (max-width:820px){.stories{grid-template-columns:1fr 1fr}}
+
+/* Mini gráficas que se dibujan */
+.spark polyline{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)}
+.spark polygon{opacity:0;transition:opacity 1s .6s}
+.spark circle{opacity:0;transition:opacity .3s 1.5s}
+.spark.drawn polyline{stroke-dashoffset:0}
+.spark.drawn polygon{opacity:1}
+.spark.drawn circle{opacity:1}
+.chart .ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.8s cubic-bezier(.4,0,.2,1) forwards}
+.chart .ar{opacity:0;animation:fade 1s .7s forwards}
+.chart .pt{opacity:0;animation:fade .4s 1.7s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:1}}
+
+/* Método: la línea avanza al bajar */
+.cycle{position:relative}
+.cycle-line{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--panel);border-radius:3px}
+.cycle-line i{display:block;width:100%;height:var(--p,0%);background:var(--lime);box-shadow:0 0 0 1px rgba(26,26,26,.2);border-radius:3px}
+.cycle .phase{padding-left:24px;transition:opacity .4s}
+.phase .n{transition:color .4s}
+.phase.lit .n{color:var(--ink)}
+.phase-head{padding-left:24px}
+
+/* Espacio */
+.office{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(12px,1.6vw,20px);align-items:start}
+.office figure{margin:0}
+.office .o1{grid-column:1/span 7}
+.office .o2{grid-column:8/span 5;margin-top:clamp(0px,6vw,96px)}
+.office .o3{grid-column:1/span 4}
+.office .o4{grid-column:5/span 4;margin-top:clamp(0px,4vw,64px)}
+.office .o5{grid-column:9/span 4}
+.office .o6{grid-column:2/span 10}
+@media (max-width:760px){.office > *{grid-column:1/-1!important;margin-top:0!important}}
+.photo{position:relative;overflow:hidden;border-radius:20px;background:#C9C9C2;max-width:100%}
+.photo::before{content:"";position:absolute;inset:-14% 0;background:radial-gradient(60% 50% at 30% 25%,rgba(255,255,255,.55),transparent 70%),linear-gradient(160deg,#E4E4DF,#C9C9C2);transform:translateY(var(--py,0px));transition:transform .1s linear}
+.photo span{position:absolute;left:16px;bottom:14px;right:16px;font-size:13px;font-weight:550;color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.photo span svg{width:16px;height:16px;flex:none}
+.r32{aspect-ratio:3/2}.r45{aspect-ratio:4/5}.r11{aspect-ratio:1}.r21{aspect-ratio:21/9}
+.office figcaption{margin-top:12px;font-weight:650}
+.office figcaption small{display:block;font-weight:400;font-size:14px;color:var(--ink-2)}
+.where{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(24px,4vw,64px);align-items:center}
+.where address{font-style:normal;margin-top:24px;font-size:var(--t-lg);font-weight:750;letter-spacing:-.03em;line-height:1.15}
+.where .muted{margin-top:16px;max-width:36ch}
+.where-act{margin-top:28px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.where-act button{background:none;border:0;cursor:pointer;padding:0 0 1px}
+.addr-msg{display:block;margin-top:10px;font-size:var(--t-sm);color:var(--ink-2);min-height:1.4em}
+@media (max-width:900px){.where{grid-template-columns:1fr}}
+.map{display:block;position:relative;border-radius:24px;overflow:hidden;background:#E6E6E1;aspect-ratio:17/12;max-width:100%}
+.map svg{display:block;width:100%;height:100%}
+.map .route{stroke-dasharray:6 8;animation:march 1.2s linear infinite}
+@keyframes march{to{stroke-dashoffset:-14}}
+.map .ring{transform-box:fill-box;transform-origin:center;animation:ring 2.4s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.where-mini{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,64px);align-items:center}
+.where-mini .muted{margin-top:16px;max-width:38ch}
+.map-mini{aspect-ratio:16/10}
+.map-mini:hover{box-shadow:inset 0 0 0 2px var(--ink)}
+@media (max-width:820px){.where-mini{grid-template-columns:1fr}}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
+  .spark polyline,.chart .ln{stroke-dashoffset:0}
+  .spark polygon,.spark circle,.chart .ar,.chart .pt{opacity:1}
 }
 </style>
 
@@ -412,6 +525,7 @@ footer{background:var(--panel)}
       <li><a href="#servicios" data-nav="servicios">Servicios</a></li>
       <li><a href="#metodo" data-nav="metodo">Método</a></li>
       <li><a href="#nosotros" data-nav="nosotros">Nosotros</a></li>
+      <li><a href="#espacio" data-nav="espacio">Espacio</a></li>
       <li><a href="#opiniones" data-nav="opiniones">Opiniones</a></li>
       <li><a href="#faq" data-nav="faq">FAQ</a></li>
     </ul>
@@ -425,6 +539,7 @@ footer{background:var(--panel)}
       <li><a href="#servicios" data-nav="servicios">Servicios</a></li>
       <li><a href="#metodo" data-nav="metodo">Método</a></li>
       <li><a href="#nosotros" data-nav="nosotros">Nosotros</a></li>
+      <li><a href="#espacio" data-nav="espacio">Espacio</a></li>
       <li><a href="#opiniones" data-nav="opiniones">Opiniones</a></li>
       <li><a href="#faq" data-nav="faq">FAQ</a></li>
     </ul>
@@ -439,7 +554,7 @@ footer{background:var(--panel)}
   <section class="hero">
     <div class="wrap hero-in">
       <div class="hero-copy">
-        <h1><span>Hacemos</span> <span>virales negocios</span> <span>normales.</span></h1>
+        <h1 aria-label="Hacemos virales negocios normales."><span aria-hidden="true">Hacemos virales</span> <span class="rot" id="rot" aria-hidden="true"><b class="in">negocios</b></span> <span aria-hidden="true">normales.</span></h1>
         <p class="hero-sub">Estrategia, guiones, grabación, edición y publicación para restaurantes, clínicas, gimnasios y comercios. Tú te olvidas de las redes y nosotros las convertimos en clientes.</p>
         <div class="hero-cta">
           <a class="btn btn-primary" href="#encajamos">Comprobar si encajamos</a>
@@ -450,20 +565,27 @@ footer{background:var(--panel)}
     </div>
   </section>
 
-  <section class="trust">
-    <div class="wrap trust-in">
-      <p class="kicker">Más de 20 negocios trabajan con nosotros cada mes.</p>
-      <ul class="names" id="names"></ul>
+  <section class="live">
+    <div class="wrap live-in">
+      <span class="on-air"><span class="pulse"></span>En directo</span>
+      <p>Visualizaciones que han sumado los vídeos de nuestros clientes desde que has entrado en esta página.<small>Estimación con la media diaria de Metricool en los últimos 12 meses: unas 36.000 al día.</small></p>
+      <b class="count" id="liveCount">0</b>
     </div>
+  </section>
+
+  <section class="trust" aria-label="Algunos de nuestros clientes">
+    <div class="wrap"><p class="kicker">Más de 20 negocios trabajan con nosotros cada mes.</p></div>
+    <div class="mq"><div class="mq-track" id="mq1"></div></div>
+    <div class="mq"><div class="mq-track rev" id="mq2"></div></div>
   </section>
 
   <section class="block statement">
     <div class="wrap">
       <p class="say">Más de 30 millones de visitas orgánicas para nuestros clientes. <span>Sin un euro de publicidad detrás.</span></p>
       <div class="facts">
-        <div><b class="num">3,36 M</b><span>visualizaciones en un solo reel de La Tremenda</span></div>
-        <div><b class="num">21 → 3.538</b><span>seguidores de MOSS en Instagram desde que empezamos</span></div>
-        <div><b class="num">+20</b><span>negocios del Maresme y Barcelona cada mes</span></div>
+        <div><b class="num cu">3,36 M</b><span>visualizaciones en un solo reel de La Tremenda</span></div>
+        <div><b class="num">21 → <span class="cu">3.538</span></b><span>seguidores de MOSS en Instagram desde que empezamos</span></div>
+        <div><b class="num cu">+20</b><span>negocios del Maresme y Barcelona cada mes</span></div>
       </div>
     </div>
   </section>
@@ -484,11 +606,11 @@ footer{background:var(--panel)}
         <h2 class="h2" style="grid-column:1/span 7">Del primer guion al vídeo publicado, sin que muevas un dedo.</h2>
         <p class="muted" style="grid-column:9/span 4">Cada mes repetimos el mismo ciclo para cada cliente. <a class="link" href="#metodo">Ver el método</a></p>
       </div>
-      <div class="steps">
-        <div><em>Primero</em><b>Estrategia</b><span>Qué contar, a quién y en qué redes.</span></div>
-        <div><em>Después</em><b>Ideas y guiones</b><span>Lo que ya funciona en tu sector, adaptado a ti.</span></div>
-        <div><em>En tu negocio</em><b>Grabación</b><span>Vamos con el equipo y te guiamos en cámara.</span></div>
-        <div><em>Cada mes</em><b>Edición y publicación</b><span>Editado, con textos y programado.</span></div>
+      <div class="stories" id="stories">
+        <button type="button" class="story"><span class="bar"><i></i></span><em>Primero</em><b>Estrategia</b><span class="d">Qué contar, a quién y en qué redes.</span></button>
+        <button type="button" class="story"><span class="bar"><i></i></span><em>Después</em><b>Ideas y guiones</b><span class="d">Lo que ya funciona en tu sector, adaptado a ti.</span></button>
+        <button type="button" class="story"><span class="bar"><i></i></span><em>En tu negocio</em><b>Grabación</b><span class="d">Vamos con el equipo y te guiamos en cámara.</span></button>
+        <button type="button" class="story"><span class="bar"><i></i></span><em>Cada mes</em><b>Edición y publicación</b><span class="d">Editado, con textos y programado.</span></button>
       </div>
       <p class="forget">Tú te olvidas.</p>
     </div>
@@ -516,6 +638,17 @@ footer{background:var(--panel)}
         <p class="muted">Porque antes de ser agencia hicimos crecer nuestra propia marca, DKSIDE, hasta casi 30.000 seguidores. Sabemos lo que cuesta cada cliente.</p>
         <p style="margin-top:18px"><a class="link" href="#nosotros">Conocer nuestra historia</a></p>
       </div>
+    </div>
+  </section>
+
+  <section class="block" style="padding-top:0">
+    <div class="wrap where-mini">
+      <div>
+        <h2 class="h2">Estamos en Mataró.</h2>
+        <p class="muted">En el Carrer de la Riera, 153. Grabamos en todo el Maresme, el Vallès y Barcelona.</p>
+        <p style="margin-top:20px"><a class="link" href="#espacio">Ver nuestro espacio</a></p>
+      </div>
+      <a class="map map-mini" id="mapMini" href="#espacio" aria-label="Ver nuestro espacio y cómo llegar"></a>
     </div>
   </section>
 </div>
@@ -651,7 +784,8 @@ footer{background:var(--panel)}
   </div>
   <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
     <div class="phase-head"><span></span><span>Fase</span><span>Qué hacemos nosotros</span><span>Qué haces tú</span></div>
-    <div class="cycle">
+    <div class="cycle" id="cycle">
+      <div class="cycle-line" aria-hidden="true"><i></i></div>
       <div class="phase"><span class="n">01</span><div><h3>Estrategia</h3><span class="when">Al empezar</span></div><p>Estudiamos tu negocio, tu competencia y a tu cliente. Decidimos qué contar, a quién, en qué redes y con qué objetivo medible.</p><p class="you"><b>Tú</b>Una reunión para contarnos tu negocio.</p></div>
       <div class="phase"><span class="n">02</span><div><h3>Idear</h3><span class="when">Cada mes</span></div><p>Buscamos lo que ya funciona en tu sector y lo convertimos en ideas y guiones escritos para ti, con el gancho de los primeros segundos.</p><p class="you"><b>Tú</b>Das el visto bueno a las ideas.</p></div>
       <div class="phase"><span class="n">03</span><div><h3>Grabar</h3><span class="when">Cada mes, en tu negocio</span></div><p>Vamos con el equipo y el material. Te decimos qué decir y cómo, aunque nunca te hayas puesto delante de una cámara.</p><p class="you"><b>Tú</b>Nos abres la puerta y sales si quieres.</p></div>
@@ -720,6 +854,39 @@ footer{background:var(--panel)}
         <div><h3>Hablas con quien lo hace</h3><p>Sin cuentas que pasan de mano en mano. El equipo que graba es el que te escribe.</p></div>
         <div><h3>Cifras delante, siempre</h3><p>Cada mes ves qué ha pasado con tu cuenta y qué vamos a cambiar.</p></div>
       </div>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════ ESPACIO ════════════ -->
+<div class="page" data-page="espacio" hidden>
+  <div class="wrap page-head">
+    <h1>Nuestro espacio.</h1>
+    <p class="lede">Una oficina en el centro de Mataró donde se piensan, se editan y se programan los vídeos de nuestros clientes. La puerta está abierta: ven a conocernos.</p>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <div class="office">
+      <figure class="o1 rise"><div class="photo r32"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>La sala principal<small>Donde se reúne el equipo cada mañana.</small></figcaption></figure>
+      <figure class="o2 rise"><div class="photo r45"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>La mesa de edición<small>Aquí se monta cada vídeo.</small></figcaption></figure>
+      <figure class="o3 rise"><div class="photo r11"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>El rincón de rodaje</figcaption></figure>
+      <figure class="o4 rise"><div class="photo r45"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>La sala de reuniones</figcaption></figure>
+      <figure class="o5 rise"><div class="photo r11"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>Los detalles</figcaption></figure>
+      <figure class="o6 rise"><div class="photo r21"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Foto pendiente</span></div><figcaption>El equipo trabajando</figcaption></figure>
+    </div>
+  </section>
+  <section class="block" style="background:var(--white)">
+    <div class="wrap where">
+      <div>
+        <h2 class="h2">Dónde estamos.</h2>
+        <address id="addr">Carrer de la Riera, 153<br>08302 Mataró, Barcelona</address>
+        <p class="muted">A unos 30 km de Barcelona. Grabamos en todo el Maresme, el Vallès y Barcelona.</p>
+        <div class="where-act">
+          <a class="btn btn-primary" href="https://www.google.com/maps/search/?api=1&amp;query=Carrer%20de%20la%20Riera%20153%2C%2008302%20Matar%C3%B3" target="_blank" rel="noopener">Cómo llegar</a>
+          <button type="button" class="link" id="copyAddr">Copiar dirección</button>
+        </div>
+        <span class="addr-msg" id="addrMsg" aria-live="polite"></span>
+      </div>
+      <div class="map" id="mapBig" role="img" aria-label="Mapa de la costa entre Barcelona y Calella con la oficina de 21DAYS en Mataró"></div>
     </div>
   </section>
 </div>
@@ -917,9 +1084,9 @@ footer{background:var(--panel)}
       </div>
     </div>
     <div class="foot-bottom">
-      <span>21DAYS Agency, Mataró</span>
+      <span>Carrer de la Riera, 153, Mataró. <a class="link" href="#espacio">Ver en el mapa</a></span>
       <nav aria-label="Pie">
-        <a href="#resultados">Resultados</a><a href="#servicios">Servicios</a><a href="#metodo">Método</a><a href="#nosotros">Nosotros</a><a href="#opiniones">Opiniones</a><a href="#faq">FAQ</a>
+        <a href="#resultados">Resultados</a><a href="#servicios">Servicios</a><a href="#metodo">Método</a><a href="#nosotros">Nosotros</a><a href="#espacio">Espacio</a><a href="#opiniones">Opiniones</a><a href="#faq">FAQ</a>
         <a href="https://www.instagram.com/___21days/" target="_blank" rel="noopener">Instagram</a>
       </nav>
       <span>© 2026</span>
@@ -1020,7 +1187,7 @@ const playSvg = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5
 function reelHTML(big,lab,handle,tone,href){
   const tag = href?'a':'div';
   const attrs = href?` href="${href}" target="_blank" rel="noopener" aria-label="${esc(big+' '+lab+', ver en redes')}"`:'';
-  return `<${tag} class="reel ${tone||''}"${attrs}><div class="rt"><span>${playSvg}</span><span>Reels</span></div><div class="big num">${esc(big)}<small>${esc(lab)}</small></div><div class="rb"><i></i>${esc(handle)}</div></${tag}>`;
+  return `<${tag} class="reel ${tone||''}"${attrs}><div class="rt"><span>${playSvg}</span><span>Reels</span></div><div class="big num"><span class="cu">${esc(big)}</span><small>${esc(lab)}</small></div><div class="rb"><i></i>${esc(handle)}</div></${tag}>`;
 }
 function spark(vals){
   const w=320,h=90,p=4,max=Math.max(...vals),min=Math.min(...vals);
@@ -1028,7 +1195,7 @@ function spark(vals){
   const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Seguidores en Instagram, de ${fmt(vals[0])} a ${fmt(vals[vals.length-1])}">
     <polygon points="${p},${h-p} ${pts} ${x(vals.length-1).toFixed(1)},${h-p}" fill="#CCFF00" fill-opacity=".5"/>
-    <polyline points="${pts}" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round"/>
+    <polyline points="${pts}" pathLength="1" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round"/>
     <circle cx="${x(vals.length-1).toFixed(1)}" cy="${y(vals[vals.length-1]).toFixed(1)}" r="4" fill="#1A1A1A"/></svg>`;
 }
 
@@ -1037,7 +1204,9 @@ function spark(vals){
   const cols=[[],[],[]];
   MURO.forEach((m,i)=>cols[i%3].push(reelHTML(...m)));
   $('#wall').innerHTML = cols.map(c=>`<div class="col">${c.join('')+c.join('')}</div>`).join('');
-  $('#names').innerHTML = CLIENTES.map(n=>`<li>${esc(n)}</li>`).join('');
+  const half=Math.ceil(CLIENTES.length/2), row=a=>{const h=a.map(n=>`<span>${esc(n)}</span>`).join('');return h+h};
+  $('#mq1').innerHTML=row(CLIENTES.slice(0,half));
+  $('#mq2').innerHTML=row(CLIENTES.slice(half));
   $('#wordmarks').innerHTML = CLIENTES.map(n=>`<li>${esc(n)}</li>`).join('');
   $('#feat').innerHTML = CASOS.slice(0,3).map(c=>`<a href="#caso-${c.slug}">
       ${reelHTML(c.big,c.bigLab,c.handle,c.cover)}
@@ -1045,7 +1214,7 @@ function spark(vals){
       <div class="spark-wrap">${spark(c.ig)}</div></a>`).join('');
   $('#cases').innerHTML = CASOS.map(c=>`<a class="case-card" href="#caso-${c.slug}">
       <div class="cover ${c.cover}"><div class="top-row"><span>${esc(c.tipo)}</span><span>Desde ${esc(c.desde.split(' de ')[0].toLowerCase())}</span></div>
-      <div><b class="num">${esc(c.big)}</b><span class="lab">${esc(c.bigLab)}</span></div></div>
+      <div><b class="num cu">${esc(c.big)}</b><span class="lab">${esc(c.bigLab)}</span></div></div>
       <div><h3>${esc(c.nombre)}</h3><p>${esc(c.claim)}</p></div></a>`).join('');
 })();
 
@@ -1079,18 +1248,20 @@ function drawChart(){
   const every=W<520?Math.ceil(n/6):1;
   c.meses.forEach((m,i)=>{if(i%every===0||i===n-1)s+=T(x(i),H-10,m,'middle')});
   const path=arr=>{let d='';arr.forEach((v,i)=>{if(v==null)return;d+=(d?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)});return d};
-  s+=`<path d="${path(c.ig)}L${x(n-1)},${y(0)}L${x(0)},${y(0)}Z" fill="#CCFF00" fill-opacity=".45"/>`;
-  if(c.tt) s+=`<path d="${path(c.tt)}" fill="none" stroke="#8C8C85" stroke-width="2" stroke-dasharray="5 4"/>`;
-  s+=`<path d="${path(c.ig)}" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/>`;
+  s+=`<path class="${animateChart?'ar':''}" d="${path(c.ig)}L${x(n-1)},${y(0)}L${x(0)},${y(0)}Z" fill="#CCFF00" fill-opacity=".45"/>`;
+  if(c.tt) s+=`<path class="${animateChart?'ar':''}" d="${path(c.tt)}" fill="none" stroke="#8C8C85" stroke-width="2" stroke-dasharray="5 4"/>`;
+  s+=`<path class="${animateChart?'ln':''}" pathLength="1" d="${path(c.ig)}" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/>`;
   const last=c.ig[n-1];
-  s+=`<circle cx="${x(n-1)}" cy="${y(last)}" r="5" fill="#1A1A1A"/>`;
-  s+=`<text x="${x(n-1)-10}" y="${y(last)-12}" text-anchor="end" font-size="14" font-weight="700" fill="#1A1A1A" font-family="Inter,sans-serif">${fmt(last)}</text></svg>`;
+  s+=`<g class="${animateChart?'pt':''}"><circle cx="${x(n-1)}" cy="${y(last)}" r="5" fill="#1A1A1A"/>`;
+  s+=`<text x="${x(n-1)-10}" y="${y(last)-12}" text-anchor="end" font-size="14" font-weight="700" fill="#1A1A1A" font-family="Inter,sans-serif">${fmt(last)}</text></g></svg>`;
+  animateChart=false;
   box.innerHTML=s;
 }
-let rz; addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(drawChart,120)});
+let animateChart=false;
+let rz; addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{drawChart();drawMaps()},120)});
 
 /* ═══════════ Rutas: cada sección es una página ═══════════ */
-const TITLES={inicio:"21DAYS Agency",resultados:"Resultados · 21DAYS",servicios:"Servicios · 21DAYS",metodo:"Método · 21DAYS",nosotros:"Nosotros · 21DAYS",opiniones:"Opiniones · 21DAYS",faq:"FAQ · 21DAYS",encajamos:"¿Encajamos? · 21DAYS"};
+const TITLES={inicio:"21DAYS Agency",resultados:"Resultados · 21DAYS",servicios:"Servicios · 21DAYS",metodo:"Método · 21DAYS",nosotros:"Nosotros · 21DAYS",espacio:"Espacio · 21DAYS",opiniones:"Opiniones · 21DAYS",faq:"FAQ · 21DAYS",encajamos:"¿Encajamos? · 21DAYS"};
 const burger=$('#burger'),sheet=$('#sheet');
 function closeSheet(){sheet.classList.remove('open');burger.setAttribute('aria-expanded','false');document.body.style.overflow=''}
 burger.addEventListener('click',()=>{const o=!sheet.classList.contains('open');sheet.classList.toggle('open',o);burger.setAttribute('aria-expanded',o);document.body.style.overflow=o?'hidden':''});
@@ -1110,9 +1281,166 @@ function route(){
   document.title=title||TITLES[page]||TITLES.inicio;
   closeSheet();
   window.scrollTo(0,0);
-  if(page==='caso') requestAnimationFrame(drawChart);
+  if(page==='caso'){animateChart=!reduce;requestAnimationFrame(drawChart)}
+  const el=$(`[data-page="${page}"]`);
+  requestAnimationFrame(()=>{arm(el);drawMaps();onScroll()});
 }
 addEventListener('hashchange',route);
+
+/* ═══════════ Movimiento ═══════════ */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Titular: la palabra «negocios» rota entre los sectores con los que trabajamos
+(function(){
+  const words=["negocios","restaurantes","clínicas","gimnasios","cafeterías","comercios"];
+  const box=$('#rot'); if(reduce) return;
+  let i=0;
+  setInterval(()=>{
+    if(document.hidden||$('[data-page="inicio"]').hidden) return;
+    const cur=box.querySelector('b.in'); i=(i+1)%words.length;
+    const nb=document.createElement('b'); nb.textContent=words[i]; box.appendChild(nb);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{nb.classList.add('in');cur.classList.remove('in');cur.classList.add('out')}));
+    setTimeout(()=>cur.remove(),900);
+  },2400);
+})();
+
+// Contador en directo: media diaria de visualizaciones en Metricool (13.171.942 en ~12 meses)
+(function(){
+  const perSec=13171942/365/86400, el=$('#liveCount'), t0=performance.now();
+  let shown=0;
+  const tick=()=>{
+    const v=Math.floor((performance.now()-t0)/1000*perSec);
+    if(v!==shown){
+      shown=v; el.textContent=fmt(v);
+      if(!reduce){const p=document.createElement('span');p.className='plus';p.textContent='+1';el.appendChild(p);setTimeout(()=>p.remove(),1300)}
+    }
+  };
+  setInterval(tick,250);
+})();
+
+// Números que cuentan hasta su valor cuando aparecen
+function parseFig(t){
+  const m=t.match(/^([^\d]*)([\d.,]+)(.*)$/); if(!m) return null;
+  let num=m[2],dec=0,val;
+  if(num.includes(',')){dec=num.split(',')[1].length;val=parseFloat(num.replace(/\./g,'').replace(',','.'))}
+  else val=parseInt(num.replace(/\./g,''),10);
+  return {pre:m[1],val,dec,suf:m[3]};
+}
+function showFig(f,v){
+  let s=v.toFixed(f.dec).split('.');
+  s[0]=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return f.pre+s.join(',')+f.suf;
+}
+const countIO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return; countIO.unobserve(e.target);
+  const el=e.target, f=parseFig(el.dataset.final); if(!f) return;
+  const t0=performance.now(), d=1500;
+  const step=t=>{const k=Math.min(1,(t-t0)/d),ease=1-Math.pow(1-k,4);el.textContent=showFig(f,f.val*ease);if(k<1)requestAnimationFrame(step);else el.textContent=el.dataset.final};
+  requestAnimationFrame(step);
+}),{threshold:.5}):null;
+const riseIO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return; riseIO.unobserve(e.target);
+  e.target.classList.remove('pre'); e.target.classList.add('drawn');
+}),{rootMargin:'0px 0px -8% 0px'}):null;
+function arm(root){
+  if(!root) return;
+  $$('.cu',root).forEach(el=>{
+    if(el.closest('.wall')) return;
+    el.dataset.final=el.dataset.final||el.textContent;
+    if(reduce||!countIO){el.textContent=el.dataset.final;return}
+    countIO.unobserve(el); countIO.observe(el);
+  });
+  $$('.spark',root).forEach(sv=>{ if(reduce||!riseIO) sv.classList.add('drawn'); else {sv.classList.remove('drawn');riseIO.observe(sv)} });
+  const sel='.feat a,.svc-rows a,.service,.case-card,.tl li,.person,.values > div,.video,.faq,.rise';
+  $$(sel,root).forEach(el=>{
+    if(reduce||!riseIO) return;
+    el.classList.add('rise');
+    if(el.getBoundingClientRect().top>innerHeight){el.classList.add('pre');riseIO.observe(el)}
+  });
+}
+
+// Fases del inicio: avanzan solas como las historias de Instagram
+(function(){
+  const st=$$('#stories .story'); let i=0;
+  const go=n=>{i=n;st.forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.remove('on')});void st[i].offsetWidth;st[i].classList.add('on')};
+  st.forEach((s,j)=>{
+    s.addEventListener('click',()=>go(j));
+    s.querySelector('.bar i').addEventListener('animationend',()=>go((i+1)%st.length));
+  });
+  if(reduce) st.forEach(s=>s.classList.add('done')); else go(0);
+})();
+
+// Método y fotos del espacio: reaccionan al scroll
+function onScroll(){
+  const cy=$('#cycle');
+  if(cy&&cy.offsetParent){
+    const r=cy.getBoundingClientRect(), k=Math.max(0,Math.min(1,(innerHeight*.6-r.top)/r.height));
+    cy.style.setProperty('--p',(k*100)+'%');
+    $$('.phase',cy).forEach(ph=>ph.classList.toggle('lit',ph.getBoundingClientRect().top<innerHeight*.6));
+  }
+  if(!reduce) $$('[data-page="espacio"]:not([hidden]) .photo').forEach(ph=>{
+    const r=ph.getBoundingClientRect(), lim=r.height*.1; ph.style.setProperty('--py',Math.max(-lim,Math.min(lim,(r.top+r.height/2-innerHeight/2)*-.06)).toFixed(1)+'px');
+  });
+}
+addEventListener('scroll',onScroll,{passive:true});
+
+/* ═══════════ Mapa (costa real de OpenStreetMap) ═══════════ */
+const MAP={W:1.9,N:41.78,kx:0.7487822216017097,scale:1405.7913617335873,
+  d:"M1000,0L1000,116L992,122L984,120L968,128L964,138L950,150L949,149L948,151L946,152L948,149L945,147L938,151L921,185L916,186L920,174L914,168L906,174L914,174L914,186L890,194L862,212L770,248L705,279L695,288L691,289L695,288L698,282L690,282L694,287L687,284L675,290L638,316L641,310L636,316L595,331L579,345L578,352L573,357L578,352L576,349L573,354L568,354L496,410L485,409L454,420L434,431L439,425L430,427L434,429L420,431L384,452L366,475L361,490L362,483L359,484L360,489L350,508L351,513L347,522L350,514L348,516L345,512L342,516L347,518L343,526L335,528L328,541L318,548L320,552L316,558L319,553L314,553L300,594L304,581L300,584L303,570L300,573L302,566L300,561L298,570L297,563L293,571L297,576L292,573L291,580L296,582L288,588L290,592L285,590L288,595L281,609L277,606L267,615L264,609L263,623L257,626L262,633L270,615L280,617L273,637L267,636L264,650L268,653L255,669L258,672L256,676L268,679L281,661L279,650L282,659L281,662L266,680L258,681L251,676L251,679L244,673L234,682L224,688L220,686L217,691L184,708L131,722L42,727L22,737L30,732L22,732L22,736L3,740L1,745L1,745L1,742L0,745L0,0Z"};
+const proj=(lat,lon)=>[(lon-MAP.W)*MAP.kx*MAP.scale,(MAP.N-lat)*MAP.scale];
+const OFICINA=[41.5425,2.4433];
+const PUEBLOS=[["Barcelona",41.3874,2.1686,"l"],["Badalona",41.45,2.2474,"l"],["Granollers",41.6083,2.2875,"r"],["El Masnou",41.4796,2.3189,"l"],["Premià de Mar",41.492,2.36,"l"],["Argentona",41.555,2.402,"l"],["Arenys de Mar",41.581,2.55,"r"],["Calella",41.614,2.656,"r"]];
+const RUTAS=["Barcelona","Granollers","Calella"];
+function mapSVG(el,vb,full){
+  const w=el.clientWidth||600, k=w/vb[2];
+  const u=v=>(v/k).toFixed(2);
+  const [ox,oy]=proj(...OFICINA);
+  let s=`<svg viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">`;
+  s+=`<defs><pattern id="sea${full?1:0}" width="${u(10)}" height="${u(10)}" patternUnits="userSpaceOnUse"><path d="M0 ${u(5)}H${u(10)}" stroke="#1A1A1A" stroke-opacity=".07" stroke-width="${u(1)}"/></pattern></defs>`;
+  s+=`<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="#E6E6E1"/><rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="url(#sea${full?1:0})"/>`;
+  s+=`<path d="${MAP.d}" fill="#F7F7F5" stroke="#1A1A1A" stroke-width="${u(1.2)}" stroke-linejoin="round"/>`;
+  // Paralelos y meridianos cada 0,1°
+  for(let lat=41.3;lat<=41.75;lat+=.1){const y=proj(lat,2)[1];s+=`<line x1="0" x2="1000" y1="${y}" y2="${y}" stroke="#1A1A1A" stroke-opacity=".06" stroke-width="${u(1)}"/>`}
+  for(let lon=2.0;lon<=2.8;lon+=.1){const x=proj(41.5,lon)[0];s+=`<line y1="0" y2="745" x1="${x}" x2="${x}" stroke="#1A1A1A" stroke-opacity=".06" stroke-width="${u(1)}"/>`}
+  // Rutas animadas desde la oficina
+  PUEBLOS.filter(p=>RUTAS.includes(p[0])).forEach(p=>{const [x,y]=proj(p[1],p[2]);const mx=(ox+x)/2,my=(oy+y)/2-Math.hypot(x-ox,y-oy)*.18;
+    s+=`<path class="route" d="M${ox},${oy}Q${mx},${my} ${x},${y}" fill="none" stroke="#1A1A1A" stroke-width="${u(1.6)}" style="stroke-dasharray:${u(6)} ${u(8)}"/>`});
+  PUEBLOS.forEach(p=>{
+    if(!full&&!RUTAS.includes(p[0])&&p[0]!=="Badalona") return;
+    const [x,y]=proj(p[1],p[2]),dx=p[3]==="r"?u(10):u(-10);
+    s+=`<circle cx="${x}" cy="${y}" r="${u(3.5)}" fill="#1A1A1A"/><text x="${(x+ +dx).toFixed(1)}" y="${(y+ +u(4.5)).toFixed(1)}" text-anchor="${p[3]==="r"?"start":"end"}" font-size="${u(13)}" font-weight="500" fill="#56564F" font-family="Inter,sans-serif">${p[0]}</text>`;
+  });
+  // Mar
+  const [sx,sy]=proj(41.42,2.52);
+  s+=`<text x="${sx}" y="${sy}" font-size="${u(13)}" letter-spacing="${u(3)}" fill="#8C8C85" font-family="Inter,sans-serif" font-style="italic">Mar Mediterráneo</text>`;
+  // Oficina
+  s+=`<circle class="ring" cx="${ox}" cy="${oy}" r="${u(14)}" fill="none" stroke="#1A1A1A" stroke-width="${u(1.5)}"/>`;
+  s+=`<circle cx="${ox}" cy="${oy}" r="${u(9)}" fill="#CCFF00" stroke="#1A1A1A" stroke-width="${u(2)}"/>`;
+  const lw=u(full?236:150), lh=u(full?50:34), lx=ox+ +u(18), ly=oy- +u(full?62:46);
+  s+=`<g><rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="${u(10)}" fill="#1A1A1A"/>`;
+  s+=`<text x="${(lx+ +u(14)).toFixed(1)}" y="${(ly+ +u(full?21:21)).toFixed(1)}" font-size="${u(14)}" font-weight="800" fill="#CCFF00" font-family="Inter,sans-serif">21DAYS</text>`;
+  if(full) s+=`<text x="${(lx+ +u(14)).toFixed(1)}" y="${(ly+ +u(39)).toFixed(1)}" font-size="${u(12)}" fill="#F5F5F3" font-family="Inter,sans-serif">Carrer de la Riera, 153, Mataró</text>`;
+  s+=`</g>`;
+  if(full){
+    // Escala de 10 km
+    const km=10/111.32*MAP.scale, bx=vb[0]+ +u(20), by=vb[1]+vb[3]- +u(26);
+    s+=`<line x1="${bx}" x2="${bx+km}" y1="${by}" y2="${by}" stroke="#1A1A1A" stroke-width="${u(2)}"/><line x1="${bx}" x2="${bx}" y1="${by- +u(5)}" y2="${by+ +u(5)}" stroke="#1A1A1A" stroke-width="${u(2)}"/><line x1="${bx+km}" x2="${bx+km}" y1="${by- +u(5)}" y2="${by+ +u(5)}" stroke="#1A1A1A" stroke-width="${u(2)}"/>`;
+    s+=`<text x="${bx}" y="${by- +u(10)}" font-size="${u(12)}" fill="#56564F" font-family="Inter,sans-serif">10 km</text>`;
+    s+=`<text x="${vb[0]+vb[2]- +u(14)}" y="${vb[1]+vb[3]- +u(14)}" text-anchor="end" font-size="${u(10.5)}" fill="#8C8C85" font-family="Inter,sans-serif">© OpenStreetMap contributors</text>`;
+  }
+  el.innerHTML=s+'</svg>';
+}
+function drawMaps(){
+  const big=$('#mapBig'), mini=$('#mapMini');
+  if(big&&big.offsetParent) mapSVG(big, big.clientWidth<560?[230,170,600,424]:[140,110,860,607], true);
+  if(mini&&mini.offsetParent) mapSVG(mini,[250,180,520,325],false);
+}
+
+$('#copyAddr').addEventListener('click',async()=>{
+  const m=$('#addrMsg'),t='Carrer de la Riera, 153, 08302 Mataró, Barcelona';
+  try{await navigator.clipboard.writeText(t);m.textContent='Dirección copiada'}
+  catch(_){const r=document.createRange();r.selectNodeContents($('#addr'));const s=getSelection();s.removeAllRanges();s.addRange(r);m.textContent='Selecciónala y cópiala'}
+});
 
 /* ═══════════ Formulario ¿Encajamos? ═══════════ */
 (function(){

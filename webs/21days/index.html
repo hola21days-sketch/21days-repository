@@ -1,983 +1,1188 @@
 <title>21DAYS Agency</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="21DAYS · Agencia de contenido e IA en Mataró. Hacemos virales negocios normales: estrategia, contenido, anuncios, email marketing y automatizaciones con IA.">
+<meta name="description" content="21DAYS, agencia de contenido e IA en Mataró. Estrategia, guiones, grabación, edición y publicación para negocios que quieren vender más con sus redes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&display=swap">
 <style>
-/* Layout: página clara en gris 21DAYS, bloques blancos como fichas de trabajo y el lima solo donde hay una cifra o una acción. */
+/*
+  Sistema: la portada de reel es la unidad de trabajo de 21DAYS, así que es el único elemento llamativo.
+  Todo lo demás es tipografía Inter sobre gris claro, alineada a la izquierda en una rejilla de 12 columnas.
+*/
 :root{
-  --bg:#EAEAEA;          /* gris de las estrategias 21DAYS */
-  --paper:#FFFFFF;
+  --paper:#F5F5F3;
+  --panel:#EAEAEA;
+  --white:#FFFFFF;
   --ink:#1A1A1A;
-  --ink-2:#4A4A4A;
-  --muted:#6B6B6B;
-  --lime:#CCFF00;        /* verde lima corporativo */
-  --lime-soft:#F2FFC2;
-  --line:rgba(0,0,0,.10);
-  --line-2:rgba(0,0,0,.055);
-  --display:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
-  --r:18px;
-  --wrap:1180px;
+  --ink-2:#56564F;
+  --ink-3:#8C8C85;
+  --hair:rgba(26,26,26,.13);
+  --lime:#CCFF00;
+  --plate:#DCDCD7;
+
+  --f:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --t-sm:14px;
+  --t-base:17px;
+  --t-md:21px;
+  --t-lg:clamp(26px,2.4vw,32px);
+  --t-xl:clamp(36px,4.6vw,60px);
+  --t-2xl:clamp(46px,7.4vw,108px);
+
+  --gutter:max(20px,env(safe-area-inset-left,0px));
+  --gutter-r:max(20px,env(safe-area-inset-right,0px));
+  --max:1320px;
   color-scheme:light;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
-h1,h2,h3{font-family:var(--display);line-height:1.02;letter-spacing:-.035em;margin:0;text-wrap:balance}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);font-size:var(--t-base);line-height:1.55;font-optical-sizing:auto;font-feature-settings:"ss01","cv11";-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:90;background:var(--paper)}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.035em;line-height:1.02;text-wrap:balance}
 p{margin:0}
-a{color:inherit}
-:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:6px}
-.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.eyebrow{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
-.eyebrow::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--lime);box-shadow:0 0 0 1px rgba(0,0,0,.18)}
-.mark{background:linear-gradient(transparent 8%,var(--lime) 8%,var(--lime) 92%,transparent 92%);padding:0 .12em;margin:0 -.04em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-.btn{display:inline-flex;align-items:center;gap:10px;font:800 15px/1 var(--body);letter-spacing:-.01em;text-decoration:none;border:0;cursor:pointer;border-radius:999px;padding:16px 22px;transition:transform .2s ease,box-shadow .2s ease,background .2s}
-.btn-lime{background:var(--lime);color:var(--ink);box-shadow:0 0 0 1.5px var(--ink) inset}
-.btn-lime:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px var(--ink) inset,0 8px 0 -2px var(--ink)}
-.btn-ghost{background:transparent;color:var(--ink);box-shadow:0 0 0 1.5px var(--line) inset}
-.btn-ghost:hover{box-shadow:0 0 0 1.5px var(--ink) inset}
-.btn .arr{transition:transform .2s}
-.btn:hover .arr{transform:translateX(4px)}
-section{padding-block:clamp(72px,10vw,128px)}
-.sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:32px;align-items:end;margin-bottom:48px}
-.sec-head h2{font-size:clamp(36px,5.6vw,72px);font-weight:900}
-.sec-head p{color:var(--ink-2);font-size:18px;max-width:46ch}
-@media (max-width:820px){.sec-head{grid-template-columns:1fr;gap:16px;margin-bottom:32px}}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter-r)}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.link{border-bottom:1.5px solid var(--ink);padding-bottom:1px;font-weight:600;transition:border-color .2s}
+.link:hover{border-color:var(--lime)}
 
-/* ── Nav ── */
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(234,234,234,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
-.nav.scrolled{border-bottom-color:var(--line)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:900 19px/1 var(--display);letter-spacing:-.03em}
-.logo svg{width:34px;height:34px}
-.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
-.nav ul a{display:block;text-decoration:none;font-weight:600;font-size:14px;padding:9px 13px;border-radius:999px;color:var(--ink-2)}
-.nav ul a:hover{background:var(--paper);color:var(--ink)}
-.nav .btn{padding:12px 18px;font-size:14px}
-.menu-btn{display:none;background:var(--paper);border:0;border-radius:999px;width:44px;height:44px;cursor:pointer;font:800 18px/1 var(--body)}
-@media (max-width:960px){
-  .nav ul{display:none}
-  .nav ul.open{display:flex;flex-direction:column;position:absolute;top:68px;left:0;right:0;background:var(--bg);padding:12px max(16px,env(safe-area-inset-left,0px)) 20px;border-bottom:1px solid var(--line)}
-  .nav ul.open a{font-size:18px;padding:12px 4px}
-  .menu-btn{display:block}
-  .nav .btn{display:none}
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 26px;border-radius:999px;font-weight:650;font-size:16px;letter-spacing:-.01em;border:0;cursor:pointer;transition:background .2s,transform .2s;white-space:nowrap}
+.btn-primary{background:var(--lime);color:var(--ink)}
+.btn-primary:hover{background:#BFF000}
+.btn-primary:active{transform:scale(.98)}
+
+/* ── Cabecera ── */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:rgba(245,245,243,.9);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+.top-in{display:flex;align-items:center;gap:28px;height:76px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:20px;letter-spacing:-.04em;flex:none}
+.brand svg{width:30px;height:30px}
+.menu{display:flex;gap:2px;margin:0 0 0 auto;padding:0;list-style:none}
+.menu a{display:block;padding:10px 14px;font-size:15px;font-weight:500;color:var(--ink-2);position:relative;transition:color .2s}
+.menu a:hover{color:var(--ink)}
+.menu a[aria-current="page"]{color:var(--ink)}
+.menu a[aria-current="page"]::after{content:"";position:absolute;left:14px;right:14px;bottom:2px;height:3px;background:var(--lime);border-radius:2px}
+.top .btn{height:44px;padding:0 20px;font-size:15px}
+.burger{display:none;margin-left:auto;width:48px;height:48px;border-radius:50%;border:0;background:var(--white);cursor:pointer;position:relative}
+.burger span{position:absolute;left:15px;right:15px;height:2px;background:var(--ink);transition:transform .3s,top .3s}
+.burger span:first-child{top:19px}.burger span:last-child{top:27px}
+.burger[aria-expanded="true"] span:first-child{top:23px;transform:rotate(45deg)}
+.burger[aria-expanded="true"] span:last-child{top:23px;transform:rotate(-45deg)}
+.sheet{display:none}
+@media (max-width:1020px){
+  .menu,.top .btn{display:none}
+  .burger{display:block}
+  .sheet{position:fixed;inset:calc(76px + env(safe-area-inset-top,0px)) 0 0;z-index:79;background:var(--paper);padding:24px var(--gutter-r) calc(32px + env(safe-area-inset-bottom,0px)) var(--gutter);flex-direction:column;justify-content:space-between;overflow:auto}
+  .sheet.open{display:flex}
+  .sheet ul{list-style:none;margin:0;padding:0}
+  .sheet li a{display:block;font-size:clamp(34px,9vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1.15;padding:4px 0}
+  .sheet li a[aria-current="page"]{text-decoration:underline;text-decoration-color:var(--lime);text-decoration-thickness:6px;text-underline-offset:6px}
 }
 
-/* ── Hero ── */
-.hero{padding-block:clamp(40px,7vw,88px) clamp(56px,8vw,96px)}
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:clamp(24px,5vw,72px);align-items:center}
-.hero h1{font-size:clamp(46px,8.4vw,118px);font-weight:900;letter-spacing:-.055em;line-height:.93;text-transform:uppercase}
-.hero h1 .mark{padding:0 .08em}
-.hero-sub{margin-top:28px;font-size:clamp(17px,1.6vw,20px);color:var(--ink-2);max-width:52ch}
-.hero-sub b{color:var(--ink)}
-.hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-.hero-proof{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
-.chip{font:600 13px/1 var(--body);background:var(--paper);border-radius:999px;padding:9px 13px;display:inline-flex;gap:8px;align-items:center}
-.chip i{width:7px;height:7px;border-radius:50%;background:var(--ink);display:inline-block}
-@media (max-width:860px){.hero-grid{grid-template-columns:1fr}.phone-col{justify-self:center}}
+/* ── Páginas ── */
+main{min-height:60vh}
+.page{animation:pageIn .5s cubic-bezier(.2,.7,.2,1)}
+.booting .page{animation:none}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page-head{padding-block:clamp(56px,8vw,112px) clamp(40px,5vw,72px)}
+.page-head h1{font-size:var(--t-2xl);letter-spacing:-.05em;line-height:.95;max-width:14ch}
+.page-head .lede{margin-top:28px;font-size:var(--t-md);color:var(--ink-2);max-width:44ch;line-height:1.45}
+.crumb{display:inline-flex;gap:8px;font-size:var(--t-sm);font-weight:500;color:var(--ink-2);margin-bottom:28px}
+.crumb::before{content:"";width:8px;height:8px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-top:6px}
+.crumb:hover{color:var(--ink)}
+.block{padding-block:clamp(64px,9vw,128px)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,28px)}
+.h2{font-size:var(--t-xl);letter-spacing:-.045em}
+.h3{font-size:var(--t-lg);letter-spacing:-.03em}
+.kicker{font-size:var(--t-sm);font-weight:600;color:var(--ink-2)}
+@media (max-width:820px){.grid > *{grid-column:1/-1!important}.grid{row-gap:20px}}
 
-/* Móvil con reel: el contador de visitas es la tesis de la agencia */
-.phone-col{position:relative;width:min(300px,100%)}
-.phone{position:relative;aspect-ratio:9/18.5;max-width:100%;border-radius:42px;background:var(--ink);padding:10px;box-shadow:0 30px 60px -20px rgba(0,0,0,.35);transform:rotate(3deg)}
-.screen{position:relative;height:100%;border-radius:33px;overflow:hidden;background:
-  radial-gradient(120% 70% at 30% 20%,#ffd9a8 0%,transparent 55%),
-  radial-gradient(90% 60% at 80% 70%,#c86f4a 0%,transparent 60%),
-  linear-gradient(170deg,#e9b78a,#8a4a32 70%,#3e2318)}
-.screen::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,.55));}
-.reel-top{position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;z-index:2;color:#fff;font:700 12px/1 var(--body)}
-.reel-cap{position:absolute;left:14px;right:14px;top:36%;z-index:2;text-align:center;color:#fff;font:900 26px/1.02 var(--display);letter-spacing:-.03em;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.35)}
-.reel-cap span{background:var(--lime);color:var(--ink);text-shadow:none;padding:0 6px;border-radius:4px}
-.reel-bottom{position:absolute;left:14px;right:14px;bottom:18px;z-index:2;color:#fff}
-.reel-bottom .who{font:700 13px/1.2 var(--body)}
-.reel-bottom .what{font:500 12px/1.3 var(--body);opacity:.85;margin-top:4px}
-.views{position:absolute;left:-28px;bottom:22%;z-index:3;background:var(--paper);border-radius:16px;padding:14px 16px;box-shadow:0 18px 40px -16px rgba(0,0,0,.35);min-width:180px}
-.views small{display:block;font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.views b{display:block;font:900 30px/1.1 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:6px}
-.views em{font:700 11px/1 var(--mono);font-style:normal;background:var(--lime);padding:4px 6px;border-radius:5px;display:inline-block;margin-top:6px}
-.dm{position:absolute;right:-18px;top:12%;z-index:3;background:var(--lime);border-radius:16px 16px 4px 16px;padding:12px 14px;font:800 14px/1.2 var(--body);box-shadow:0 0 0 1.5px var(--ink) inset;animation:bob 4s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-8px)}}
-@media (max-width:420px){.views{left:-8px}.dm{right:-6px}}
-
-/* ── Marquee de clientes ── */
-.trust{padding-block:28px;border-block:1px solid var(--line)}
-.trust-row{display:flex;align-items:center;gap:28px}
-.trust-label{flex:none;font:800 14px/1.25 var(--body);max-width:180px}
-.trust-label b{display:block;font:900 30px/1 var(--display);letter-spacing:-.04em}
-.marquee{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.marquee-track{display:flex;gap:44px;width:max-content;animation:scroll 48s linear infinite}
-.marquee:hover .marquee-track{animation-play-state:paused}
-.marquee-track span{font:800 22px/1 var(--display);letter-spacing:-.03em;white-space:nowrap;color:var(--ink-2);display:inline-flex;align-items:center;gap:44px}
-.marquee-track span::after{content:"";width:8px;height:8px;border-radius:2px;background:var(--lime);box-shadow:0 0 0 1px rgba(0,0,0,.25);transform:rotate(45deg)}
-@keyframes scroll{to{transform:translateX(-50%)}}
-@media (max-width:700px){.trust-row{flex-direction:column;align-items:flex-start;gap:16px}.trust-label{max-width:none}.marquee{width:100%}}
-
-/* ── Cifra 30M ── */
-.big{padding-block:clamp(56px,8vw,96px)}
-.big-card{background:var(--lime);border-radius:28px;padding:clamp(28px,5vw,64px);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end;box-shadow:0 0 0 1.5px var(--ink) inset;position:relative;overflow:hidden}
-.big-num{font:900 clamp(88px,17vw,230px)/.82 var(--display);letter-spacing:-.07em;font-variant-numeric:tabular-nums}
-.big-num small{font-size:.32em;letter-spacing:-.03em;margin-left:.06em}
-.big-card h2{font-size:clamp(24px,3vw,36px);font-weight:900;margin-top:18px}
-.big-side{display:grid;gap:14px}
-.big-side p{font-size:17px;font-weight:500}
-.big-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.big-stats div{background:rgba(255,255,255,.55);border-radius:14px;padding:14px}
-.big-stats b{display:block;font:900 28px/1 var(--display);letter-spacing:-.04em}
-.big-stats span{font-size:13px;font-weight:600;line-height:1.3;display:block;margin-top:6px}
-@media (max-width:820px){.big-card{grid-template-columns:1fr}}
-
-/* ── Casos ── */
-.cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-@media (max-width:980px){.cases{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:620px){.cases{grid-template-columns:1fr}}
-.case{background:var(--paper);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:18px;position:relative;transition:transform .25s ease,box-shadow .25s ease;min-width:0}
-.case:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
-.case-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.case-tag{font:700 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;background:var(--lime);padding:6px 8px;border-radius:6px}
-.case-sector{font:600 12px/1 var(--body);color:var(--muted)}
-.case-hero b{display:block;font:900 clamp(44px,5vw,60px)/.9 var(--display);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
-.case-hero span{display:block;font-size:14px;font-weight:600;color:var(--ink-2);margin-top:8px}
-.case h3{font-size:22px;font-weight:900;letter-spacing:-.03em}
-.case p.how{font-size:14.5px;color:var(--ink-2);line-height:1.55}
-.case-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
-.case-metrics div{background:var(--bg);border-radius:12px;padding:12px}
-.case-metrics b{display:block;font:900 20px/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.case-metrics span{display:block;font-size:12px;color:var(--muted);margin-top:5px;line-height:1.3}
-.case-services{display:flex;flex-wrap:wrap;gap:6px}
-.case-services i{font:600 12px/1 var(--body);font-style:normal;border:1px solid var(--line);border-radius:999px;padding:6px 9px}
-.spark{width:100%;height:56px;display:block}
-.cases-note{margin-top:20px;font-size:13px;color:var(--muted)}
-
-/* ── Método ── */
-.method{background:var(--paper);border-radius:32px;padding:clamp(28px,5vw,64px)}
-.method-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:32px;align-items:end;margin-bottom:44px}
-.method-head h2{font-size:clamp(36px,5.6vw,72px);font-weight:900}
-.method-head p{font-size:18px;color:var(--ink-2)}
-@media (max-width:820px){.method-head{grid-template-columns:1fr;gap:16px}}
-.track{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
-.track-line{position:absolute;left:0;right:0;top:27px;height:4px;background:var(--bg);border-radius:4px;overflow:hidden}
-.track-line i{display:block;height:100%;width:var(--p,0%);background:var(--lime);box-shadow:0 0 0 1px rgba(0,0,0,.15) inset;transition:width .2s linear}
-.step{position:relative;display:flex;flex-direction:column;gap:12px;min-width:0}
-.step-dot{width:58px;height:58px;border-radius:50%;background:var(--paper);box-shadow:0 0 0 1.5px var(--ink) inset;display:grid;place-items:center;font:900 15px/1 var(--mono);position:relative;z-index:1;transition:background .3s}
-.step.on .step-dot{background:var(--lime)}
-.step h3{font-size:20px;font-weight:900;letter-spacing:-.03em}
-.step p{font-size:14px;color:var(--ink-2);line-height:1.5}
-.step .who{font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.step.you .step-dot{background:var(--bg);box-shadow:0 0 0 1.5px var(--line) inset;color:var(--muted)}
-@media (max-width:980px){
-  .track{grid-template-columns:1fr;gap:22px}
-  .track-line{left:27px;right:auto;top:0;bottom:0;width:4px;height:auto}
-  .track-line i{width:100%;height:var(--p,0%)}
-  .step{flex-direction:row;align-items:flex-start;gap:18px}
-  .step-dot{flex:none}
+/* ── Inicio · hero ── */
+.hero{padding-top:clamp(28px,4vw,56px)}
+.hero-in{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(24px,4vw,56px);align-items:stretch}
+.hero-copy{display:flex;flex-direction:column;justify-content:center;padding-block:clamp(16px,3vw,40px) clamp(32px,5vw,72px)}
+.hero h1{font-size:clamp(52px,8.6vw,128px);letter-spacing:-.058em;line-height:.9;font-weight:850}
+.hero h1 span{display:block;animation:rise .9s cubic-bezier(.2,.7,.1,1) both}
+.hero h1 span:nth-child(2){animation-delay:.08s}
+.hero h1 span:nth-child(3){animation-delay:.16s}
+@keyframes rise{from{transform:translateY(.35em);opacity:0}to{transform:none;opacity:1}}
+.hero-sub{margin-top:32px;font-size:var(--t-md);line-height:1.45;color:var(--ink-2);max-width:40ch}
+.hero-cta{margin-top:36px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.wall{position:relative;height:min(78vh,720px);min-height:520px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent)}
+.col{display:flex;flex-direction:column;gap:12px;animation:feed 46s linear infinite}
+.col:nth-child(2){animation-duration:58s;animation-direction:reverse;margin-top:-80px}
+.col:nth-child(3){animation-duration:40s;margin-top:-30px}
+.wall:hover .col{animation-play-state:paused}
+@keyframes feed{to{transform:translateY(-50%)}}
+@media (max-width:900px){
+  .hero-in{grid-template-columns:1fr}
+  .wall{height:440px;min-height:0}
 }
-.forget{margin-top:40px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;background:var(--bg);border-radius:20px;padding:22px 24px}
-.forget p{font:900 clamp(22px,3vw,32px)/1.1 var(--display);letter-spacing:-.035em}
+@media (max-width:520px){.wall{grid-template-columns:repeat(2,minmax(0,1fr))}.col:nth-child(3){display:none}}
+
+/* Portada de reel: el elemento firma */
+.reel{position:relative;aspect-ratio:9/16;max-width:100%;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:14px;background:var(--white);color:var(--ink);isolation:isolate}
+.reel.l{background:var(--lime)}
+.reel.g{background:var(--plate)}
+.reel .rt{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600}
+.reel .rt svg{width:14px;height:14px;display:block}
+.reel .big{font-size:clamp(34px,3.6vw,54px);font-weight:900;letter-spacing:-.06em;line-height:.88;white-space:nowrap}
+.wall .reel .big{font-size:clamp(28px,2.6vw,42px)}
+@media (max-width:900px){.wall .reel .big{font-size:clamp(28px,8vw,40px)}}
+.reel .big small{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em;margin-top:8px;line-height:1.25}
+.reel .rb{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.reel .rb i{width:16px;height:16px;border-radius:50%;background:var(--ink);opacity:.85;flex:none}
+a.reel{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+a.reel:hover{transform:translateY(-4px)}
+
+/* ── Inicio · confianza ── */
+.trust{padding-block:clamp(40px,5vw,64px);border-block:1px solid var(--hair)}
+.trust-in{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,9fr);gap:28px;align-items:start}
+.trust p.kicker{max-width:22ch;color:var(--ink)}
+.names{display:flex;flex-wrap:wrap;gap:6px 30px;margin:0;padding:0;list-style:none}
+.names li{font-size:clamp(19px,1.8vw,24px);font-weight:600;letter-spacing:-.025em;color:var(--ink-3);transition:color .2s}
+.names li:hover{color:var(--ink)}
+@media (max-width:760px){.trust-in{grid-template-columns:1fr;gap:16px}}
+
+/* ── Inicio · declaración ── */
+.statement p.say{font-size:clamp(30px,4.2vw,58px);font-weight:300;letter-spacing:-.035em;line-height:1.08;max-width:22ch}
+.statement p.say span{color:var(--ink-3)}
+.facts{margin-top:clamp(40px,6vw,80px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--hair)}
+.facts div{padding:24px 24px 0 0}
+.facts div + div{padding-left:24px;border-left:1px solid var(--hair)}
+.facts b{display:block;font-size:var(--t-lg);font-weight:800;letter-spacing:-.04em}
+.facts span{display:block;margin-top:6px;font-size:15px;color:var(--ink-2);max-width:28ch}
+@media (max-width:760px){.facts{grid-template-columns:1fr}.facts div + div{padding-left:0;border-left:0;border-top:1px solid var(--hair)}.facts div{padding:20px 0}}
+
+/* ── Casos (filas destacadas) ── */
+.feat{border-top:1px solid var(--hair)}
+.feat a{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,5fr) minmax(0,4fr);gap:clamp(16px,3vw,48px);align-items:center;padding-block:clamp(24px,3vw,40px);border-bottom:1px solid var(--hair)}
+.feat .reel{max-width:180px}
+.feat .reel .big{font-size:clamp(30px,3vw,44px)}
+.feat h3{font-size:var(--t-lg)}
+.feat p{margin-top:10px;color:var(--ink-2);max-width:40ch}
+.feat .go{margin-top:16px;display:inline-block;font-weight:600;font-size:15px;border-bottom:1.5px solid var(--ink)}
+.feat a:hover .go{border-color:var(--lime)}
+.spark{width:100%;height:auto;display:block}
+@media (max-width:820px){.feat a{grid-template-columns:120px minmax(0,1fr)}.feat .spark-wrap{grid-column:1/-1}}
+
+/* ── Proceso corto ── */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,28px);margin-top:48px}
+.steps div{border-top:2px solid var(--ink);padding-top:18px}
+.steps b{display:block;font-size:var(--t-md);font-weight:750;letter-spacing:-.02em}
+.steps span{display:block;margin-top:8px;color:var(--ink-2);font-size:15.5px}
+.steps em{font-style:normal;font-size:var(--t-sm);font-weight:600;color:var(--ink-3)}
+.forget{margin-top:clamp(40px,5vw,64px);font-size:var(--t-xl);font-weight:800;letter-spacing:-.045em}
+@media (max-width:820px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.steps{grid-template-columns:1fr}}
+
+/* Lista de servicios */
+.svc-rows{border-top:1px solid var(--hair)}
+.svc-rows a{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr) auto;gap:24px;align-items:baseline;padding-block:26px;border-bottom:1px solid var(--hair);transition:padding .35s cubic-bezier(.2,.7,.2,1)}
+.svc-rows a:hover{padding-left:12px}
+.svc-rows b{font-size:var(--t-lg);font-weight:750;letter-spacing:-.035em}
+.svc-rows span{color:var(--ink-2)}
+.svc-rows i{font-style:normal;font-weight:600;font-size:15px;opacity:0;transition:opacity .2s}
+.svc-rows a:hover i{opacity:1}
+@media (max-width:760px){.svc-rows a{grid-template-columns:1fr;gap:6px}.svc-rows i{display:none}}
+
+/* Banda final */
+.band{background:var(--lime)}
+.band-in{padding-block:clamp(64px,9vw,128px);display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:32px;align-items:end}
+.band h2{font-size:clamp(44px,7vw,104px);letter-spacing:-.055em;line-height:.92}
+.band p{font-size:var(--t-md);line-height:1.45;margin-bottom:24px}
+.band .btn-primary{background:var(--ink);color:var(--lime)}
+.band .btn-primary:hover{background:#000}
+@media (max-width:820px){.band-in{grid-template-columns:1fr}}
+
+/* ── Resultados ── */
+.cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(28px,3vw,40px) clamp(16px,2vw,28px)}
+.case-card{display:flex;flex-direction:column;gap:16px}
+.case-card .cover{aspect-ratio:4/5;max-width:100%;border-radius:20px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;background:var(--white);transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.case-card .cover.l{background:var(--lime)}
+.case-card .cover.g{background:var(--plate)}
+.case-card:hover .cover{transform:translateY(-6px)}
+.case-card .cover .top-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:600}
+.case-card .cover b{font-size:clamp(64px,7vw,104px);font-weight:900;letter-spacing:-.065em;line-height:.85}
+.case-card .cover span.lab{display:block;margin-top:12px;font-size:15px;font-weight:600;max-width:20ch;line-height:1.3}
+.case-card h3{font-size:var(--t-md);letter-spacing:-.02em}
+.case-card p{color:var(--ink-2);font-size:15.5px;margin-top:4px}
+@media (max-width:960px){.cases{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.cases{grid-template-columns:1fr}}
+.source{margin-top:40px;font-size:var(--t-sm);color:var(--ink-3);max-width:70ch}
+
+/* ── Caso (detalle) ── */
+.case-hero{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(24px,4vw,64px);align-items:end}
+.case-hero h1{font-size:var(--t-2xl);letter-spacing:-.055em;line-height:.92}
+.case-hero .claim{margin-top:24px;font-size:clamp(24px,2.6vw,36px);font-weight:300;letter-spacing:-.03em;line-height:1.15;max-width:22ch}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:10px 24px;font-size:15px;border-top:1px solid var(--hair);padding-top:18px;margin:0}
+.meta dt{color:var(--ink-3)}
+.meta dd{margin:0;font-weight:550}
+@media (max-width:860px){.case-hero{grid-template-columns:1fr}}
+.story3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,48px)}
+.story3 h3{font-size:var(--t-md);letter-spacing:-.02em;padding-top:16px;border-top:2px solid var(--ink)}
+.story3 p{margin-top:12px;color:var(--ink-2)}
+@media (max-width:820px){.story3{grid-template-columns:1fr}}
+.chart-box{background:var(--white);border-radius:24px;padding:clamp(20px,3vw,36px)}
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;align-items:baseline;margin-bottom:20px}
+.chart-head h3{font-size:var(--t-md);letter-spacing:-.02em}
+.legend{display:flex;gap:18px;font-size:var(--t-sm);color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:18px;height:3px;background:var(--ink);border-radius:2px}
+.legend i.tt{background:repeating-linear-gradient(90deg,var(--ink-3) 0 5px,transparent 5px 9px)}
+.chart{width:100%;height:340px}
+.chart svg{display:block}
+.chart-note{margin-top:14px;font-size:13px;color:var(--ink-3)}
+.tops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2vw,24px);max-width:760px}
+.tops .reel .big{font-size:clamp(26px,3.4vw,48px)}
+.tops figcaption{margin-top:10px;font-size:14px;color:var(--ink-2)}
+.tops figure{margin:0}
+.next{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:end;padding-block:clamp(40px,6vw,72px);border-top:1px solid var(--hair)}
+.next span{font-size:var(--t-sm);color:var(--ink-2)}
+.next b{display:block;font-size:var(--t-xl);letter-spacing:-.045em;transition:color .2s}
+.next a:hover b{color:var(--ink-2)}
 
 /* ── Servicios ── */
-.svc{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
-@media (max-width:900px){.svc{grid-template-columns:1fr}}
-.svc-list{display:grid;gap:8px;align-content:start}
-.svc-tab{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:var(--paper);border-radius:16px;padding:18px 20px;transition:background .2s,box-shadow .2s}
-.svc-tab:hover{box-shadow:0 0 0 1.5px var(--line) inset}
-.svc-tab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.svc-tab[aria-selected="true"]{background:var(--lime);box-shadow:0 0 0 1.5px var(--ink) inset}
-.svc-tab .ico{width:40px;height:40px;border-radius:12px;background:var(--bg);display:grid;place-items:center}
-.svc-tab[aria-selected="true"] .ico{background:rgba(255,255,255,.6)}
-.svc-tab b{font:900 18px/1.15 var(--display);letter-spacing:-.025em;display:block}
-.svc-tab small{font-size:13px;color:var(--ink-2);display:block;margin-top:3px}
-.svc-tab .plus{font:900 20px/1 var(--display);transition:transform .2s}
-.svc-tab[aria-selected="true"] .plus{transform:rotate(45deg)}
-.svc-panel{background:var(--paper);border-radius:24px;padding:clamp(24px,4vw,40px);display:flex;flex-direction:column;gap:20px;min-height:100%}
-.svc-panel h3{font-size:clamp(28px,3.4vw,40px);font-weight:900}
-.svc-panel > p{font-size:17px;color:var(--ink-2)}
-.svc-panel ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:560px){.svc-panel ul{grid-template-columns:1fr}}
-.svc-panel li{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:600;display:flex;gap:10px;align-items:flex-start}
-.svc-panel li::before{content:"✓";font-weight:900;flex:none;width:20px;height:20px;border-radius:6px;background:var(--lime);display:grid;place-items:center;font-size:12px;margin-top:1px}
-.svc-panel .for{margin-top:auto;border-top:1px solid var(--line);padding-top:18px;font-size:14px;color:var(--ink-2)}
-.svc-panel .for b{color:var(--ink)}
+.service{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,72px);padding-block:clamp(48px,7vw,96px);border-top:1px solid var(--hair)}
+.service h2{font-size:var(--t-xl);letter-spacing:-.045em}
+.service .for{margin-top:20px;color:var(--ink-2);max-width:34ch}
+.service .lead{font-size:var(--t-md);line-height:1.45;max-width:46ch}
+.incl{margin:28px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:0 28px;list-style:none;padding:0}
+.incl li{padding:14px 0;border-bottom:1px solid var(--hair);font-weight:500;display:flex;gap:12px}
+.incl li::before{content:"";flex:none;width:8px;height:8px;margin-top:9px;border-radius:2px;background:var(--lime);box-shadow:0 0 0 1px rgba(26,26,26,.25)}
+.service .ex{margin-top:28px;font-size:15px;color:var(--ink-2)}
+@media (max-width:860px){.service{grid-template-columns:1fr}.incl{grid-template-columns:1fr}}
 
-/* ── Como si fuera nuestro ── */
-.ours{padding-block:clamp(40px,6vw,72px)}
-.ours-in{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:center}
-.ours h2{font-size:clamp(40px,7vw,96px);font-weight:900;letter-spacing:-.055em;line-height:.92;text-transform:uppercase}
-.ours-pts{display:grid;gap:12px}
-.ours-pts div{background:var(--paper);border-radius:16px;padding:18px 20px}
-.ours-pts b{display:block;font:900 18px/1.2 var(--display);letter-spacing:-.02em;margin-bottom:4px}
-.ours-pts p{font-size:14.5px;color:var(--ink-2)}
-@media (max-width:860px){.ours-in{grid-template-columns:1fr}}
+/* ── Método ── */
+.cycle{border-top:1px solid var(--hair)}
+.phase,.phase-head{display:grid;grid-template-columns:72px minmax(0,4fr) minmax(0,5fr) minmax(0,3fr);gap:clamp(16px,2.4vw,36px)}
+.phase{padding-block:clamp(28px,3.4vw,44px);border-bottom:1px solid var(--hair);align-items:start}
+.phase .n{font-size:var(--t-lg);font-weight:300;letter-spacing:-.03em;color:var(--ink-3);line-height:1}
+.phase h3{font-size:var(--t-lg);letter-spacing:-.035em}
+.phase .when{display:block;margin-top:8px;font-size:var(--t-sm);font-weight:600;color:var(--ink-2)}
+.phase p{color:var(--ink-2)}
+.phase .you{font-size:15px;padding-left:16px;border-left:3px solid var(--lime)}
+.phase .you b{display:block;font-size:var(--t-sm);margin-bottom:4px;color:var(--ink)}
+.phase-head{font-size:var(--t-sm);font-weight:600;color:var(--ink-3);padding-bottom:12px}
+@media (max-width:900px){.phase,.phase-head{grid-template-columns:48px minmax(0,1fr)}.phase p,.phase .you{grid-column:2}.phase-head span:nth-child(n+3){display:none}}
 
-/* ── Historia ── */
-.story{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,5vw,72px)}
-@media (max-width:900px){.story{grid-template-columns:1fr}}
-.story-intro h2{font-size:clamp(36px,5.6vw,72px);font-weight:900}
-.story-intro p{margin-top:20px;font-size:18px;color:var(--ink-2)}
-.story-intro p + p{margin-top:14px}
-.story-intro .quote{margin-top:28px;font:900 24px/1.2 var(--display);letter-spacing:-.03em;border-left:6px solid var(--lime);padding-left:18px}
-.timeline{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.timeline li{background:var(--paper);border-radius:18px;padding:20px 22px;display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px}
-@media (max-width:520px){.timeline li{grid-template-columns:1fr;gap:6px}}
-.timeline time{font:700 12px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:4px}
-.timeline h3{font-size:20px;font-weight:900;letter-spacing:-.025em}
-.timeline p{font-size:14.5px;color:var(--ink-2);margin-top:6px}
-.timeline .nums{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.timeline .nums span{font:700 12px/1 var(--mono);background:var(--bg);padding:7px 9px;border-radius:7px}
-.timeline .nums span b{font-weight:700;background:var(--lime);padding:2px 4px;border-radius:4px;margin-right:4px}
-.timeline li.now{box-shadow:0 0 0 1.5px var(--ink) inset;background:var(--lime-soft)}
+/* ── Nosotros ── */
+.story{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,5vw,80px)}
+.story .txt p + p{margin-top:18px}
+.story .txt p{font-size:var(--t-md);line-height:1.5;color:var(--ink-2);max-width:42ch}
+.story .txt p.first{color:var(--ink)}
+.tl{list-style:none;margin:0;padding:0;border-top:1px solid var(--hair)}
+.tl li{display:grid;grid-template-columns:140px minmax(0,1fr);gap:24px;padding-block:22px;border-bottom:1px solid var(--hair)}
+.tl time{font-size:var(--t-sm);font-weight:600;color:var(--ink-3);padding-top:4px}
+.tl h3{font-size:var(--t-md);letter-spacing:-.02em}
+.tl p{margin-top:6px;color:var(--ink-2);font-size:15.5px}
+.tl .figs{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 20px;font-size:15px}
+.tl .figs b{font-weight:800}
+@media (max-width:860px){.story{grid-template-columns:1fr}}
+@media (max-width:520px){.tl li{grid-template-columns:1fr;gap:4px}}
+.founders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2.4vw,32px)}
+.person .ph{aspect-ratio:4/5;max-width:100%;border-radius:20px;background:var(--plate);position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:16px}
+.person .ph span{font-size:13px;font-weight:500;color:var(--ink-2);position:relative}
+.person .ph em{position:absolute;right:-.04em;top:-.14em;font-style:normal;font-size:clamp(160px,22vw,300px);font-weight:900;letter-spacing:-.08em;line-height:1;color:rgba(26,26,26,.06)}
+.person h3{margin-top:18px;font-size:var(--t-lg);letter-spacing:-.035em}
+.person .role{margin-top:4px;font-size:15px;font-weight:600;color:var(--ink-2)}
+.person p.bio{margin-top:12px;color:var(--ink-2);max-width:44ch}
+.person .ig{display:inline-block;margin-top:14px;font-size:15px}
+@media (max-width:700px){.founders{grid-template-columns:1fr}}
+.crew{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.crew .ph{aspect-ratio:1;max-width:100%;border-radius:16px;background:var(--plate)}
+.crew b{display:block;margin-top:12px;font-weight:650}
+.crew span{font-size:14px;color:var(--ink-2)}
+@media (max-width:820px){.crew{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,48px)}
+.values h3{font-size:var(--t-md);letter-spacing:-.02em;padding-top:16px;border-top:2px solid var(--ink)}
+.values p{margin-top:10px;color:var(--ink-2)}
+@media (max-width:820px){.values{grid-template-columns:1fr}}
+.big-quote{font-size:clamp(40px,6.4vw,92px);font-weight:850;letter-spacing:-.055em;line-height:.95;max-width:16ch}
 
-/* ── Equipo ── */
-.team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media (max-width:760px){.team{grid-template-columns:1fr}}
-.founder{background:var(--paper);border-radius:24px;padding:16px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px}
-@media (max-width:520px){.founder{grid-template-columns:1fr}}
-.ph{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;max-width:100%;background:
-  repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 10px,transparent 10px 20px),var(--bg);display:flex;align-items:flex-end}
-.ph span{font:700 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px}
-.ph .ini{position:absolute;inset:0;display:grid;place-items:center;font:900 84px/1 var(--display);letter-spacing:-.06em;color:rgba(0,0,0,.09)}
-.founder-body{display:flex;flex-direction:column;gap:10px;padding:8px 4px}
-.founder-body .role{font:700 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.founder-body h3{font-size:30px;font-weight:900}
-.founder-body p{font-size:14.5px;color:var(--ink-2)}
-.founder-body .ig{margin-top:auto;font:700 13px/1 var(--mono);text-decoration:none;display:inline-flex;gap:8px;align-items:center}
-.founder-body .ig b{background:var(--lime);padding:5px 7px;border-radius:6px}
-.crew{margin-top:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:860px){.crew{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.crew div{background:var(--paper);border-radius:18px;padding:10px}
-.crew .ph{aspect-ratio:1}
-.crew b{display:block;font:800 15px/1.2 var(--body);margin:12px 4px 2px}
-.crew small{display:block;font-size:13px;color:var(--muted);margin:0 4px 6px}
-
-/* ── Testimonios ── */
-.testi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-@media (max-width:960px){.testi{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.tv{position:relative;aspect-ratio:9/16;max-width:100%;border-radius:20px;overflow:hidden;background:linear-gradient(170deg,#d9d9d9,#bdbdbd);display:flex;flex-direction:column;justify-content:space-between;padding:16px;color:var(--ink);text-decoration:none;transition:transform .25s}
-.tv:nth-child(2){background:linear-gradient(170deg,#e4e0d6,#c9c0ad)}
-.tv:nth-child(3){background:linear-gradient(170deg,#dde3e6,#b9c4c9)}
-.tv:nth-child(4){background:linear-gradient(170deg,#e6dcd8,#c7b4ad)}
-.tv:hover{transform:translateY(-4px) rotate(-.6deg)}
-.tv .lbl{font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;background:var(--paper);align-self:flex-start;padding:6px 8px;border-radius:6px}
-.tv .play{align-self:center;width:64px;height:64px;border-radius:50%;background:var(--lime);display:grid;place-items:center;box-shadow:0 0 0 1.5px var(--ink) inset;transition:transform .2s}
-.tv:hover .play{transform:scale(1.08)}
-.tv .q{font:900 17px/1.15 var(--display);letter-spacing:-.02em}
-.tv .who{font-size:12.5px;font-weight:600;margin-top:6px;color:var(--ink-2)}
-.quotes{margin-top:16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-@media (max-width:860px){.quotes{grid-template-columns:1fr}}
-.quotes figure{margin:0;background:var(--paper);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px}
-.quotes blockquote{margin:0;font:700 17px/1.4 var(--body);letter-spacing:-.01em}
-.quotes figcaption{font-size:13px;color:var(--muted);margin-top:auto}
-.pending{display:inline-block;font:700 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px dashed rgba(0,0,0,.25);padding:5px 7px;border-radius:6px}
-
-/* ── Formulario ── */
-.fit{background:var(--paper);border-radius:32px;padding:clamp(24px,5vw,56px);display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,64px)}
-@media (max-width:900px){.fit{grid-template-columns:1fr}}
-.fit-intro h2{font-size:clamp(36px,5vw,64px);font-weight:900}
-.fit-intro p{margin-top:18px;font-size:17px;color:var(--ink-2)}
-.fit-intro ul{margin:24px 0 0;padding:0;list-style:none;display:grid;gap:10px}
-.fit-intro li{display:flex;gap:12px;font-size:15px;font-weight:600}
-.fit-intro li span{flex:none;width:26px;height:26px;border-radius:8px;background:var(--bg);display:grid;place-items:center;font:700 12px/1 var(--mono)}
-.form{display:flex;flex-direction:column;gap:22px;min-width:0}
-.prog{display:flex;align-items:center;gap:14px}
-.prog-bar{flex:1;height:8px;border-radius:8px;background:var(--bg);overflow:hidden}
-.prog-bar i{display:block;height:100%;width:0;background:var(--lime);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset;transition:width .35s ease}
-.prog span{font:700 12px/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-.q{display:none;flex-direction:column;gap:16px;animation:qin .35s ease}
-.q.active{display:flex}
-@keyframes qin{from{transform:translateX(16px)}to{transform:none}}
-.q legend,.q .qt{font:900 clamp(22px,2.6vw,30px)/1.12 var(--display);letter-spacing:-.03em;padding:0}
-.q .hint{font-size:14px;color:var(--muted);margin-top:-6px}
-fieldset{border:0;margin:0;padding:0;min-width:0}
-.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-@media (max-width:520px){.opts{grid-template-columns:1fr}}
-.opt{position:relative}
-.opt input{position:absolute;opacity:0;pointer-events:none}
-.opt label{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:14px;padding:15px 16px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 0 0 1.5px transparent inset;transition:box-shadow .15s,background .15s;min-height:56px}
-.opt label:hover{box-shadow:0 0 0 1.5px var(--line) inset}
-.opt label small{display:block;font-weight:500;font-size:12.5px;color:var(--muted);margin-top:2px}
-.opt label::before{content:"";flex:none;width:20px;height:20px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(0,0,0,.35) inset;background:var(--paper)}
-.opt input[type=checkbox] + label::before{border-radius:6px}
-.opt input:checked + label{background:var(--lime);box-shadow:0 0 0 1.5px var(--ink) inset}
-.opt input:checked + label::before{background:var(--ink);box-shadow:0 0 0 4px var(--paper) inset,0 0 0 1.5px var(--ink) inset}
-.opt input:focus-visible + label{outline:3px solid var(--ink);outline-offset:2px}
-.field{display:flex;flex-direction:column;gap:7px}
-.field label{font-size:13px;font-weight:700}
-.field input,.field textarea,.field select{font:500 16px/1.4 var(--body);background:var(--bg);border:0;border-radius:12px;padding:14px 16px;color:var(--ink);box-shadow:0 0 0 1.5px transparent inset;width:100%}
-.field textarea{min-height:120px;resize:vertical}
-.field input:focus,.field textarea:focus,.field select:focus{outline:none;box-shadow:0 0 0 1.5px var(--ink) inset;background:var(--paper)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:520px){.grid2{grid-template-columns:1fr}}
-.err{font-size:13px;font-weight:600;color:#9A2A1A;min-height:1em}
-.nav-q{display:flex;justify-content:space-between;gap:12px;align-items:center}
-.back{all:unset;cursor:pointer;font-weight:700;font-size:14px;color:var(--muted);padding:10px 4px}
-.back:hover{color:var(--ink)}
-.back:focus-visible{outline:3px solid var(--ink);outline-offset:2px;border-radius:6px}
-.result{display:none;flex-direction:column;gap:16px;animation:qin .35s ease}
-.result.show{display:flex}
-.result .badge{align-self:flex-start;font:700 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:7px 9px;border-radius:7px;background:var(--lime);box-shadow:0 0 0 1px var(--ink) inset}
-.result.no .badge{background:var(--bg);box-shadow:none}
-.result h3{font-size:clamp(28px,3.2vw,40px);font-weight:900}
-.result p{font-size:16px;color:var(--ink-2)}
-.summary{background:var(--bg);border-radius:14px;padding:14px 16px;font-size:13.5px;display:grid;gap:4px}
-.summary div{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
-.summary span{color:var(--muted)}
+/* ── Opiniones ── */
+.videos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,2vw,24px)}
+.video{display:flex;flex-direction:column;gap:12px}
+.video .frame{aspect-ratio:9/16;max-width:100%;border-radius:18px;background:var(--plate);position:relative;display:grid;place-items:center}
+.video .play{width:64px;height:64px;border-radius:50%;background:var(--lime);display:grid;place-items:center}
+.video .play svg{width:20px;height:20px;margin-left:3px}
+.video .state{position:absolute;left:14px;bottom:14px;font-size:12px;font-weight:600;color:var(--ink-2);background:rgba(255,255,255,.7);padding:5px 9px;border-radius:999px}
+.video b{font-weight:650;line-height:1.3}
+.video span.who{font-size:14px;color:var(--ink-2)}
+@media (max-width:900px){.videos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.wordmarks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--hair);border-left:1px solid var(--hair);padding:0;margin:0}
+.wordmarks li{list-style:none;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:clamp(24px,3vw,40px) 20px;font-size:clamp(18px,1.8vw,24px);font-weight:700;letter-spacing:-.03em;display:flex;align-items:center;min-height:120px;transition:background .25s}
+.wordmarks li:hover{background:var(--paper)}
+@media (max-width:700px){.wordmarks{grid-template-columns:repeat(2,minmax(0,1fr))}.wordmarks li{min-height:96px;font-size:17px}}
 
 /* ── FAQ ── */
-.faq{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:clamp(24px,5vw,64px)}
-@media (max-width:860px){.faq{grid-template-columns:1fr}}
-.faq h2{font-size:clamp(36px,5.6vw,72px);font-weight:900}
-.faq-intro p{margin-top:18px;color:var(--ink-2);font-size:17px}
-.faq-list{display:grid;gap:8px}
-details{background:var(--paper);border-radius:16px;padding:0 22px;transition:box-shadow .2s}
-details[open]{box-shadow:0 0 0 1.5px var(--ink) inset}
-summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 0;font:800 17px/1.3 var(--body);letter-spacing:-.01em}
+.faq{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(24px,4vw,64px);padding-block:clamp(32px,4vw,56px);border-top:1px solid var(--hair)}
+.faq h2{font-size:var(--t-lg);letter-spacing:-.035em}
+details{border-bottom:1px solid var(--hair)}
+details:first-of-type{border-top:1px solid var(--hair)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:24px;align-items:center;padding:22px 0;font-size:var(--t-md);font-weight:650;letter-spacing:-.02em}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";flex:none;width:30px;height:30px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font:900 18px/1 var(--display);transition:transform .2s,background .2s}
-details[open] summary::after{transform:rotate(45deg);background:var(--lime)}
-details p{padding:0 0 20px;color:var(--ink-2);font-size:15.5px;max-width:62ch}
+summary .pm{flex:none;width:28px;height:28px;position:relative}
+summary .pm::before,summary .pm::after{content:"";position:absolute;left:6px;right:6px;top:13px;height:2px;background:var(--ink);transition:transform .3s}
+summary .pm::after{transform:rotate(90deg)}
+details[open] summary .pm::after{transform:rotate(0)}
+details .ans{padding:0 0 24px;color:var(--ink-2);max-width:60ch}
+@media (max-width:820px){.faq{grid-template-columns:1fr}}
 
-/* ── Cierre y pie ── */
-.final{padding-block:clamp(56px,8vw,96px) 40px}
-.final-card{background:var(--lime);border-radius:32px;padding:clamp(28px,6vw,72px);box-shadow:0 0 0 1.5px var(--ink) inset;display:grid;gap:28px;text-align:left}
-.final-card h2{font-size:clamp(44px,8vw,120px);font-weight:900;letter-spacing:-.06em;line-height:.9;text-transform:uppercase}
-.final-card .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.final-card p{font-size:18px;font-weight:600;max-width:44ch}
-.final-card .btn-lime{background:var(--paper)}
-footer{padding-block:28px 48px}
-.foot{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start;border-top:1px solid var(--line);padding-top:28px;font-size:14px;color:var(--ink-2)}
-.foot b{color:var(--ink)}
-.foot .cols{display:flex;flex-wrap:wrap;gap:40px}
-.foot .cols div{display:grid;gap:6px}
-.copy-mail{all:unset;cursor:pointer;font-weight:700;color:var(--ink);border-bottom:2px solid var(--lime)}
-.copy-mail:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+/* ── ¿Encajamos? ── */
+.fit{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,5vw,96px);padding-block:clamp(48px,6vw,88px) clamp(64px,8vw,120px)}
+.fit-side h1{font-size:clamp(48px,6.6vw,96px);letter-spacing:-.055em;line-height:.92}
+.fit-side p{margin-top:24px;font-size:var(--t-md);line-height:1.45;color:var(--ink-2);max-width:36ch}
+.fit-side ol{margin:32px 0 0;padding:0;list-style:none;counter-reset:s;display:grid;gap:14px;max-width:36ch}
+.fit-side li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:12px;font-weight:500}
+.fit-side li::before{content:counter(s);font-weight:300;color:var(--ink-3);font-size:20px;line-height:1.2}
+@media (max-width:900px){.fit{grid-template-columns:1fr}}
+.qform{background:var(--white);border-radius:28px;padding:clamp(24px,4vw,56px);min-height:560px;display:flex;flex-direction:column;min-width:0}
+.qbar{height:3px;background:var(--panel);border-radius:3px;overflow:hidden}
+.qbar i{display:block;height:100%;width:0;background:var(--ink);transition:width .45s cubic-bezier(.2,.7,.2,1)}
+.qcount{margin-top:14px;font-size:var(--t-sm);font-weight:600;color:var(--ink-3)}
+.q{display:none;flex-direction:column;gap:22px;margin:28px 0 0;flex:1;border:0;padding:0;min-width:0}
+.q.on{display:flex;animation:qIn .4s cubic-bezier(.2,.7,.2,1)}
+@keyframes qIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.q legend{font-size:clamp(26px,3vw,38px);font-weight:800;letter-spacing:-.04em;line-height:1.08;padding:0;float:left;width:100%}
+.q .hint{color:var(--ink-2);margin-top:-10px;clear:both}
+.choices{display:grid;gap:10px;clear:both}
+.choices.two{grid-template-columns:1fr 1fr}
+@media (max-width:560px){.choices.two{grid-template-columns:1fr}}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice label{display:flex;align-items:center;gap:14px;min-height:58px;padding:12px 16px;border-radius:14px;background:var(--paper);cursor:pointer;font-weight:550;transition:background .15s,box-shadow .15s}
+.choice label:hover{box-shadow:inset 0 0 0 1.5px var(--hair)}
+.choice label kbd{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:600 12px/1 var(--f);background:var(--white);box-shadow:inset 0 0 0 1px var(--hair);color:var(--ink-2)}
+.choice label small{display:block;font-weight:400;font-size:13.5px;color:var(--ink-2);margin-top:1px}
+.choice input:checked + label{background:var(--lime)}
+.choice input:checked + label kbd{background:var(--ink);color:var(--lime);box-shadow:none}
+.choice input:focus-visible + label{outline:2px solid var(--ink);outline-offset:2px}
+.field{display:grid;gap:8px}
+.field label{font-size:var(--t-sm);font-weight:600}
+.field input,.field textarea,.field select{width:100%;font:500 17px/1.4 var(--f);color:var(--ink);background:var(--paper);border:0;border-radius:12px;padding:15px 16px;box-shadow:inset 0 0 0 1.5px transparent;transition:box-shadow .15s,background .15s}
+.field textarea{min-height:140px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;background:var(--white);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.pair{grid-template-columns:1fr}}
+.qfoot{margin-top:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.qfoot .tip{font-size:13px;color:var(--ink-3)}
+@media (hover:none){.qfoot .tip{display:none}}
+.qback{background:none;border:0;cursor:pointer;font-weight:600;color:var(--ink-2);padding:10px 0;margin-right:auto}
+.qback:hover{color:var(--ink)}
+.qfoot .btn{margin-left:auto}
+.qerr{color:#A12B17;font-size:15px;font-weight:550;min-height:1.4em;margin-top:14px}
+.qres{display:none;flex-direction:column;gap:18px;justify-content:center;flex:1}
+.qres.on{display:flex;animation:qIn .4s cubic-bezier(.2,.7,.2,1)}
+.qres h2{font-size:clamp(34px,4vw,54px);letter-spacing:-.05em}
+.qres p{font-size:var(--t-md);line-height:1.5;color:var(--ink-2);max-width:42ch}
+.qres .seal{align-self:flex-start;background:var(--lime);font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px}
+.qres.no .seal{background:var(--panel)}
+.recap{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;font-size:15px;padding-top:16px;border-top:1px solid var(--hair);margin:0}
+.recap dt{color:var(--ink-3)}
+.recap dd{margin:0;font-weight:550}
 
-/* Animaciones de entrada: solo desplazamiento, el contenido siempre se ve */
-.rise{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
-.rise.pre{transform:translateY(28px)}
+/* ── Pie ── */
+footer{background:var(--panel)}
+.foot{padding-block:clamp(56px,8vw,104px) calc(32px + env(safe-area-inset-bottom,0px))}
+.foot-top{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:32px;align-items:end}
+.foot-top h2{font-size:clamp(40px,6vw,88px);letter-spacing:-.055em;line-height:.92}
+.foot-top .mail{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.copy{background:none;border:0;padding:0;cursor:pointer;font-size:var(--t-lg);font-weight:750;letter-spacing:-.035em;border-bottom:3px solid var(--lime);overflow-wrap:anywhere;text-align:left}
+.copy-msg{font-size:var(--t-sm);color:var(--ink-2);min-height:1.4em}
+.foot-bottom{margin-top:clamp(48px,7vw,96px);padding-top:24px;border-top:1px solid var(--hair);display:flex;flex-wrap:wrap;gap:20px 40px;justify-content:space-between;font-size:15px;color:var(--ink-2)}
+.foot-bottom nav{display:flex;flex-wrap:wrap;gap:8px 24px}
+.foot-bottom a:hover{color:var(--ink)}
+@media (max-width:820px){.foot-top{grid-template-columns:1fr}}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
-  html{scroll-behavior:auto}
 }
 </style>
 
-<header class="nav" id="nav">
-  <div class="wrap">
-    <a class="logo" href="#inicio" aria-label="21DAYS, ir al inicio">
-      <svg viewBox="0 0 320 320" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round" aria-hidden="true"><path d="M92 170 C 86 116, 110 76, 146 76 C 176 76, 191 100, 188 128 C 184 168, 146 191, 92 197"/><path d="M92 197 L92 212 L168 212 C 203 212, 215 172, 219 120"/><path d="M222 116 L222 252"/></svg>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#inicio" aria-label="21DAYS, inicio">
+      <svg viewBox="0 0 320 320" fill="none" stroke="currentColor" stroke-width="20" stroke-linejoin="round" aria-hidden="true"><path d="M92 170 C 86 116, 110 76, 146 76 C 176 76, 191 100, 188 128 C 184 168, 146 191, 92 197"/><path d="M92 197 L92 212 L168 212 C 203 212, 215 172, 219 120"/><path d="M222 116 L222 252"/></svg>
       21DAYS
     </a>
-    <ul id="menu">
-      <li><a href="#casos">Casos de éxito</a></li>
-      <li><a href="#metodo">Método</a></li>
-      <li><a href="#servicios">Servicios</a></li>
-      <li><a href="#nosotros">Nosotros</a></li>
-      <li><a href="#clientes">Clientes</a></li>
-      <li><a href="#faq">FAQ</a></li>
+    <ul class="menu">
+      <li><a href="#resultados" data-nav="resultados">Resultados</a></li>
+      <li><a href="#servicios" data-nav="servicios">Servicios</a></li>
+      <li><a href="#metodo" data-nav="metodo">Método</a></li>
+      <li><a href="#nosotros" data-nav="nosotros">Nosotros</a></li>
+      <li><a href="#opiniones" data-nav="opiniones">Opiniones</a></li>
+      <li><a href="#faq" data-nav="faq">FAQ</a></li>
     </ul>
-    <a class="btn btn-lime" href="#encajamos">¿Encajamos? <span class="arr">→</span></a>
-    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú">☰</button>
+    <a class="btn btn-primary" href="#encajamos">¿Encajamos?</a>
+    <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="sheet"><span></span><span></span></button>
+  </div>
+  <div class="sheet" id="sheet">
+    <ul>
+      <li><a href="#inicio" data-nav="inicio">Inicio</a></li>
+      <li><a href="#resultados" data-nav="resultados">Resultados</a></li>
+      <li><a href="#servicios" data-nav="servicios">Servicios</a></li>
+      <li><a href="#metodo" data-nav="metodo">Método</a></li>
+      <li><a href="#nosotros" data-nav="nosotros">Nosotros</a></li>
+      <li><a href="#opiniones" data-nav="opiniones">Opiniones</a></li>
+      <li><a href="#faq" data-nav="faq">FAQ</a></li>
+    </ul>
+    <a class="btn btn-primary" href="#encajamos" style="align-self:flex-start;margin-top:32px">¿Encajamos?</a>
   </div>
 </header>
 
-<main id="inicio">
-  <!-- HERO -->
+<main id="main">
+
+<!-- ════════════ INICIO ════════════ -->
+<div class="page" data-page="inicio">
   <section class="hero">
-    <div class="wrap hero-grid">
+    <div class="wrap hero-in">
+      <div class="hero-copy">
+        <h1><span>Hacemos</span> <span>virales negocios</span> <span>normales.</span></h1>
+        <p class="hero-sub">Estrategia, guiones, grabación, edición y publicación para restaurantes, clínicas, gimnasios y comercios. Tú te olvidas de las redes y nosotros las convertimos en clientes.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#encajamos">Comprobar si encajamos</a>
+          <a class="link" href="#resultados">Ver resultados</a>
+        </div>
+      </div>
+      <div class="wall" id="wall" aria-label="Resultados reales de nuestros clientes"></div>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div class="wrap trust-in">
+      <p class="kicker">Más de 20 negocios trabajan con nosotros cada mes.</p>
+      <ul class="names" id="names"></ul>
+    </div>
+  </section>
+
+  <section class="block statement">
+    <div class="wrap">
+      <p class="say">Más de 30 millones de visitas orgánicas para nuestros clientes. <span>Sin un euro de publicidad detrás.</span></p>
+      <div class="facts">
+        <div><b class="num">3,36 M</b><span>visualizaciones en un solo reel de La Tremenda</span></div>
+        <div><b class="num">21 → 3.538</b><span>seguidores de MOSS en Instagram desde que empezamos</span></div>
+        <div><b class="num">+20</b><span>negocios del Maresme y Barcelona cada mes</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" style="padding-top:0">
+    <div class="wrap">
+      <div class="grid" style="align-items:end;margin-bottom:40px">
+        <h2 class="h2" style="grid-column:1/span 7">Resultados con nombre y apellidos.</h2>
+        <p class="muted" style="grid-column:9/span 4">Datos de Metricool, desde el primer día con nosotros. <a class="link" href="#resultados">Ver los 6 casos</a></p>
+      </div>
+      <div class="feat" id="feat"></div>
+    </div>
+  </section>
+
+  <section class="block" style="background:var(--white)">
+    <div class="wrap">
+      <div class="grid" style="align-items:end">
+        <h2 class="h2" style="grid-column:1/span 7">Del primer guion al vídeo publicado, sin que muevas un dedo.</h2>
+        <p class="muted" style="grid-column:9/span 4">Cada mes repetimos el mismo ciclo para cada cliente. <a class="link" href="#metodo">Ver el método</a></p>
+      </div>
+      <div class="steps">
+        <div><em>Primero</em><b>Estrategia</b><span>Qué contar, a quién y en qué redes.</span></div>
+        <div><em>Después</em><b>Ideas y guiones</b><span>Lo que ya funciona en tu sector, adaptado a ti.</span></div>
+        <div><em>En tu negocio</em><b>Grabación</b><span>Vamos con el equipo y te guiamos en cámara.</span></div>
+        <div><em>Cada mes</em><b>Edición y publicación</b><span>Editado, con textos y programado.</span></div>
+      </div>
+      <p class="forget">Tú te olvidas.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="grid" style="align-items:end;margin-bottom:40px">
+        <h2 class="h2" style="grid-column:1/span 7">Cuatro servicios y un solo equipo.</h2>
+        <p class="muted" style="grid-column:9/span 4">La mayoría empieza por las redes y suma el resto cuando el negocio lo pide.</p>
+      </div>
+      <div class="svc-rows">
+        <a href="#servicios"><b>Gestión integral de redes</b><span>Estrategia digital, guiones, grabación, edición y publicación.</span><i>Ver</i></a>
+        <a href="#servicios"><b>Publicidad en Meta y Google</b><span>Campañas que empujan lo que ya ha funcionado en orgánico.</span><i>Ver</i></a>
+        <a href="#servicios"><b>Email marketing</b><span>Newsletters y secuencias que convierten seguidores en clientes.</span><i>Ver</i></a>
+        <a href="#servicios"><b>Automatizaciones con IA</b><span>Mensajes y captación de leads que funcionan solos.</span><i>Ver</i></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" style="padding-top:0">
+    <div class="wrap grid" style="align-items:center;row-gap:40px">
+      <p class="big-quote" style="grid-column:1/span 8">Tratamos tu negocio como si fuera el nuestro.</p>
+      <div style="grid-column:9/span 4">
+        <p class="muted">Porque antes de ser agencia hicimos crecer nuestra propia marca, DKSIDE, hasta casi 30.000 seguidores. Sabemos lo que cuesta cada cliente.</p>
+        <p style="margin-top:18px"><a class="link" href="#nosotros">Conocer nuestra historia</a></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════ RESULTADOS ════════════ -->
+<div class="page" data-page="resultados" hidden>
+  <div class="wrap page-head">
+    <h1>Seis negocios. Seis puntos de partida.</h1>
+    <p class="lede">Los clientes que más han crecido desde que trabajan con nosotros. Qué tenían, qué hicimos y qué ha pasado, con los datos de su cuenta.</p>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <div class="cases" id="cases"></div>
+    <p class="source">Seguidores y visualizaciones de Metricool, desde el alta de cada cliente hasta el 18 de octubre de 2026.</p>
+  </section>
+</div>
+
+<!-- ════════════ CASO (plantilla) ════════════ -->
+<div class="page" data-page="caso" hidden>
+  <div class="wrap page-head">
+    <a class="crumb" href="#resultados">Resultados</a>
+    <div class="case-hero">
       <div>
-        <p class="eyebrow">Agencia de contenido e IA · Mataró</p>
-        <h1 style="margin-top:22px">Hacemos <span class="mark">virales</span> negocios normales.</h1>
-        <p class="hero-sub">Pensamos la estrategia, ideamos los vídeos, venimos a grabar, editamos y te lo dejamos programado. <b>Tú te olvidas de las redes y te centras en tu negocio.</b> Y si quieres ir más allá, sumamos anuncios, email marketing y automatizaciones con IA.</p>
-        <div class="hero-ctas">
-          <a class="btn btn-lime" href="#encajamos">Comprueba si encajamos <span class="arr">→</span></a>
-          <a class="btn btn-ghost" href="#casos">Ver casos con cifras</a>
-        </div>
-        <div class="hero-proof">
-          <span class="chip"><i></i>+30M de visitas orgánicas</span>
-          <span class="chip"><i></i>+20 empresas cada mes</span>
-          <span class="chip"><i></i>0 € en anuncios para conseguirlas</span>
-        </div>
+        <h1 id="cName"></h1>
+        <p class="claim" id="cClaim"></p>
       </div>
-      <div class="phone-col" aria-hidden="true">
-        <div class="phone">
-          <div class="screen">
-            <div class="reel-top"><span>Reels</span><span>◉</span></div>
-            <div class="reel-cap">De 3.000 a<br><span>3,3 millones</span><br>de visitas</div>
-            <div class="reel-bottom"><div class="who">@latremenda_eatingclub</div><div class="what">Gancho, persona en cámara y ritmo.</div></div>
-          </div>
-        </div>
-        <div class="views"><small>Visualizaciones</small><b id="heroViews">3.357.037</b><em>un solo reel</em></div>
-        <div class="dm">«21» 💬</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- MARQUEE CLIENTES -->
-  <div class="trust" id="clientes">
-    <div class="wrap trust-row">
-      <p class="trust-label"><b>+20</b>empresas confían en nosotros mes a mes</p>
-      <div class="marquee" aria-label="Algunos de nuestros clientes">
-        <div class="marquee-track" id="marquee"></div>
-      </div>
+      <dl class="meta" id="cMeta"></dl>
     </div>
   </div>
-
-  <!-- 30M -->
-  <div class="big">
-    <div class="wrap">
-      <div class="big-card rise">
-        <div>
-          <div class="big-num"><span data-count="30" data-prefix="+">+30</span><small>M</small></div>
-          <h2>de visitas orgánicas generadas para nuestros clientes. Sin pagar publicidad.</h2>
-        </div>
-        <div class="big-side">
-          <p>Cada una de esas visitas viene de un vídeo pensado, guionizado, grabado y editado por nuestro equipo. Nada comprado.</p>
-          <div class="big-stats">
-            <div><b data-count="20" data-prefix="+">+20</b><span>negocios trabajando con nosotros cada mes</span></div>
-            <div><b>0 €</b><span>en anuncios detrás de esas visitas</span></div>
-            <div><b>3,3M</b><span>visitas en un solo reel de La Tremenda</span></div>
-            <div><b>4</b><span>servicios con un mismo equipo detrás</span></div>
-          </div>
-        </div>
-      </div>
+  <section class="wrap" style="padding-bottom:clamp(48px,7vw,96px)">
+    <div class="story3" id="cStory"></div>
+  </section>
+  <section class="wrap" style="padding-bottom:clamp(48px,7vw,96px)">
+    <div class="chart-box">
+      <div class="chart-head"><h3>Seguidores a final de cada mes</h3><div class="legend" id="cLegend"></div></div>
+      <div class="chart" id="cChart"></div>
+      <p class="chart-note" id="cNote"></p>
     </div>
+  </section>
+  <section class="wrap" style="padding-bottom:clamp(48px,7vw,96px)">
+    <h2 class="h3" style="margin-bottom:24px">Los vídeos que más funcionaron</h2>
+    <div class="tops" id="cTops"></div>
+  </section>
+  <div class="wrap"><div class="next" id="cNext"></div></div>
+</div>
+
+<!-- ════════════ SERVICIOS ════════════ -->
+<div class="page" data-page="servicios" hidden>
+  <div class="wrap page-head">
+    <h1>Lo que hacemos por tu negocio.</h1>
+    <p class="lede">Cuatro servicios que se pueden contratar por separado o juntos. Todos los lleva el mismo equipo, así que nadie te pide dos veces lo mismo.</p>
   </div>
-
-  <!-- CASOS -->
-  <section id="casos" style="padding-top:clamp(40px,6vw,72px)">
-    <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <p class="eyebrow">Casos de éxito</p>
-          <h2 style="margin-top:16px">Los 6 clientes que <span class="mark">más han crecido</span> con nosotros.</h2>
-        </div>
-        <p>Datos reales de Metricool, desde el día que empezamos a trabajar con cada uno. Qué tenía el negocio, qué hicimos y qué pasó.</p>
+  <div class="wrap">
+    <article class="service">
+      <div>
+        <h2>Gestión integral de redes</h2>
+        <p class="for">Para negocios que quieren que les conozcan y nunca tienen tiempo para las redes.</p>
       </div>
-      <div class="cases" id="cases"></div>
-      <p class="cases-note" id="casesNote"></p>
-    </div>
-  </section>
-
-  <!-- MÉTODO -->
-  <section id="metodo" style="padding-top:0">
-    <div class="wrap">
-      <div class="method rise">
-        <div class="method-head">
-          <div>
-            <p class="eyebrow">Nuestro método</p>
-            <h2 style="margin-top:16px">Tú nos das tu negocio. Nosotros, el resto.</h2>
-          </div>
-          <p>Cada mes pasa por las mismas seis fases. Las mismas que seguimos en nuestro tablero interno para cada cliente, sin saltarnos ninguna.</p>
-        </div>
-        <div class="track" id="track">
-          <div class="track-line" aria-hidden="true"><i></i></div>
-          <div class="step"><div class="step-dot">01</div><div><p class="who">Semana 1</p><h3>Estrategia</h3><p>Estudiamos tu negocio, tu competencia y a tu cliente. Decidimos qué contar, a quién y en qué redes.</p></div></div>
-          <div class="step"><div class="step-dot">02</div><div><p class="who">Cada mes</p><h3>Idear</h3><p>Buscamos lo que ya funciona en tu sector y lo convertimos en ideas y guiones hechos para ti.</p></div></div>
-          <div class="step"><div class="step-dot">03</div><div><p class="who">En tu local</p><h3>Grabar</h3><p>Venimos con el equipo. Te decimos qué decir y cómo, aunque nunca te hayas puesto delante de una cámara.</p></div></div>
-          <div class="step"><div class="step-dot">04</div><div><p class="who">Nuestro estudio</p><h3>Editar</h3><p>Ritmo, subtítulos, gancho en el primer segundo. Formato vertical para Instagram y TikTok.</p></div></div>
-          <div class="step"><div class="step-dot">05</div><div><p class="who">Automático</p><h3>Programar</h3><p>Copies escritos con tu voz y todo programado a la hora en que tu público está conectado.</p></div></div>
-          <div class="step"><div class="step-dot">06</div><div><p class="who">Día 1 de cada mes</p><h3>Report</h3><p>Te enseñamos las cifras del mes, qué ha funcionado y qué cambiamos para el siguiente.</p></div></div>
-        </div>
-        <div class="forget">
-          <p>¿Y tú? Tú te olvidas.</p>
-          <a class="btn btn-lime" href="#encajamos">Quiero olvidarme <span class="arr">→</span></a>
-        </div>
+      <div>
+        <p class="lead">Llevamos tu Instagram y tu TikTok de principio a fin. Pensamos la estrategia digital del negocio, escribimos los guiones, vamos a grabar, editamos y lo dejamos todo programado.</p>
+        <ul class="incl">
+          <li>Estrategia digital del negocio</li>
+          <li>Análisis de competencia y sector</li>
+          <li>Ideas de vídeo y guiones</li>
+          <li>Grabación en tu negocio</li>
+          <li>Edición vertical con subtítulos</li>
+          <li>Textos con tu forma de hablar</li>
+          <li>Programación y publicación</li>
+          <li>Informe mensual de resultados</li>
+        </ul>
+        <p class="ex">Lo hacemos para <a class="link" href="#caso-la-tremenda">La Tremenda</a>, <a class="link" href="#caso-moss">MOSS</a> y <a class="link" href="#caso-mims">Mim's Café Costura</a>.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- SERVICIOS -->
-  <section id="servicios" style="padding-top:0">
-    <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <p class="eyebrow">Servicios</p>
-          <h2 style="margin-top:16px">Cuatro servicios. Un solo equipo.</h2>
-        </div>
-        <p>Empieza por las redes y suma lo demás cuando tu negocio lo pida. Todo se habla con las mismas personas.</p>
+    </article>
+    <article class="service">
+      <div>
+        <h2>Publicidad en Meta y Google</h2>
+        <p class="for">Para negocios con una oferta clara que quieren llenar agenda o vender más rápido.</p>
       </div>
-      <div class="svc">
-        <div class="svc-list" role="tablist" aria-label="Servicios" id="svcList"></div>
-        <div class="svc-panel" role="tabpanel" id="svcPanel" aria-live="polite"></div>
+      <div>
+        <p class="lead">Ponemos dinero detrás de lo que ya ha demostrado que funciona en orgánico, así cada euro rinde más. Campañas por servicio en Facebook, Instagram y Google, con seguimiento semanal.</p>
+        <ul class="incl">
+          <li>Estructura de campañas por servicio</li>
+          <li>Creatividades y textos propios</li>
+          <li>Públicos y retargeting</li>
+          <li>Google Ads de búsqueda</li>
+          <li>Píxel y medición de conversiones</li>
+          <li>Optimización cada semana</li>
+        </ul>
       </div>
-    </div>
-  </section>
-
-  <!-- COMO SI FUERA NUESTRO -->
-  <div class="ours">
-    <div class="wrap ours-in">
-      <h2 class="rise">Tratamos tu negocio como si fuera <span class="mark">nuestro.</span></h2>
-      <div class="ours-pts">
-        <div><b>Porque antes fue el nuestro.</b><p>Empezamos haciendo crecer nuestra propia marca. Sabemos lo que cuesta cada euro y cada seguidor.</p></div>
-        <div><b>Hablas con quien lo hace.</b><p>Sin cuentas que pasan de mano en mano. El equipo que graba es el que te escribe.</p></div>
-        <div><b>Cifras delante, siempre.</b><p>Cada mes ves qué ha pasado con tu cuenta y qué vamos a cambiar. Sin humo.</p></div>
+    </article>
+    <article class="service">
+      <div>
+        <h2>Email marketing</h2>
+        <p class="for">Para negocios con clientes que repiten: restauración, clínicas, tiendas y gimnasios.</p>
       </div>
-    </div>
+      <div>
+        <p class="lead">Convertimos a tus seguidores y clientes en una lista que vuelve a comprar. Escribimos la secuencia una vez y trabaja para ti cada semana.</p>
+        <ul class="incl">
+          <li>Captación de contactos</li>
+          <li>Secuencia de bienvenida</li>
+          <li>Newsletter mensual</li>
+          <li>Campañas de lanzamiento</li>
+          <li>Segmentación de clientes</li>
+          <li>Informe de aperturas y ventas</li>
+        </ul>
+      </div>
+    </article>
+    <article class="service">
+      <div>
+        <h2>Automatizaciones con IA</h2>
+        <p class="for">Para negocios que reciben mensajes que nadie contesta a tiempo o pierden horas en tareas repetidas.</p>
+      </div>
+      <div>
+        <p class="lead">Montamos sistemas que trabajan mientras tú atiendes el negocio: quien comenta un vídeo recibe un mensaje al momento, un asistente responde y reserva a cualquier hora y cada contacto queda apuntado.</p>
+        <ul class="incl">
+          <li>Respuestas automáticas en Instagram</li>
+          <li>Captación de leads las 24 horas</li>
+          <li>Asistente que responde y reserva</li>
+          <li>Conexión con tu agenda o CRM</li>
+          <li>Procesos internos automatizados</li>
+          <li>Seguimiento de cada contacto</li>
+        </ul>
+      </div>
+    </article>
   </div>
+  <section class="band"><div class="wrap band-in"><h2>¿Por dónde empezamos contigo?</h2><div><p>Cuéntanos tu negocio en dos minutos y te proponemos qué tiene sentido para ti.</p><a class="btn btn-primary" href="#encajamos">Comprobar si encajamos</a></div></div></section>
+</div>
 
-  <!-- HISTORIA -->
-  <section id="nosotros">
-    <div class="wrap story">
-      <div class="story-intro">
-        <p class="eyebrow">Nuestra historia</p>
-        <h2 style="margin-top:16px">Antes de ser agencia, fuimos <span class="mark">nuestro primer cliente.</span></h2>
-        <p>Todo empezó con DKSIDE, nuestra marca de ropa. Sin presupuesto para anuncios, aprendimos a crecer solo con contenido: ideas, rodajes, edición y constancia.</p>
-        <p>Llegamos a casi 30.000 seguidores, agotamos colecciones enteras y vestimos a futbolistas como Marc Cucurella. Entonces nos empezaron a preguntar lo mismo: «¿Me lo hacéis para mi negocio?».</p>
-        <p class="quote">Así nació 21DAYS: el método que hizo crecer nuestra marca, aplicado a la tuya.</p>
+<!-- ════════════ MÉTODO ════════════ -->
+<div class="page" data-page="metodo" hidden>
+  <div class="wrap page-head">
+    <h1>Un mes trabajando con nosotros.</h1>
+    <p class="lede">Seis fases, siempre en el mismo orden. La primera solo ocurre al empezar; las otras cinco se repiten cada mes.</p>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <div class="phase-head"><span></span><span>Fase</span><span>Qué hacemos nosotros</span><span>Qué haces tú</span></div>
+    <div class="cycle">
+      <div class="phase"><span class="n">01</span><div><h3>Estrategia</h3><span class="when">Al empezar</span></div><p>Estudiamos tu negocio, tu competencia y a tu cliente. Decidimos qué contar, a quién, en qué redes y con qué objetivo medible.</p><p class="you"><b>Tú</b>Una reunión para contarnos tu negocio.</p></div>
+      <div class="phase"><span class="n">02</span><div><h3>Idear</h3><span class="when">Cada mes</span></div><p>Buscamos lo que ya funciona en tu sector y lo convertimos en ideas y guiones escritos para ti, con el gancho de los primeros segundos.</p><p class="you"><b>Tú</b>Das el visto bueno a las ideas.</p></div>
+      <div class="phase"><span class="n">03</span><div><h3>Grabar</h3><span class="when">Cada mes, en tu negocio</span></div><p>Vamos con el equipo y el material. Te decimos qué decir y cómo, aunque nunca te hayas puesto delante de una cámara.</p><p class="you"><b>Tú</b>Nos abres la puerta y sales si quieres.</p></div>
+      <div class="phase"><span class="n">04</span><div><h3>Editar</h3><span class="when">Cada mes</span></div><p>Ritmo, subtítulos y gancho en el primer segundo. Formato vertical pensado para Instagram y TikTok.</p><p class="you"><b>Tú</b>Nada.</p></div>
+      <div class="phase"><span class="n">05</span><div><h3>Programar</h3><span class="when">Cada mes</span></div><p>Escribimos los textos con tu forma de hablar y lo dejamos todo programado a la hora en que tu público está conectado.</p><p class="you"><b>Tú</b>Nada.</p></div>
+      <div class="phase"><span class="n">06</span><div><h3>Report</h3><span class="when">El día 1 de cada mes</span></div><p>Te enseñamos las cifras del mes, qué vídeos han funcionado y qué cambiamos para el siguiente.</p><p class="you"><b>Tú</b>Lo lees en cinco minutos.</p></div>
+    </div>
+  </section>
+  <section class="band"><div class="wrap band-in"><h2>Tú te olvidas.</h2><div><p>Si tu negocio ya funciona y quieres que se note en redes, hablemos.</p><a class="btn btn-primary" href="#encajamos">Comprobar si encajamos</a></div></div></section>
+</div>
+
+<!-- ════════════ NOSOTROS ════════════ -->
+<div class="page" data-page="nosotros" hidden>
+  <div class="wrap page-head">
+    <h1>Antes de ser agencia, fuimos nuestro primer cliente.</h1>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <div class="story">
+      <div class="txt">
+        <p class="first">Todo empezó con DKSIDE, nuestra marca de ropa. Sin dinero para anuncios, aprendimos a crecer solo con contenido: ideas, rodajes, edición y mucha constancia.</p>
+        <p>Llegamos a casi 30.000 seguidores, agotamos colecciones enteras y vestimos a futbolistas como Marc Cucurella. Entonces empezaron a preguntarnos lo mismo: «¿Me lo hacéis para mi negocio?».</p>
+        <p>Así nació 21DAYS: el método que hizo crecer nuestra marca, aplicado a la tuya.</p>
       </div>
-      <ol class="timeline">
-        <li class="rise"><time>El inicio</time><div><h3>Nace DKSIDE</h3><p>Una marca de ropa de Mataró que tenía que hacerse un hueco sin dinero para publicidad. Aprendimos a base de grabar, publicar y medir.</p></div></li>
-        <li class="rise"><time>Crecimiento</time><div><h3>Casi 30.000 seguidores</h3><p>Reels con más de 100.000 reproducciones y una comunidad que esperaba cada lanzamiento.</p><div class="nums"><span><b>27.635</b>seguidores</span><span><b>115.930</b>reproducciones en un reel</span></div></div></li>
-        <li class="rise"><time>Ventas</time><div><h3>2 drops, 2 sold out</h3><p>La colección OFF SEASON se agotó dos veces. El contenido no solo daba visitas, también vendía.</p><div class="nums"><span><b>87.702</b>reproducciones del lanzamiento</span></div></div></li>
-        <li class="rise"><time>Sept. 2025</time><div><h3>Nace 21DAYS</h3><p>Aina y Adri convierten lo aprendido en una agencia para negocios que quieren vender más con contenido.</p></div></li>
-        <li class="rise now"><time>Hoy</time><div><h3>+20 empresas y +30M de visitas</h3><p>Restaurantes, clínicas, gimnasios, cafeterías y comercios del Maresme y Barcelona.</p></div></li>
+      <ol class="tl">
+        <li><time>El inicio</time><div><h3>Nace DKSIDE</h3><p>Una marca de ropa de Mataró que tenía que hacerse un hueco sin publicidad.</p></div></li>
+        <li><time>Crecimiento</time><div><h3>Casi 30.000 seguidores</h3><p>Una comunidad que esperaba cada lanzamiento.</p><div class="figs"><span><b class="num">27.635</b> seguidores</span><span><b class="num">115.930</b> reproducciones en un reel</span></div></div></li>
+        <li><time>Ventas</time><div><h3>Dos drops, dos sold out</h3><p>La colección OFF SEASON se agotó dos veces. El contenido no solo daba visitas, también vendía.</p><div class="figs"><span><b class="num">87.702</b> reproducciones del lanzamiento</span></div></div></li>
+        <li><time>Septiembre 2025</time><div><h3>Nace 21DAYS</h3><p>Aina y Adri convierten lo aprendido en una agencia para negocios que quieren vender más con contenido.</p></div></li>
+        <li><time>Hoy</time><div><h3>Más de 20 negocios cada mes</h3><p>Restaurantes, clínicas, gimnasios, cafeterías y comercios del Maresme y Barcelona.</p></div></li>
       </ol>
     </div>
   </section>
-
-  <!-- EQUIPO -->
-  <section style="padding-top:0">
+  <section class="block" style="background:var(--white)">
     <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <p class="eyebrow">Quién hay detrás</p>
-          <h2 style="margin-top:16px">Caras, no un logo.</h2>
-        </div>
-        <p>Nos ves en nuestras redes, en tu local y en cada reunión. Si trabajas con nosotros, sabes quién está al otro lado.</p>
-      </div>
-      <div class="team">
-        <article class="founder rise">
-          <div class="ph"><div class="ini">A</div><span>Foto · Adri en un rodaje</span></div>
-          <div class="founder-body">
-            <p class="role">Cofundador · Contenido y crecimiento</p>
-            <h3>Adrià Dorca</h3>
-            <p>La cara de 21DAYS. Cuenta en sus redes cómo hacemos virales negocios normales y está en cada estrategia y en cada rodaje.</p>
-            <a class="ig" href="https://www.instagram.com/adridorca/" target="_blank" rel="noopener"><b>@adridorca</b> Instagram ↗</a>
-          </div>
+      <h2 class="h2" style="margin-bottom:48px;max-width:16ch">Quién hay detrás.</h2>
+      <div class="founders">
+        <article class="person">
+          <div class="ph"><em aria-hidden="true">A</em><span>Retrato de Adri en un rodaje</span></div>
+          <h3>Adrià Dorca</h3>
+          <p class="role">Cofundador, contenido y crecimiento</p>
+          <p class="bio">La cara de 21DAYS. Cuenta en sus redes cómo hacemos virales negocios normales y está en cada estrategia y en cada rodaje.</p>
+          <a class="ig link" href="https://www.instagram.com/adridorca/" target="_blank" rel="noopener">@adridorca</a>
         </article>
-        <article class="founder rise">
-          <div class="ph"><div class="ini">A</div><span>Foto · Aina en el estudio</span></div>
-          <div class="founder-body">
-            <p class="role">Cofundadora · Dirección creativa</p>
-            <h3>Aina Viciano</h3>
-            <p>El criterio visual detrás de cada pieza. Venía de dirigir las campañas de DKSIDE con productora, casting y equipo completo.</p>
-            <a class="ig" href="https://www.instagram.com/ainaviga/" target="_blank" rel="noopener"><b>@ainaviga</b> Instagram ↗</a>
-          </div>
+        <article class="person">
+          <div class="ph"><em aria-hidden="true">A</em><span>Retrato de Aina en el estudio</span></div>
+          <h3>Aina Viciano</h3>
+          <p class="role">Cofundadora, dirección creativa</p>
+          <p class="bio">El criterio visual de cada pieza. Dirigió las campañas de DKSIDE con productora, casting y equipo completo.</p>
+          <a class="ig link" href="https://www.instagram.com/ainaviga/" target="_blank" rel="noopener">@ainaviga</a>
         </article>
       </div>
+      <h3 class="h3" style="margin:clamp(56px,7vw,96px) 0 24px">El equipo</h3>
       <div class="crew">
-        <div><div class="ph"><span>Foto</span></div><b>Nombre</b><small>Edición de vídeo <span class="pending">pendiente</span></small></div>
-        <div><div class="ph"><span>Foto</span></div><b>Nombre</b><small>Grabación <span class="pending">pendiente</span></small></div>
-        <div><div class="ph"><span>Foto</span></div><b>Nombre</b><small>Copy y guiones <span class="pending">pendiente</span></small></div>
-        <div><div class="ph"><span>Foto</span></div><b>Nombre</b><small>Ads y automatizaciones <span class="pending">pendiente</span></small></div>
+        <div><div class="ph"></div><b>Nombre pendiente</b><span>Edición de vídeo</span></div>
+        <div><div class="ph"></div><b>Nombre pendiente</b><span>Grabación</span></div>
+        <div><div class="ph"></div><b>Nombre pendiente</b><span>Guiones y textos</span></div>
+        <div><div class="ph"></div><b>Nombre pendiente</b><span>Anuncios y automatizaciones</span></div>
       </div>
     </div>
   </section>
-
-  <!-- TESTIMONIOS -->
-  <section id="testimonios" style="padding-top:0">
+  <section class="block">
     <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <p class="eyebrow">Lo que dicen nuestros clientes</p>
-          <h2 style="margin-top:16px">Que te lo cuenten <span class="mark">ellos.</span></h2>
-        </div>
-        <p>Les preguntamos lo mismo a todos: cómo estaba su negocio antes, qué ha cambiado y qué le dirían a otro dueño que dude.</p>
-      </div>
-      <div class="testi">
-        <a class="tv" href="#testimonios"><span class="lbl">Vídeo · 40 s</span><span class="play" aria-hidden="true">▶</span><div><p class="q">«Qué ha cambiado desde que trabajamos con 21DAYS»</p><p class="who">Cliente 01 · <span class="pending">enlace pendiente</span></p></div></a>
-        <a class="tv" href="#testimonios"><span class="lbl">Vídeo · 40 s</span><span class="play" aria-hidden="true">▶</span><div><p class="q">«Cómo estaba mi negocio antes de empezar»</p><p class="who">Cliente 02 · <span class="pending">enlace pendiente</span></p></div></a>
-        <a class="tv" href="#testimonios"><span class="lbl">Vídeo · 40 s</span><span class="play" aria-hidden="true">▶</span><div><p class="q">«Qué le diría a otro dueño de negocio»</p><p class="who">Cliente 03 · <span class="pending">enlace pendiente</span></p></div></a>
-        <a class="tv" href="#testimonios"><span class="lbl">Vídeo · 40 s</span><span class="play" aria-hidden="true">▶</span><div><p class="q">«Por qué seguimos con ellos»</p><p class="who">Cliente 04 · <span class="pending">enlace pendiente</span></p></div></a>
+      <p class="big-quote" style="margin-bottom:clamp(40px,6vw,72px)">Tratamos tu negocio como si fuera el nuestro.</p>
+      <div class="values">
+        <div><h3>Porque antes fue el nuestro</h3><p>Hicimos crecer nuestra propia marca. Sabemos lo que cuesta cada euro y cada seguidor.</p></div>
+        <div><h3>Hablas con quien lo hace</h3><p>Sin cuentas que pasan de mano en mano. El equipo que graba es el que te escribe.</p></div>
+        <div><h3>Cifras delante, siempre</h3><p>Cada mes ves qué ha pasado con tu cuenta y qué vamos a cambiar.</p></div>
       </div>
     </div>
   </section>
+</div>
 
-  <!-- FORMULARIO -->
-  <section id="encajamos" style="padding-top:0">
-    <div class="wrap">
-      <div class="fit">
-        <div class="fit-intro">
-          <p class="eyebrow">¿Encajamos?</p>
-          <h2 style="margin-top:16px">Dos minutos para saber si podemos ayudarte.</h2>
-          <p>Trabajamos con pocos negocios a la vez para poder tratarlos como si fueran nuestros. Por eso antes de llamarte queremos conocerte un poco.</p>
-          <ul>
-            <li><span>1</span>Respondes 7 preguntas rápidas.</li>
-            <li><span>2</span>Si encajamos, te escribimos en menos de 2 h laborables.</li>
-            <li><span>3</span>Llamada de 15 minutos para ver tu negocio y proponerte un plan.</li>
-          </ul>
-        </div>
-        <form class="form" id="fitForm" novalidate>
-          <div class="prog"><div class="prog-bar"><i id="progBar"></i></div><span id="progTxt">1 / 7</span></div>
-
-          <fieldset class="q active" data-q="1">
-            <legend>¿Qué tipo de negocio tienes?</legend>
-            <div class="opts">
-              <div class="opt"><input type="radio" name="sector" id="s1" value="Restauración"><label for="s1">Restauración · cafetería</label></div>
-              <div class="opt"><input type="radio" name="sector" id="s2" value="Clínica / salud / estética"><label for="s2">Clínica · salud · estética</label></div>
-              <div class="opt"><input type="radio" name="sector" id="s3" value="Gimnasio / deporte"><label for="s3">Gimnasio · deporte</label></div>
-              <div class="opt"><input type="radio" name="sector" id="s4" value="Comercio / tienda"><label for="s4">Comercio · tienda</label></div>
-              <div class="opt"><input type="radio" name="sector" id="s5" value="Servicios / empresa B2B"><label for="s5">Servicios · empresa B2B</label></div>
-              <div class="opt"><input type="radio" name="sector" id="s6" value="Otro"><label for="s6">Otro</label></div>
-            </div>
-            <div class="field"><label for="negocio">Nombre del negocio</label><input id="negocio" name="negocio" autocomplete="organization" placeholder="Ej.: La Tremenda"></div>
-          </fieldset>
-
-          <fieldset class="q" data-q="2">
-            <legend>¿Dónde está tu negocio?</legend>
-            <div class="opts">
-              <div class="opt"><input type="radio" name="zona" id="z1" value="Maresme"><label for="z1">Maresme</label></div>
-              <div class="opt"><input type="radio" name="zona" id="z2" value="Barcelona y área"><label for="z2">Barcelona y área</label></div>
-              <div class="opt"><input type="radio" name="zona" id="z3" value="Resto de Cataluña"><label for="z3">Resto de Cataluña</label></div>
-              <div class="opt"><input type="radio" name="zona" id="z4" value="Resto de España"><label for="z4">Resto de España</label></div>
-            </div>
-            <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej.: Mataró"></div>
-          </fieldset>
-
-          <fieldset class="q" data-q="3">
-            <legend>¿Cuánto factura tu negocio al año?</legend>
-            <p class="hint">Es confidencial. Nos sirve para proponerte algo que tenga sentido para ti.</p>
-            <div class="opts">
-              <div class="opt"><input type="radio" name="facturacion" id="f1" value="Menos de 50.000 €" data-score="0"><label for="f1">Menos de 50.000 €</label></div>
-              <div class="opt"><input type="radio" name="facturacion" id="f2" value="50.000 – 100.000 €" data-score="0"><label for="f2">50.000 – 100.000 €</label></div>
-              <div class="opt"><input type="radio" name="facturacion" id="f3" value="100.000 – 300.000 €" data-score="1"><label for="f3">100.000 – 300.000 €</label></div>
-              <div class="opt"><input type="radio" name="facturacion" id="f4" value="300.000 € – 1 M€" data-score="2"><label for="f4">300.000 € – 1 M€</label></div>
-              <div class="opt"><input type="radio" name="facturacion" id="f5" value="Más de 1 M€" data-score="3"><label for="f5">Más de 1 M€</label></div>
-              <div class="opt"><input type="radio" name="facturacion" id="f6" value="Aún no he abierto" data-score="-1"><label for="f6">Aún no he abierto<small>Proyecto o apertura próxima</small></label></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="q" data-q="4">
-            <legend>¿Qué te gustaría que hiciéramos?</legend>
-            <p class="hint">Marca todo lo que te interese.</p>
-            <div class="opts">
-              <div class="opt"><input type="checkbox" name="servicios" id="v1" value="Gestión integral de redes"><label for="v1">Gestión integral de redes<small>Estrategia, guiones, grabación, edición</small></label></div>
-              <div class="opt"><input type="checkbox" name="servicios" id="v2" value="Publicidad Meta y Google"><label for="v2">Publicidad<small>Facebook, Instagram y Google</small></label></div>
-              <div class="opt"><input type="checkbox" name="servicios" id="v3" value="Email marketing"><label for="v3">Email marketing<small>Newsletters y secuencias</small></label></div>
-              <div class="opt"><input type="checkbox" name="servicios" id="v4" value="Automatizaciones con IA"><label for="v4">Automatizaciones con IA<small>Leads y respuestas automáticas</small></label></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="q" data-q="5">
-            <legend>¿Cuánto quieres invertir al mes en hacer crecer tu negocio?</legend>
-            <p class="hint">Entre agencia y publicidad.</p>
-            <div class="opts">
-              <div class="opt"><input type="radio" name="presupuesto" id="p1" value="Menos de 500 €/mes" data-score="-2"><label for="p1">Menos de 500 €/mes</label></div>
-              <div class="opt"><input type="radio" name="presupuesto" id="p2" value="500 – 1.000 €/mes" data-score="0"><label for="p2">500 – 1.000 €/mes</label></div>
-              <div class="opt"><input type="radio" name="presupuesto" id="p3" value="1.000 – 2.500 €/mes" data-score="1"><label for="p3">1.000 – 2.500 €/mes</label></div>
-              <div class="opt"><input type="radio" name="presupuesto" id="p4" value="Más de 2.500 €/mes" data-score="2"><label for="p4">Más de 2.500 €/mes</label></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="q" data-q="6">
-            <legend>¿Qué quieres conseguir?</legend>
-            <p class="hint">Tus ideas, lo que has probado y lo que no te ha funcionado. Cuanto más nos cuentes, mejor llegamos a la llamada.</p>
-            <div class="field"><label for="ideas">Tu objetivo e ideas</label><textarea id="ideas" name="ideas" placeholder="Ej.: Queremos llenar el local entre semana y lanzar un menú nuevo. Hemos probado a subir vídeos nosotros, pero no pasan de 300 visitas."></textarea></div>
-            <div class="field"><label for="cuando">¿Cuándo te gustaría empezar?</label>
-              <select id="cuando" name="cuando"><option value="Este mes">Este mes</option><option value="El mes que viene">El mes que viene</option><option value="En 2-3 meses">En 2-3 meses</option><option value="Solo estoy mirando">Solo estoy mirando</option></select></div>
-          </fieldset>
-
-          <fieldset class="q" data-q="7">
-            <legend>¿Cómo te contactamos?</legend>
-            <div class="grid2">
-              <div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name"></div>
-              <div class="field"><label for="telefono">Teléfono</label><input id="telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel"></div>
-            </div>
-            <div class="grid2">
-              <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email"></div>
-              <div class="field"><label for="instagram">Instagram del negocio</label><input id="instagram" name="instagram" placeholder="@tunegocio"></div>
-            </div>
-          </fieldset>
-
-          <p class="err" id="err" role="alert"></p>
-          <div class="nav-q" id="navQ">
-            <button type="button" class="back" id="back" hidden>← Atrás</button>
-            <span></span>
-            <button type="button" class="btn btn-lime" id="next">Siguiente <span class="arr">→</span></button>
-          </div>
-
-          <div class="result" id="resOk">
-            <span class="badge">Encajamos</span>
-            <h3>Tiene muy buena pinta.</h3>
-            <p>Te escribimos en menos de 2 horas laborables para agendar una llamada de 15 minutos. Si no puedes esperar, escríbenos <b>«21»</b> por privado en Instagram.</p>
-            <div class="summary" id="sumOk"></div>
-          </div>
-          <div class="result no" id="resNo">
-            <span class="badge">Ahora mismo, no</span>
-            <h3>Gracias por contárnoslo.</h3>
-            <p>Por cómo está tu negocio ahora, nuestro servicio no te sacaría todo el partido que mereces. Te recomendamos seguir a <b>@adridorca</b>: cada semana comparte gratis lo que nos funciona con nuestros clientes. Cuando tu negocio crezca, aquí estaremos.</p>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section id="faq" style="padding-top:0">
-    <div class="wrap faq">
-      <div class="faq-intro">
-        <p class="eyebrow">Preguntas frecuentes</p>
-        <h2 style="margin-top:16px">Lo que nos preguntan antes de empezar.</h2>
-        <p>¿No está tu duda? Escríbenos «21» por privado en Instagram y te contestamos nosotros, no un bot.</p>
-      </div>
-      <div class="faq-list">
-        <details open><summary>¿Cuánto cuesta trabajar con vosotros?</summary><p>Depende de lo que necesite tu negocio: no es lo mismo llevar las redes que sumar anuncios, email y automatizaciones. Trabajamos con una cuota mensual. En la llamada de 15 minutos vemos tu caso y te pasamos una propuesta cerrada, sin sorpresas.</p></details>
-        <details><summary>¿Tengo que salir yo en los vídeos?</summary><p>No es obligatorio, pero ayuda mucho: la gente compra a personas. Si te da corte, te guiamos en el rodaje con frases cortas y te decimos exactamente qué hacer. También grabamos a tu equipo, tu producto o tu local.</p></details>
-        <details><summary>¿Cuánto tardaré en ver resultados?</summary><p>El primer mes montamos la estrategia y publicamos los primeros vídeos. Lo normal es ver el cambio en visitas e interacción entre el primer y el tercer mes. Cada mes te enseñamos las cifras para que lo veas tú.</p></details>
-        <details><summary>¿Qué tengo que hacer yo?</summary><p>Darnos acceso a tus redes y reservarnos el rato de la grabación. La estrategia, las ideas, los guiones, la edición, los textos y la programación son cosa nuestra.</p></details>
-        <details><summary>¿Con qué tipo de negocios trabajáis?</summary><p>Restaurantes, cafeterías, clínicas, gimnasios, comercios y empresas de servicios que ya funcionan y quieren dar el salto. Si tu negocio factura más de 100.000 € al año, probablemente encajamos.</p></details>
-        <details><summary>¿Trabajáis fuera de Mataró?</summary><p>Estamos en Mataró y grabamos en todo el Maresme y Barcelona. Si estás más lejos, escríbenos y lo vemos.</p></details>
-        <details><summary>¿Qué es eso de las automatizaciones con IA?</summary><p>Sistemas que trabajan solos: un mensaje automático cuando alguien comenta un vídeo, un bot que contesta y reserva a las 3 de la mañana o un flujo que convierte a los curiosos en clientes. Tú solo ves llegar los contactos.</p></details>
-        <details><summary>¿También lleváis la publicidad?</summary><p>Sí. Llevamos campañas en Facebook, Instagram y Google. Lo que mejor funciona es promocionar los vídeos que ya han funcionado en orgánico, así cada euro rinde más.</p></details>
-      </div>
-    </div>
-  </section>
-
-  <!-- CIERRE -->
-  <div class="final">
-    <div class="wrap">
-      <div class="final-card rise">
-        <h2>Tu negocio puede ser el próximo caso.</h2>
-        <div class="row">
-          <p>Cuéntanos tu negocio en dos minutos. Si encajamos, te llamamos nosotros.</p>
-          <a class="btn btn-lime" href="#encajamos">¿Encajamos? <span class="arr">→</span></a>
-        </div>
-      </div>
-    </div>
+<!-- ════════════ OPINIONES ════════════ -->
+<div class="page" data-page="opiniones" hidden>
+  <div class="wrap page-head">
+    <h1>Que te lo cuenten ellos.</h1>
+    <p class="lede">Les preguntamos lo mismo a todos: cómo estaba su negocio antes, qué ha cambiado y qué le dirían a otro dueño que duda.</p>
   </div>
+  <section class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <div class="videos">
+      <div class="video"><div class="frame"><span class="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 2l14 8-14 8z" fill="#1A1A1A"/></svg></span><span class="state">Vídeo en preparación</span></div><b>«Cómo estaba mi negocio antes»</b><span class="who">Cliente pendiente</span></div>
+      <div class="video"><div class="frame"><span class="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 2l14 8-14 8z" fill="#1A1A1A"/></svg></span><span class="state">Vídeo en preparación</span></div><b>«Qué ha cambiado desde que trabajamos juntos»</b><span class="who">Cliente pendiente</span></div>
+      <div class="video"><div class="frame"><span class="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 2l14 8-14 8z" fill="#1A1A1A"/></svg></span><span class="state">Vídeo en preparación</span></div><b>«Qué le diría a otro dueño de negocio»</b><span class="who">Cliente pendiente</span></div>
+      <div class="video"><div class="frame"><span class="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 2l14 8-14 8z" fill="#1A1A1A"/></svg></span><span class="state">Vídeo en preparación</span></div><b>«Por qué seguimos con ellos»</b><span class="who">Cliente pendiente</span></div>
+    </div>
+  </section>
+  <section class="block" style="background:var(--white)">
+    <div class="wrap">
+      <div class="grid" style="align-items:end;margin-bottom:40px">
+        <h2 class="h2" style="grid-column:1/span 7">Empresas que confían en nosotros mes a mes.</h2>
+        <p class="muted" style="grid-column:9/span 4">Más de 20 negocios trabajan hoy con 21DAYS.</p>
+      </div>
+      <ul class="wordmarks" id="wordmarks"></ul>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════ FAQ ════════════ -->
+<div class="page" data-page="faq" hidden>
+  <div class="wrap page-head">
+    <h1>Preguntas frecuentes.</h1>
+    <p class="lede">Lo que nos preguntan antes de empezar. Si tu duda no está, escríbenos «21» por privado en Instagram y te contesta una persona.</p>
+  </div>
+  <div class="wrap" style="padding-bottom:clamp(64px,9vw,128px)">
+    <section class="faq">
+      <h2>Precio y condiciones</h2>
+      <div>
+        <details><summary>¿Cuánto cuesta trabajar con vosotros?<span class="pm"></span></summary><p class="ans">Depende de lo que necesite tu negocio: no es lo mismo llevar las redes que sumar anuncios, email y automatizaciones. Trabajamos con una cuota mensual. Tras una llamada de 15 minutos te pasamos una propuesta cerrada.</p></details>
+        <details><summary>¿Con qué negocios trabajáis?<span class="pm"></span></summary><p class="ans">Restaurantes, cafeterías, clínicas, gimnasios, comercios y empresas de servicios que ya funcionan y quieren dar el salto. Si tu negocio factura más de 100.000 € al año, probablemente encajamos.</p></details>
+        <details><summary>¿Trabajáis fuera de Mataró?<span class="pm"></span></summary><p class="ans">Estamos en Mataró y grabamos en todo el Maresme y Barcelona. Si estás más lejos, escríbenos y lo vemos.</p></details>
+      </div>
+    </section>
+    <section class="faq">
+      <h2>Cómo trabajamos</h2>
+      <div>
+        <details><summary>¿Tengo que salir yo en los vídeos?<span class="pm"></span></summary><p class="ans">No es obligatorio, pero ayuda: la gente compra a personas. Si te da corte, te guiamos en el rodaje con frases cortas. También grabamos a tu equipo, tu producto o tu local.</p></details>
+        <details><summary>¿Qué tengo que hacer yo?<span class="pm"></span></summary><p class="ans">Darnos acceso a tus redes y reservarnos el rato de la grabación. La estrategia, las ideas, los guiones, la edición, los textos y la programación son cosa nuestra.</p></details>
+        <details><summary>¿Con quién hablo en el día a día?<span class="pm"></span></summary><p class="ans">Con el equipo que lleva tu cuenta, el mismo que graba y edita. Sin intermediarios.</p></details>
+      </div>
+    </section>
+    <section class="faq">
+      <h2>Resultados</h2>
+      <div>
+        <details><summary>¿Cuánto tardaré en ver resultados?<span class="pm"></span></summary><p class="ans">El primer mes montamos la estrategia y publicamos los primeros vídeos. Lo normal es notar el cambio en visitas e interacción entre el primer y el tercer mes. Cada mes te enseñamos las cifras.</p></details>
+        <details><summary>¿Cómo sé si está funcionando?<span class="pm"></span></summary><p class="ans">El día 1 de cada mes recibes un informe con seguidores, visualizaciones, los vídeos que mejor han funcionado y lo que cambiamos para el mes siguiente.</p></details>
+      </div>
+    </section>
+    <section class="faq">
+      <h2>Servicios</h2>
+      <div>
+        <details><summary>¿También lleváis la publicidad?<span class="pm"></span></summary><p class="ans">Sí, en Facebook, Instagram y Google. Lo que mejor funciona es promocionar los vídeos que ya han funcionado en orgánico.</p></details>
+        <details><summary>¿Qué son las automatizaciones con IA?<span class="pm"></span></summary><p class="ans">Sistemas que trabajan solos: un mensaje automático cuando alguien comenta un vídeo, un asistente que contesta y reserva a las 3 de la mañana o un flujo que convierte a los curiosos en clientes.</p></details>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ════════════ ¿ENCAJAMOS? ════════════ -->
+<div class="page" data-page="encajamos" hidden>
+  <div class="wrap fit">
+    <div class="fit-side">
+      <h1>¿Encajamos?</h1>
+      <p>Trabajamos con pocos negocios a la vez para tratarlos como si fueran nuestros. Antes de llamarte queremos conocerte un poco.</p>
+      <ol>
+        <li>Respondes siete preguntas rápidas.</li>
+        <li>Si encajamos, te escribimos en menos de 2 horas laborables.</li>
+        <li>Llamada de 15 minutos para ver tu negocio y proponerte un plan.</li>
+      </ol>
+    </div>
+    <form class="qform" id="qform" novalidate>
+      <div class="qbar"><i id="qbar"></i></div>
+      <p class="qcount" id="qcount">Pregunta 1 de 7</p>
+
+      <fieldset class="q on">
+        <legend>¿Qué tipo de negocio tienes?</legend>
+        <div class="choices two">
+          <div class="choice"><input type="radio" name="sector" id="s1" value="Restauración"><label for="s1"><kbd>A</kbd>Restauración o cafetería</label></div>
+          <div class="choice"><input type="radio" name="sector" id="s2" value="Clínica / salud / estética"><label for="s2"><kbd>B</kbd>Clínica, salud o estética</label></div>
+          <div class="choice"><input type="radio" name="sector" id="s3" value="Gimnasio / deporte"><label for="s3"><kbd>C</kbd>Gimnasio o deporte</label></div>
+          <div class="choice"><input type="radio" name="sector" id="s4" value="Comercio"><label for="s4"><kbd>D</kbd>Comercio o tienda</label></div>
+          <div class="choice"><input type="radio" name="sector" id="s5" value="Servicios / B2B"><label for="s5"><kbd>E</kbd>Servicios o empresa</label></div>
+          <div class="choice"><input type="radio" name="sector" id="s6" value="Otro"><label for="s6"><kbd>F</kbd>Otro</label></div>
+        </div>
+        <div class="field"><label for="negocio">Nombre del negocio</label><input id="negocio" name="negocio" autocomplete="organization" placeholder="Por ejemplo, La Tremenda"></div>
+      </fieldset>
+
+      <fieldset class="q">
+        <legend>¿Dónde está?</legend>
+        <div class="choices two">
+          <div class="choice"><input type="radio" name="zona" id="z1" value="Maresme"><label for="z1"><kbd>A</kbd>Maresme</label></div>
+          <div class="choice"><input type="radio" name="zona" id="z2" value="Barcelona y área"><label for="z2"><kbd>B</kbd>Barcelona y área</label></div>
+          <div class="choice"><input type="radio" name="zona" id="z3" value="Resto de Cataluña"><label for="z3"><kbd>C</kbd>Resto de Cataluña</label></div>
+          <div class="choice"><input type="radio" name="zona" id="z4" value="Resto de España"><label for="z4"><kbd>D</kbd>Resto de España</label></div>
+        </div>
+        <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Por ejemplo, Mataró"></div>
+      </fieldset>
+
+      <fieldset class="q" data-auto>
+        <legend>¿Cuánto factura al año?</legend>
+        <p class="hint">Es confidencial. Nos ayuda a proponerte algo con sentido.</p>
+        <div class="choices">
+          <div class="choice"><input type="radio" name="facturacion" id="f1" value="Menos de 50.000 €" data-score="0"><label for="f1"><kbd>A</kbd>Menos de 50.000 €</label></div>
+          <div class="choice"><input type="radio" name="facturacion" id="f2" value="50.000 – 100.000 €" data-score="0"><label for="f2"><kbd>B</kbd>Entre 50.000 y 100.000 €</label></div>
+          <div class="choice"><input type="radio" name="facturacion" id="f3" value="100.000 – 300.000 €" data-score="1"><label for="f3"><kbd>C</kbd>Entre 100.000 y 300.000 €</label></div>
+          <div class="choice"><input type="radio" name="facturacion" id="f4" value="300.000 € – 1 M€" data-score="2"><label for="f4"><kbd>D</kbd>Entre 300.000 € y 1 millón</label></div>
+          <div class="choice"><input type="radio" name="facturacion" id="f5" value="Más de 1 M€" data-score="3"><label for="f5"><kbd>E</kbd>Más de 1 millón</label></div>
+          <div class="choice"><input type="radio" name="facturacion" id="f6" value="Aún no he abierto" data-score="-1"><label for="f6"><kbd>F</kbd><span>Todavía no he abierto<small>Proyecto o apertura próxima</small></span></label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="q">
+        <legend>¿Qué te gustaría que hiciéramos?</legend>
+        <p class="hint">Marca todo lo que te interese.</p>
+        <div class="choices">
+          <div class="choice"><input type="checkbox" name="servicios" id="v1" value="Gestión integral de redes"><label for="v1"><kbd>A</kbd><span>Gestión integral de redes<small>Estrategia, guiones, grabación y edición</small></span></label></div>
+          <div class="choice"><input type="checkbox" name="servicios" id="v2" value="Publicidad Meta y Google"><label for="v2"><kbd>B</kbd><span>Publicidad<small>Facebook, Instagram y Google</small></span></label></div>
+          <div class="choice"><input type="checkbox" name="servicios" id="v3" value="Email marketing"><label for="v3"><kbd>C</kbd><span>Email marketing<small>Newsletters y secuencias</small></span></label></div>
+          <div class="choice"><input type="checkbox" name="servicios" id="v4" value="Automatizaciones con IA"><label for="v4"><kbd>D</kbd><span>Automatizaciones con IA<small>Mensajes y captación de leads</small></span></label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="q" data-auto>
+        <legend>¿Cuánto quieres invertir al mes en hacerlo crecer?</legend>
+        <p class="hint">Entre agencia y publicidad.</p>
+        <div class="choices">
+          <div class="choice"><input type="radio" name="presupuesto" id="p1" value="Menos de 500 €/mes" data-score="-2"><label for="p1"><kbd>A</kbd>Menos de 500 € al mes</label></div>
+          <div class="choice"><input type="radio" name="presupuesto" id="p2" value="500 – 1.000 €/mes" data-score="0"><label for="p2"><kbd>B</kbd>Entre 500 y 1.000 €</label></div>
+          <div class="choice"><input type="radio" name="presupuesto" id="p3" value="1.000 – 2.500 €/mes" data-score="1"><label for="p3"><kbd>C</kbd>Entre 1.000 y 2.500 €</label></div>
+          <div class="choice"><input type="radio" name="presupuesto" id="p4" value="Más de 2.500 €/mes" data-score="2"><label for="p4"><kbd>D</kbd>Más de 2.500 €</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="q">
+        <legend>¿Qué quieres conseguir?</legend>
+        <p class="hint">Tus ideas, lo que has probado y lo que no te ha funcionado.</p>
+        <div class="field"><label for="ideas">Objetivo e ideas</label><textarea id="ideas" name="ideas" placeholder="Queremos llenar el local entre semana y lanzar una carta nueva. Hemos subido vídeos nosotros, pero no pasan de 300 visitas."></textarea></div>
+        <div class="field"><label for="cuando">¿Cuándo te gustaría empezar?</label><select id="cuando" name="cuando"><option>Este mes</option><option>El mes que viene</option><option>En 2 o 3 meses</option><option>Solo estoy mirando</option></select></div>
+      </fieldset>
+
+      <fieldset class="q">
+        <legend>¿Cómo te contactamos?</legend>
+        <div class="pair">
+          <div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name"></div>
+          <div class="field"><label for="telefono">Teléfono</label><input id="telefono" name="telefono" type="tel" inputmode="tel" autocomplete="tel"></div>
+        </div>
+        <div class="pair">
+          <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email"></div>
+          <div class="field"><label for="instagram">Instagram del negocio</label><input id="instagram" name="instagram" placeholder="@tunegocio"></div>
+        </div>
+      </fieldset>
+
+      <p class="qerr" id="qerr" role="alert"></p>
+      <div class="qfoot" id="qfoot">
+        <button type="button" class="qback" id="qback" hidden>Atrás</button>
+        <span class="tip" id="qtip">Pulsa una letra para elegir</span>
+        <button type="submit" class="btn btn-primary" id="qnext">Continuar</button>
+      </div>
+
+      <div class="qres" id="qok">
+        <span class="seal">Encajamos</span>
+        <h2>Tiene muy buena pinta.</h2>
+        <p>Te escribimos en menos de 2 horas laborables para agendar una llamada de 15 minutos. Si no puedes esperar, escríbenos «21» por privado en Instagram.</p>
+        <dl class="recap" id="qrecap"></dl>
+      </div>
+      <div class="qres no" id="qno">
+        <span class="seal">Ahora mismo, no</span>
+        <h2>Gracias por contárnoslo.</h2>
+        <p>Por cómo está tu negocio ahora, nuestro servicio no te sacaría todo el partido que mereces. Sigue a @adridorca: cada semana comparte gratis lo que nos funciona con nuestros clientes. Cuando tu negocio crezca, aquí estaremos.</p>
+      </div>
+    </form>
+  </div>
+</div>
+
 </main>
 
 <footer>
   <div class="wrap foot">
-    <div>
-      <a class="logo" href="#inicio" aria-label="21DAYS, volver arriba"><svg viewBox="0 0 320 320" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round" aria-hidden="true"><path d="M92 170 C 86 116, 110 76, 146 76 C 176 76, 191 100, 188 128 C 184 168, 146 191, 92 197"/><path d="M92 197 L92 212 L168 212 C 203 212, 215 172, 219 120"/><path d="M222 116 L222 252"/></svg>21DAYS</a>
-      <p style="margin-top:10px;max-width:34ch">Agencia de contenido e IA. Contenido orgánico, anuncios, email marketing y flujos de IA.</p>
+    <div class="foot-top">
+      <h2>Escríbenos «21» por privado.</h2>
+      <div class="mail">
+        <button class="copy" id="copy" type="button">hola@21daysagency.com</button>
+        <span class="copy-msg" id="copyMsg" aria-live="polite">Pulsa para copiar el email</span>
+      </div>
     </div>
-    <div class="cols">
-      <div><b>Escríbenos</b><button class="copy-mail" id="copyMail" type="button">hola@21daysagency.com</button><span id="copyMsg" aria-live="polite" style="font-size:12px"></span></div>
-      <div><b>Síguenos</b><a href="https://www.instagram.com/___21days/" target="_blank" rel="noopener">Instagram @___21days</a><a href="https://www.instagram.com/adridorca/" target="_blank" rel="noopener">Adri · @adridorca</a></div>
-      <div><b>Dónde</b><span>Mataró · Barcelona</span><span>© 2026 21DAYS Agency</span></div>
+    <div class="foot-bottom">
+      <span>21DAYS Agency, Mataró</span>
+      <nav aria-label="Pie">
+        <a href="#resultados">Resultados</a><a href="#servicios">Servicios</a><a href="#metodo">Método</a><a href="#nosotros">Nosotros</a><a href="#opiniones">Opiniones</a><a href="#faq">FAQ</a>
+        <a href="https://www.instagram.com/___21days/" target="_blank" rel="noopener">Instagram</a>
+      </nav>
+      <span>© 2026</span>
     </div>
   </div>
 </footer>
 
 <script>
-/* ─────────── Contenido editable ─────────── */
+document.documentElement.classList.add('booting');
 
-// Clientes del carrusel. Solo nombres: sustituir por logos cuando los tengamos.
+/* ═══════════ Datos editables ═══════════ */
+
+// Clientes que se nombran en la web (texto, hasta tener sus logos).
 const CLIENTES = ["MOSS","La Tremenda","Clínica Dermaesthetics","GMS Futcamp","KB Crossfit","Barbería Kevin Campos","Olympo Box","Pilates & Co","Krepsinnova","Mim's Café Costura","El Nou Celler","Clínica Ester Nogueras","Aiguaclara Piscines","Mireia Jubany Pilates","Jaume Rey","Baskonia","La Santa Brasa","Rehabilitaciones San Martín"];
 
-// Los 6 casos de éxito. Cifras de Metricool desde el alta de cada cliente.
-// serie = visualizaciones por mes (para la mini gráfica); null = sin gráfica.
+// Casos de éxito. Cifras de Metricool (alta de cada cliente → 18/10/2026).
+// ig / tt: seguidores a final de cada mes.
 const CASOS = [
-  {cliente:"MOSS", desde:"Con nosotros desde sept. 2025", hero:"×168", heroTxt:"seguidores en Instagram: de 21 a 3.538", que:"Abrió con cola en la puerta sin pagar un euro en anuncios. En abril, una tanda de reels virales la llevó de 569 a 2.324 seguidores en un solo mes.", m:[["1,2M","visualizaciones entre Instagram y TikTok"],["140K","visualizaciones en su mejor reel"]], servicios:["Redes","Preapertura","TikTok"], serie:[21,30,58,82,458,569,2324,2715,3024,3180,3369,3493,3538]},
-  {cliente:"Mim's Café Costura", desde:"Con nosotros desde feb. 2026", hero:"×6,5", heroTxt:"seguidores en Instagram: de 1.133 a 7.392", que:"Ha crecido todos los meses desde que empezamos, con reels de entre 39.000 y 64.000 visualizaciones. En TikTok empezó de cero.", m:[["814K","visualizaciones de su contenido"],["1.803","seguidores en TikTok, desde 2"]], servicios:["Redes","Guiones","TikTok"], serie:[1133,2732,3237,3566,5297,5928,6840,7274,7362,7392]},
-  {cliente:"La Tremenda", desde:"Con nosotros desde oct. 2025", hero:"8,3M", heroTxt:"visualizaciones en sus reels", que:"Sus vídeos no pasaban de 3.000 visitas. Cambiamos el gancho, pusimos a una persona en cámara y le dimos ritmo. Un solo reel llegó a 3,3 millones.", m:[["3,36M","visualizaciones en un solo reel"],["×5,3","seguidores: de 617 a 3.241"]], servicios:["Redes","Guiones","Grabación","Edición"], serie:[617,624,692,766,1078,1804,2127,2601,3113,3244,3253,3242,3241]},
-  {cliente:"Krepsinnova", desde:"Con nosotros desde ene. 2026", hero:"×7,9", heroTxt:"seguidores en Instagram: de 273 a 2.145", que:"Cada mes sus vídeos llegan a más gente: la media pasó de 8.700 a 21.500 visualizaciones por reel. Uno de 90.000 le sumó 670 seguidores en septiembre.", m:[["×2,5","visualizaciones medias por reel"],["1.327","seguidores en TikTok, desde 455"]], servicios:["Redes","Instagram","TikTok"], serie:[273,352,786,840,1050,1217,1228,1256,1413,2083,2145]},
-  {cliente:"Pilates & Co", desde:"Con nosotros desde sept. 2026", hero:"+152%", heroTxt:"seguidores en 7 semanas: de 1.331 a 3.353", que:"En el primer mes y medio, la media por reel se multiplicó por 3,5 y un reel llegó a 107.000 visualizaciones con más de 6.000 interacciones.", m:[["107K","visualizaciones en un solo reel"],["×3,5","visualizaciones medias por reel"]], servicios:["Redes","Grabación","Edición"], serie:[1331,1529,3353]},
-  {cliente:"Jaume Rey", desde:"Con nosotros desde dic. 2025", hero:"×56", heroTxt:"seguidores en Instagram: de 10 a 562", que:"Una marca personal que empezó de cero en las dos redes. Un vídeo de 56.700 visualizaciones en TikTok le dio el salto en agosto.", m:[["56,7K","visualizaciones en su mejor TikTok"],["476","seguidores en TikTok, desde 2"]], servicios:["Marca personal","TikTok"], serie:[10,136,155,162,170,178,182,198,214,520,553,562]}
+ {slug:"moss", nombre:"MOSS", tipo:"Matcha bar", handle:"@mossmatcharoom", desde:"Septiembre de 2025", redes:"Instagram y TikTok", servicios:"Redes, preapertura y TikTok",
+  big:"×168", bigLab:"seguidores en Instagram", cover:"l",
+  claim:"De 21 a 3.538 seguidores en Instagram y una apertura con cola en la puerta.",
+  partida:"Un matcha bar que todavía no había abierto. 21 seguidores en Instagram y ninguno en TikTok.",
+  hicimos:"Creamos comunidad antes de abrir, con contenido diario del proyecto, la carta y el equipo. El día de la apertura lo contamos en directo.",
+  paso:"Abrió con cola y sin anuncios. En abril, tres reels de 140.000, 54.000 y 46.000 visualizaciones la llevaron de 569 a 2.324 seguidores en un solo mes.",
+  meses:["nov","dic","ene","feb","mar","abr","may","jun","jul","ago","sep","oct"],
+  ig:[30,58,82,458,569,2324,2715,3024,3180,3369,3493,3538], tt:[0,null,6,10,187,589,675,717,726,764,780,790],
+  nota:"Instagram: primer dato de Metricool el 9 de noviembre de 2025, con 21 seguidores.",
+  tops:[["140 K","Reel, 14 abr 2026","https://www.instagram.com/reel/DXHPDWTitHS/"],["67 K","TikTok, 14 abr 2026","https://www.tiktok.com/@moss_matcha/video/7628599744541117718"],["54,6 K","Reel, 21 abr 2026","https://www.instagram.com/reel/DXZJuT5lL3e/"]]},
+ {slug:"mims", nombre:"Mim's Café Costura", tipo:"Cafetería", handle:"@mimscafecostura", desde:"Febrero de 2026", redes:"Instagram y TikTok", servicios:"Redes, guiones y TikTok",
+  big:"×6,5", bigLab:"seguidores en Instagram", cover:"",
+  claim:"De 1.133 a 7.392 seguidores en Instagram, creciendo todos los meses.",
+  partida:"1.133 seguidores en Instagram y una cuenta de TikTok con 2 seguidores.",
+  hicimos:"Estrategia, guiones, grabación en el local, edición y publicación cada mes, con piezas pensadas para cada red.",
+  paso:"Ha crecido todos los meses desde que empezamos. Sus reels suman 558.000 visualizaciones y en TikTok ya tiene 1.803 seguidores.",
+  meses:["feb","mar","abr","may","jun","jul","ago","sep","oct"],
+  ig:[2732,3237,3566,5297,5928,6840,7274,7362,7392], tt:[469,623,744,998,1131,1376,1620,1755,1803],
+  nota:"Instagram: 1.133 seguidores el día del alta, el 12 de febrero de 2026.",
+  tops:[["64,3 K","Reel, 27 may 2026","https://www.instagram.com/reel/DY2fcAKDDr1/"],["47,6 K","Reel, 15 feb 2026","https://www.instagram.com/reel/DUylVIFD9rX/"],["40 K","Reel, 6 may 2026","https://www.instagram.com/reel/DYAa4djim2I/"]]},
+ {slug:"la-tremenda", nombre:"La Tremenda", tipo:"Restaurante", handle:"@latremenda_eatingclub", desde:"Octubre de 2025", redes:"Instagram", servicios:"Redes, guiones, grabación y edición",
+  big:"8,3 M", bigLab:"visualizaciones en sus reels", cover:"g",
+  claim:"Un solo reel con 3,36 millones de visualizaciones. 8,3 millones en total.",
+  partida:"Un restaurante con 617 seguidores y vídeos que no pasaban de 3.000 visualizaciones.",
+  hicimos:"Cambiamos tres cosas: un gancho en el primer segundo, una persona en cámara y un ritmo de edición mucho más rápido.",
+  paso:"Un reel llegó a 3,36 millones de visualizaciones y otro a 1,18 millones. En 69 reels suma 8,3 millones y ha pasado de 617 a 3.241 seguidores.",
+  meses:["nov","dic","ene","feb","mar","abr","may","jun","jul","ago","sep","oct"],
+  ig:[624,692,766,1078,1804,2127,2601,3113,3244,3253,3242,3241], tt:null,
+  nota:"Instagram: primer dato de Metricool el 9 de noviembre de 2025, con 617 seguidores.",
+  tops:[["3,36 M","Reel, 4 feb 2026","https://www.instagram.com/reel/DUWNUG3DX_h/"],["1,18 M","Reel, 5 may 2026","https://www.instagram.com/reel/DX9TsVTgHQ4/"],["556 K","Reel, 14 may 2026","https://www.instagram.com/reel/DYVBHW9kg_G/"]]},
+ {slug:"krepsinnova", nombre:"Krepsinnova", tipo:"Negocio local", handle:"@krepsinnova", desde:"Enero de 2026", redes:"Instagram y TikTok", servicios:"Redes, Instagram y TikTok",
+  big:"×7,9", bigLab:"seguidores en Instagram", cover:"",
+  claim:"Cada mes sus vídeos llegan a más gente: la media por reel se ha multiplicado por 2,5.",
+  partida:"273 seguidores en Instagram y 455 en TikTok.",
+  hicimos:"Estrategia, guiones, grabación, edición y publicación cada mes en las dos redes.",
+  paso:"La media por reel pasó de 8.700 a 21.500 visualizaciones. Un reel de 90.000 en septiembre le sumó 670 seguidores. Hoy tiene 2.145 en Instagram y 1.327 en TikTok.",
+  meses:["ene","feb","mar","abr","may","jun","jul","ago","sep","oct"],
+  ig:[352,786,840,1050,1217,1228,1256,1413,2083,2145], tt:[471,753,930,1079,1115,1152,1174,1251,1295,1327],
+  nota:"Instagram: 273 seguidores el día del alta, el 21 de enero de 2026.",
+  tops:[["90 K","Reel, 8 sep 2026","https://www.instagram.com/reel/DdCSV7Blc4k/"],["56,6 K","TikTok, 3 feb 2026","https://www.tiktok.com/@krepsinnova/video/7602659943216418070"],["49,8 K","Reel, 25 ago 2026","https://www.instagram.com/reel/Dcds1RxkS8x/"]]},
+ {slug:"pilates-and-co", nombre:"Pilates & Co", tipo:"Estudio de pilates en Granollers", handle:"@pilatesandcogranollers", desde:"Septiembre de 2026", redes:"Instagram y TikTok", servicios:"Redes, grabación y edición",
+  big:"+152%", bigLab:"seguidores en siete semanas", cover:"l",
+  claim:"De 1.331 a 3.353 seguidores en siete semanas.",
+  partida:"Un estudio de pilates con 1.331 seguidores en Instagram y 183 en TikTok.",
+  hicimos:"Estrategia, grabación en el estudio, edición y publicación desde la primera semana.",
+  paso:"Un reel llegó a 107.000 visualizaciones y 6.122 interacciones. La media por reel se multiplicó por 3,5 en el primer mes y medio.",
+  meses:["ago","sep","oct"],
+  ig:[1331,1529,3353], tt:[183,201,213],
+  nota:"Alta el 31 de agosto de 2026: es el caso más reciente.",
+  tops:[["107 K","Reel, 30 sep 2026","https://www.instagram.com/reel/Dd67zU6Eqtl/"],["12,2 K","Reel, 12 sep 2026","https://www.instagram.com/reel/DdMvhqBxbx5/"],["7,3 K","Reel, 24 sep 2026","https://www.instagram.com/reel/DdrfEyZD2eP/"]]},
+ {slug:"jaume-rey", nombre:"Jaume Rey", tipo:"Marca personal", handle:"@jaume.rey", desde:"Diciembre de 2025", redes:"Instagram y TikTok", servicios:"Marca personal y TikTok",
+  big:"×56", bigLab:"seguidores en Instagram", cover:"g",
+  claim:"Una marca personal que empezó de cero en las dos redes.",
+  partida:"10 seguidores en Instagram y 2 en TikTok.",
+  hicimos:"Estrategia de marca personal, guiones, grabación y edición para Instagram y TikTok.",
+  paso:"Un vídeo de 56.700 visualizaciones en TikTok le dio el salto en agosto. Hoy tiene 562 seguidores en Instagram y 476 en TikTok.",
+  meses:["dic","ene","feb","mar","abr","may","jun","jul","ago","sep","oct"],
+  ig:[136,155,162,170,178,182,198,214,520,553,562], tt:[9,49,181,192,198,198,207,233,428,472,476],
+  nota:"Instagram: 10 seguidores el día del alta, el 4 de diciembre de 2025.",
+  tops:[["56,7 K","TikTok, 3 ago 2026","https://www.tiktok.com/@jaume.rey/video/7669867298953465110"],["34,1 K","TikTok, 29 ene 2026","https://www.tiktok.com/@jaume.rey/video/7600861118470327574"],["21,8 K","Reel, 3 ago 2026","https://www.instagram.com/reel/Dbllf4WDbFL/"]]}
 ];
-const CASOS_NOTA = "Datos de Metricool, desde el alta de cada cliente hasta octubre de 2026. La gráfica muestra sus seguidores de Instagram mes a mes.";
 
-const SERVICIOS = [
-  {id:"redes", t:"Gestión integral de redes", s:"Estrategia digital, contenido y programación", ico:"▶",
-   p:"Nos encargamos de todo tu Instagram y TikTok. Pensamos qué contar, lo grabamos en tu negocio, lo editamos y lo dejamos programado. Cada mes, un informe con lo que ha funcionado.",
-   li:["Estrategia digital del negocio","Ideas de vídeo y guiones","Grabación en tu local","Edición con subtítulos y ritmo","Copies con tu voz","Programación y report mensual"],
-   for:"Para negocios que quieren que les conozcan y que nunca tienen tiempo para las redes."},
-  {id:"ads", t:"Publicidad en Meta y Google", s:"Facebook, Instagram y Google Ads", ico:"◎",
-   p:"Ponemos dinero solo detrás de lo que ya ha funcionado en orgánico. Campañas por servicio, creatividades propias y seguimiento semanal del coste por cliente.",
-   li:["Estructura de campañas por servicio","Creatividades y copies","Públicos y retargeting","Google Ads de búsqueda","Píxel y medición","Optimización semanal"],
-   for:"Para negocios con una oferta clara que quieren llenar agenda o vender más rápido."},
-  {id:"mail", t:"Email marketing", s:"Newsletters y secuencias que venden", ico:"✉",
-   p:"Convertimos a tus seguidores y clientes en una lista que compra. Lo escribimos una vez y vende cada semana.",
-   li:["Captación de contactos","Secuencia de bienvenida","Newsletters mensuales","Campañas de lanzamiento","Segmentación de clientes","Informe de aperturas y ventas"],
-   for:"Para negocios con clientes que repiten: restauración, clínicas, tiendas, gimnasios."},
-  {id:"ia", t:"Automatizaciones con IA", s:"Leads y respuestas que llegan solos", ico:"⚡",
-   p:"Montamos sistemas que trabajan mientras duermes: mensajes automáticos a quien comenta un vídeo, un asistente que responde y reserva, y procesos internos que dejan de hacerse a mano.",
-   li:["Mensajes automáticos en Instagram","Captación de leads 24/7","Asistente que responde y reserva","Conexión con tu agenda o CRM","Procesos internos automatizados","Seguimiento de cada contacto"],
-   for:"Para negocios que reciben mensajes que nadie contesta a tiempo o que pierden horas en tareas repetidas."}
+// Portadas del muro del inicio: cifras reales de las cuentas de los clientes.
+const MURO = [
+  ["3,36 M","visualizaciones","@latremenda_eatingclub","l"],["×168","seguidores","@mossmatcharoom",""],["107 K","en un reel","@pilatesandcogranollers","g"],
+  ["×6,5","seguidores","@mimscafecostura",""],["1,18 M","visualizaciones","@latremenda_eatingclub","g"],["90 K","en un reel","@krepsinnova","l"],
+  ["140 K","en un reel","@mossmatcharoom","l"],["56,7 K","en TikTok","@jaume.rey",""],["×2,5","media por reel","@krepsinnova","g"]
 ];
 
-// URL del Apps Script que guarda cada respuesta en Google Sheets.
-// Vacía en el prototipo: el formulario funciona igual, pero no envía nada.
+// URL del Apps Script que guarda las respuestas en Google Sheets (vacía en el prototipo).
 const SHEETS_URL = "";
-const FACTURACION_MINIMA_SCORE = 1; // 1 = a partir de 100.000 €/año
 
-/* ─────────── Render ─────────── */
-const fmt = n => n.toLocaleString('es-ES');
-const $ = s => document.querySelector(s);
+/* ═══════════ Utilidades ═══════════ */
+const $ = (s,c=document)=>c.querySelector(s);
+const $$ = (s,c=document)=>[...c.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const playSvg = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="currentColor"/></svg>';
 
-// Carrusel
-(function(){
-  const items = CLIENTES.map(c=>`<span>${c}</span>`).join('');
-  $('#marquee').innerHTML = items + items;
-})();
-
-// Casos
-function spark(serie){
-  if(!serie||serie.length<2) return '';
-  const w=300,h=56,p=4,max=Math.max(...serie),min=0;
-  const x=i=>p+i*(w-2*p)/(serie.length-1), y=v=>h-p-(v-min)/(max-min||1)*(h-2*p);
-  const pts=serie.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const last=serie.length-1;
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
-    <polygon points="${p},${h-p} ${pts} ${x(last).toFixed(1)},${h-p}" fill="#CCFF00" fill-opacity=".45"/>
-    <polyline points="${pts}" fill="none" stroke="#1A1A1A" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-    <circle cx="${x(last).toFixed(1)}" cy="${y(serie[last]).toFixed(1)}" r="4" fill="#1A1A1A"/></svg>`;
+function reelHTML(big,lab,handle,tone,href){
+  const tag = href?'a':'div';
+  const attrs = href?` href="${href}" target="_blank" rel="noopener" aria-label="${esc(big+' '+lab+', ver en redes')}"`:'';
+  return `<${tag} class="reel ${tone||''}"${attrs}><div class="rt"><span>${playSvg}</span><span>Reels</span></div><div class="big num">${esc(big)}<small>${esc(lab)}</small></div><div class="rb"><i></i>${esc(handle)}</div></${tag}>`;
 }
-$('#cases').innerHTML = CASOS.map(c=>`
-  <article class="case rise">
-    <div class="case-top"><span class="case-tag">Caso</span><span class="case-sector">${c.desde}</span></div>
-    <h3>${c.cliente}</h3>
-    <div class="case-hero"><b>${c.hero}</b><span>${c.heroTxt}</span></div>
-    ${spark(c.serie)}
-    <p class="how">${c.que}</p>
-    <div class="case-services">${c.servicios.map(s=>`<i>${s}</i>`).join('')}</div>
-    <div class="case-metrics">${c.m.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join('')}</div>
-  </article>`).join('');
-$('#casesNote').textContent = CASOS_NOTA;
-
-// Servicios
-const svcList=$('#svcList'), svcPanel=$('#svcPanel');
-svcList.innerHTML = SERVICIOS.map((s,i)=>`<button class="svc-tab" role="tab" id="tab-${s.id}" aria-controls="svcPanel" aria-selected="${i===0}" tabindex="${i===0?0:-1}" data-i="${i}"><span class="ico" aria-hidden="true">${s.ico}</span><span><b>${s.t}</b><small>${s.s}</small></span><span class="plus" aria-hidden="true">+</span></button>`).join('');
-function showSvc(i){
-  const s=SERVICIOS[i];
-  svcList.querySelectorAll('.svc-tab').forEach((b,j)=>{b.setAttribute('aria-selected',j===i);b.tabIndex=j===i?0:-1});
-  svcPanel.setAttribute('aria-labelledby','tab-'+s.id);
-  svcPanel.innerHTML=`<p class="eyebrow">Servicio ${i+1} de ${SERVICIOS.length}</p><h3>${s.t}</h3><p>${s.p}</p><ul>${s.li.map(l=>`<li>${l}</li>`).join('')}</ul><p class="for"><b>Para quién:</b> ${s.for}</p><a class="btn btn-lime" href="#encajamos" style="align-self:flex-start">Me interesa <span class="arr">→</span></a>`;
-}
-svcList.addEventListener('click',e=>{const b=e.target.closest('.svc-tab');if(b)showSvc(+b.dataset.i)});
-svcList.addEventListener('keydown',e=>{
-  const tabs=[...svcList.querySelectorAll('.svc-tab')];const i=tabs.indexOf(document.activeElement);
-  if(i<0)return;let n=null;
-  if(e.key==='ArrowDown'||e.key==='ArrowRight')n=(i+1)%tabs.length;
-  if(e.key==='ArrowUp'||e.key==='ArrowLeft')n=(i-1+tabs.length)%tabs.length;
-  if(n!==null){e.preventDefault();showSvc(n);tabs[n].focus()}
-});
-showSvc(0);
-
-/* ─────────── Movimiento ─────────── */
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// Nav con borde al hacer scroll + menú móvil
-const nav=$('#nav');
-addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>8),{passive:true});
-$('#menuBtn').addEventListener('click',()=>{const m=$('#menu');const o=m.classList.toggle('open');$('#menuBtn').setAttribute('aria-expanded',o)});
-$('#menu').addEventListener('click',e=>{if(e.target.tagName==='A'){$('#menu').classList.remove('open');$('#menuBtn').setAttribute('aria-expanded','false')}});
-
-// Contador del móvil del hero: sube como un reel que se está haciendo viral
-(function(){
-  const el=$('#heroViews'); if(reduce) return;
-  let v=3357037;
-  setInterval(()=>{v+=Math.floor(Math.random()*37)+3;el.textContent=fmt(v)},900);
-})();
-
-if(!reduce && 'IntersectionObserver' in window){
-  // Entradas: solo los bloques que están por debajo de la pantalla al cargar
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
-  document.querySelectorAll('.rise').forEach(el=>{if(el.getBoundingClientRect().top>innerHeight){el.classList.add('pre');io.observe(el)}});
-
-  // Contadores: arrancan de 0 cuando aparecen
-  const co=new IntersectionObserver(es=>es.forEach(e=>{
-    if(!e.isIntersecting)return; co.unobserve(e.target);
-    const el=e.target,to=+el.dataset.count,pre=el.dataset.prefix||'';const t0=performance.now(),d=1400;
-    const tick=t=>{const k=Math.min(1,(t-t0)/d),ease=1-Math.pow(1-k,3);el.textContent=pre+Math.round(to*ease);if(k<1)requestAnimationFrame(tick)};
-    requestAnimationFrame(tick);
-  }),{threshold:.6});
-  document.querySelectorAll('[data-count]').forEach(el=>co.observe(el));
+function spark(vals){
+  const w=320,h=90,p=4,max=Math.max(...vals),min=Math.min(...vals);
+  const x=i=>p+i*(w-2*p)/(vals.length-1), y=v=>h-p-(v-min)/((max-min)||1)*(h-2*p);
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Seguidores en Instagram, de ${fmt(vals[0])} a ${fmt(vals[vals.length-1])}">
+    <polygon points="${p},${h-p} ${pts} ${x(vals.length-1).toFixed(1)},${h-p}" fill="#CCFF00" fill-opacity=".5"/>
+    <polyline points="${pts}" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${x(vals.length-1).toFixed(1)}" cy="${y(vals[vals.length-1]).toFixed(1)}" r="4" fill="#1A1A1A"/></svg>`;
 }
 
-// Método: la línea lima avanza con el scroll y enciende cada fase
+/* ═══════════ Contenido que se pinta desde los datos ═══════════ */
 (function(){
-  const track=$('#track'),steps=[...track.querySelectorAll('.step')];
-  const upd=()=>{
-    const r=track.getBoundingClientRect();
-    const k=Math.max(0,Math.min(1,(innerHeight*.75-r.top)/(r.height+innerHeight*.15)));
-    track.style.setProperty('--p',(reduce?100:k*100)+'%');
-    steps.forEach((s,i)=>s.classList.toggle('on',reduce||k>=(i)/(steps.length-1)-.02));
-  };
-  addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);upd();
+  const cols=[[],[],[]];
+  MURO.forEach((m,i)=>cols[i%3].push(reelHTML(...m)));
+  $('#wall').innerHTML = cols.map(c=>`<div class="col">${c.join('')+c.join('')}</div>`).join('');
+  $('#names').innerHTML = CLIENTES.map(n=>`<li>${esc(n)}</li>`).join('');
+  $('#wordmarks').innerHTML = CLIENTES.map(n=>`<li>${esc(n)}</li>`).join('');
+  $('#feat').innerHTML = CASOS.slice(0,3).map(c=>`<a href="#caso-${c.slug}">
+      ${reelHTML(c.big,c.bigLab,c.handle,c.cover)}
+      <div><h3>${esc(c.nombre)}</h3><p>${esc(c.claim)}</p><span class="go">Ver el caso</span></div>
+      <div class="spark-wrap">${spark(c.ig)}</div></a>`).join('');
+  $('#cases').innerHTML = CASOS.map(c=>`<a class="case-card" href="#caso-${c.slug}">
+      <div class="cover ${c.cover}"><div class="top-row"><span>${esc(c.tipo)}</span><span>Desde ${esc(c.desde.split(' de ')[0].toLowerCase())}</span></div>
+      <div><b class="num">${esc(c.big)}</b><span class="lab">${esc(c.bigLab)}</span></div></div>
+      <div><h3>${esc(c.nombre)}</h3><p>${esc(c.claim)}</p></div></a>`).join('');
 })();
 
-/* ─────────── Formulario ¿Encajamos? ─────────── */
+/* ═══════════ Página de caso ═══════════ */
+let currentCase=null;
+function renderCase(c){
+  currentCase=c;
+  $('#cName').textContent=c.nombre;
+  $('#cClaim').textContent=c.claim;
+  $('#cMeta').innerHTML=[["Negocio",c.tipo],["Cuenta",c.handle],["Con nosotros desde",c.desde],["Redes",c.redes],["Servicios",c.servicios]].map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('');
+  $('#cStory').innerHTML=[["El punto de partida",c.partida],["Qué hicimos",c.hicimos],["Qué ha pasado",c.paso]].map(([a,b])=>`<div><h3>${a}</h3><p>${esc(b)}</p></div>`).join('');
+  $('#cLegend').innerHTML=`<span><i></i>Instagram</span>${c.tt?'<span><i class="tt"></i>TikTok</span>':''}`;
+  $('#cNote').textContent=c.nota+' El dato de octubre es del día 18.';
+  $('#cTops').innerHTML=c.tops.map(([v,l,u],i)=>`<figure>${reelHTML(v,'visualizaciones',c.handle,['l','','g'][i],u)}<figcaption>${esc(l)}</figcaption></figure>`).join('');
+  const i=CASOS.indexOf(c),n=CASOS[(i+1)%CASOS.length];
+  $('#cNext').innerHTML=`<a href="#caso-${n.slug}"><span>Siguiente caso</span><b>${esc(n.nombre)}</b></a><a class="link" href="#resultados">Todos los casos</a>`;
+}
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw)));const f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function drawChart(){
+  const c=currentCase,box=$('#cChart'); if(!c||box.offsetParent===null) return;
+  const W=Math.max(260,box.clientWidth), H=box.clientHeight||340;
+  const pl=W<500?44:60, pr=16, pt=24, pb=34;
+  const all=[...c.ig,...(c.tt||[])].filter(v=>v!=null);
+  const step=niceStep(Math.max(...all)/4), max=Math.ceil(Math.max(...all)/step)*step;
+  const n=c.meses.length;
+  const x=i=>pl+i*(W-pl-pr)/(n-1);
+  const y=v=>pt+(1-v/max)*(H-pt-pb);
+  const T=(tx,ty,t,a,extra='')=>`<text x="${tx}" y="${ty}" text-anchor="${a}" font-size="12" fill="#8C8C85" font-family="Inter,sans-serif" ${extra}>${t}</text>`;
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Seguidores de ${esc(c.nombre)} a final de cada mes">`;
+  for(let v=0;v<=max;v+=step){s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(26,26,26,.1)"/>`+T(pl-10,y(v)+4,fmt(v),'end')}
+  const every=W<520?Math.ceil(n/6):1;
+  c.meses.forEach((m,i)=>{if(i%every===0||i===n-1)s+=T(x(i),H-10,m,'middle')});
+  const path=arr=>{let d='';arr.forEach((v,i)=>{if(v==null)return;d+=(d?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)});return d};
+  s+=`<path d="${path(c.ig)}L${x(n-1)},${y(0)}L${x(0)},${y(0)}Z" fill="#CCFF00" fill-opacity=".45"/>`;
+  if(c.tt) s+=`<path d="${path(c.tt)}" fill="none" stroke="#8C8C85" stroke-width="2" stroke-dasharray="5 4"/>`;
+  s+=`<path d="${path(c.ig)}" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const last=c.ig[n-1];
+  s+=`<circle cx="${x(n-1)}" cy="${y(last)}" r="5" fill="#1A1A1A"/>`;
+  s+=`<text x="${x(n-1)-10}" y="${y(last)-12}" text-anchor="end" font-size="14" font-weight="700" fill="#1A1A1A" font-family="Inter,sans-serif">${fmt(last)}</text></svg>`;
+  box.innerHTML=s;
+}
+let rz; addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(drawChart,120)});
+
+/* ═══════════ Rutas: cada sección es una página ═══════════ */
+const TITLES={inicio:"21DAYS Agency",resultados:"Resultados · 21DAYS",servicios:"Servicios · 21DAYS",metodo:"Método · 21DAYS",nosotros:"Nosotros · 21DAYS",opiniones:"Opiniones · 21DAYS",faq:"FAQ · 21DAYS",encajamos:"¿Encajamos? · 21DAYS"};
+const burger=$('#burger'),sheet=$('#sheet');
+function closeSheet(){sheet.classList.remove('open');burger.setAttribute('aria-expanded','false');document.body.style.overflow=''}
+burger.addEventListener('click',()=>{const o=!sheet.classList.contains('open');sheet.classList.toggle('open',o);burger.setAttribute('aria-expanded',o);document.body.style.overflow=o?'hidden':''});
+sheet.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.getAttribute('href')===location.hash)closeSheet()});
+
+function route(){
+  const key=(location.hash||'#inicio').slice(1)||'inicio';
+  let page=key, navKey=key, title=TITLES[key];
+  if(key.startsWith('caso-')){
+    const c=CASOS.find(x=>'caso-'+x.slug===key);
+    page=c?'caso':'resultados'; navKey='resultados';
+    if(c){renderCase(c);title=c.nombre+' · 21DAYS'}
+  }
+  if(!$(`[data-page="${page}"]`)){page='inicio';navKey='inicio'}
+  $$('.page').forEach(p=>{const on=p.dataset.page===page;if(on){p.hidden=false;p.style.animation='none';void p.offsetWidth;p.style.animation=''}else p.hidden=true});
+  $$('[data-nav]').forEach(a=>a.dataset.nav===navKey?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  document.title=title||TITLES[page]||TITLES.inicio;
+  closeSheet();
+  window.scrollTo(0,0);
+  if(page==='caso') requestAnimationFrame(drawChart);
+}
+addEventListener('hashchange',route);
+
+/* ═══════════ Formulario ¿Encajamos? ═══════════ */
 (function(){
-  const form=$('#fitForm'),qs=[...form.querySelectorAll('.q')],N=qs.length;
-  const next=$('#next'),back=$('#back'),err=$('#err');
+  const form=$('#qform'),qs=$$('.q',form),N=qs.length;
+  const err=$('#qerr'),next=$('#qnext'),back=$('#qback'),tip=$('#qtip');
   let cur=0;
-  const val=n=>{const el=form.querySelector(`[name="${n}"]:checked`);return el?el.value:''};
+  const val=n=>(form.querySelector(`[name="${n}"]:checked`)||{}).value||'';
   const score=n=>{const el=form.querySelector(`[name="${n}"]:checked`);return el?+el.dataset.score:0};
-  const checks={
-    0:()=>val('sector')&&$('#negocio').value.trim()?'':'Elige un sector y escribe el nombre del negocio.',
-    1:()=>val('zona')?'':'Dinos en qué zona está tu negocio.',
-    2:()=>val('facturacion')?'':'Elige un tramo de facturación.',
-    3:()=>form.querySelectorAll('[name="servicios"]:checked').length?'':'Marca al menos un servicio.',
-    4:()=>val('presupuesto')?'':'Elige un rango de inversión.',
-    5:()=>'',
-    6:()=>{
+  const checks=[
+    ()=>!val('sector')?'Elige el tipo de negocio.':!$('#negocio').value.trim()?'Escribe el nombre del negocio.':'',
+    ()=>val('zona')?'':'Dinos en qué zona está tu negocio.',
+    ()=>val('facturacion')?'':'Elige un tramo de facturación.',
+    ()=>$$('[name="servicios"]:checked',form).length?'':'Marca al menos un servicio.',
+    ()=>val('presupuesto')?'':'Elige cuánto quieres invertir al mes.',
+    ()=>'',
+    ()=>{
       if(!$('#nombre').value.trim())return 'Escribe tu nombre.';
-      const em=$('#email').value.trim(),tel=$('#telefono').value.trim();
-      if(!/^\S+@\S+\.\S+$/.test(em))return 'Escribe un email válido para que podamos responderte.';
-      if(tel.replace(/\D/g,'').length<9)return 'Escribe un teléfono de al menos 9 cifras.';
+      if(!/^\S+@\S+\.\S+$/.test($('#email').value.trim()))return 'Escribe un email válido para poder responderte.';
+      if($('#telefono').value.replace(/\D/g,'').length<9)return 'Escribe un teléfono de al menos 9 cifras.';
       return '';
     }
-  };
+  ];
   function show(i){
-    qs.forEach((q,j)=>q.classList.toggle('active',j===i));
-    $('#progBar').style.width=((i+1)/N*100)+'%';
-    $('#progTxt').textContent=`${i+1} / ${N}`;
+    qs.forEach((q,j)=>q.classList.toggle('on',j===i));
+    $('#qbar').style.width=((i+1)/N*100)+'%';
+    $('#qcount').textContent=`Pregunta ${i+1} de ${N}`;
     back.hidden=i===0;
-    next.innerHTML=i===N-1?'Enviar <span class="arr">→</span>':'Siguiente <span class="arr">→</span>';
+    next.textContent=i===N-1?'Enviar':'Continuar';
+    tip.hidden=!qs[i].querySelector('kbd');
     err.textContent='';
   }
-  // Avanza solo al elegir una opción única (excepto donde hay que escribir)
-  form.addEventListener('change',e=>{
-    if(e.target.type==='radio' && ['zona','facturacion','presupuesto'].includes(e.target.name)){
-      setTimeout(()=>{if(qs[cur].contains(e.target))go()},260);
-    }
-  });
   function go(){
     const m=checks[cur]();
     if(m){err.textContent=m;return}
-    if(cur<N-1){cur++;show(cur);qs[cur].querySelector('input,textarea,select')?.focus({preventScroll:true});return}
+    if(cur<N-1){cur++;show(cur);return}
     finish();
   }
-  next.addEventListener('click',go);
-  back.addEventListener('click',()=>{if(cur>0){cur--;show(cur)}});
   form.addEventListener('submit',e=>{e.preventDefault();go()});
-
+  back.addEventListener('click',()=>{if(cur>0){cur--;show(cur)}});
+  form.addEventListener('change',e=>{
+    if(e.target.type==='radio'&&qs[cur].hasAttribute('data-auto')&&qs[cur].contains(e.target)) setTimeout(()=>{if(qs[cur].contains(e.target))go()},280);
+  });
+  // Teclas A–F para elegir opción
+  addEventListener('keydown',e=>{
+    if($('[data-page="encajamos"]').hidden||e.metaKey||e.ctrlKey||e.altKey)return;
+    const ae=document.activeElement;
+    if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&!/radio|checkbox/.test(ae.type))return;
+    const k=e.key.toUpperCase(); if(!/^[A-F]$/.test(k))return;
+    const o=$$('input[type=radio],input[type=checkbox]',qs[cur])[k.charCodeAt(0)-65];
+    if(o){e.preventDefault();o.checked=o.type==='checkbox'?!o.checked:true;o.dispatchEvent(new Event('change',{bubbles:true}))}
+  });
   async function finish(){
-    const fScore=score('facturacion'), pScore=score('presupuesto');
-    const encaja = fScore>=FACTURACION_MINIMA_SCORE && pScore>=0;
-    const data={
-      fecha:new Date().toISOString(),
-      negocio:$('#negocio').value.trim(), sector:val('sector'),
-      zona:val('zona'), ciudad:$('#ciudad').value.trim(),
-      facturacion:val('facturacion'),
-      servicios:[...form.querySelectorAll('[name="servicios"]:checked')].map(x=>x.value).join(', '),
-      presupuesto:val('presupuesto'), ideas:$('#ideas').value.trim(), cuando:$('#cuando').value,
-      nombre:$('#nombre').value.trim(), telefono:$('#telefono').value.trim(),
-      email:$('#email').value.trim(), instagram:$('#instagram').value.trim(),
-      cualificado: encaja?'SÍ':'NO', puntuacion: fScore+pScore
-    };
-    if(SHEETS_URL){
-      try{await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})}catch(_){}
-    }
-    qs.forEach(q=>q.classList.remove('active'));
-    $('#navQ').hidden=true; err.textContent=''; $('.prog').hidden=true;
-    if(encaja){
-      $('#sumOk').innerHTML=[['Negocio',data.negocio],['Zona',data.ciudad||data.zona],['Facturación',data.facturacion],['Servicios',data.servicios]].map(([a,b])=>`<div><span>${a}</span><b>${b.replace(/</g,'&lt;')}</b></div>`).join('');
-      $('#resOk').classList.add('show');
-    } else $('#resNo').classList.add('show');
+    const f=score('facturacion'),p=score('presupuesto');
+    const ok=f>=1&&p>=0;
+    const data={fecha:new Date().toISOString(),cualificado:ok?'SÍ':'NO',puntuacion:f+p,negocio:$('#negocio').value.trim(),sector:val('sector'),zona:val('zona'),ciudad:$('#ciudad').value.trim(),facturacion:val('facturacion'),presupuesto:val('presupuesto'),servicios:$$('[name="servicios"]:checked',form).map(x=>x.value).join(', '),ideas:$('#ideas').value.trim(),cuando:$('#cuando').value,nombre:$('#nombre').value.trim(),telefono:$('#telefono').value.trim(),email:$('#email').value.trim(),instagram:$('#instagram').value.trim(),origen:'21days'};
+    if(SHEETS_URL){try{await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})}catch(_){}}
+    qs.forEach(q=>q.classList.remove('on'));$('#qfoot').hidden=true;err.textContent='';$('#qcount').hidden=true;$('#qbar').style.width='100%';
+    if(ok){$('#qrecap').innerHTML=[['Negocio',data.negocio],['Zona',data.ciudad||data.zona],['Facturación',data.facturacion],['Servicios',data.servicios]].map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('');$('#qok').classList.add('on')}
+    else $('#qno').classList.add('on');
   }
   show(0);
 })();
 
-// Copiar el email (los enlaces mailto no siempre funcionan aquí)
-$('#copyMail').addEventListener('click',async()=>{
-  const t='hola@21daysagency.com',msg=$('#copyMsg');
-  try{await navigator.clipboard.writeText(t);msg.textContent='Copiado'}
-  catch(_){const r=document.createRange();r.selectNodeContents($('#copyMail'));const s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Selecciónalo y cópialo'}
-  setTimeout(()=>msg.textContent='',2500);
+/* Copiar email */
+$('#copy').addEventListener('click',async()=>{
+  const m=$('#copyMsg');
+  try{await navigator.clipboard.writeText('hola@21daysagency.com');m.textContent='Email copiado'}
+  catch(_){const r=document.createRange();r.selectNodeContents($('#copy'));const s=getSelection();s.removeAllRanges();s.addRange(r);m.textContent='Selecciónalo y cópialo'}
 });
+
+route();
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('booting')));
 </script>

@@ -1,557 +1,649 @@
 <title>Outoflamode Creative Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="OUTOFLAMODE · Creative studio. Branding, identidad corporativa, diseño web, packaging, eventos e identidad para talento. Barcelona · Mataró.">
+<meta name="description" content="Outoflamode, estudio creativo de Barcelona y Mataró. Branding, identidad corporativa, diseño web, packaging, eventos e identidad para talento.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Jost:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Hanken+Grotesk:wght@300;400;500&display=swap">
 <style>
-/* Layout: revista de estudio. Hueso de fondo, rosa palo como papel de las tarjetas, la foto pone el color y el texto se queda en dos líneas. */
+/*
+  Sistema: un lookbook. El rosa palo es el papel, el negro la tinta y cada proyecto tiene su lámina de color.
+  Bodoni solo para nombres y frases grandes; Hanken Grotesk ligera para todo lo demás. Texto alineado a la izquierda, mucho aire.
+*/
 :root{
-  --bone:#F6F2EE;        /* hueso */
-  --rose:#EBCDC8;        /* rosa palo */
-  --rose-2:#F7EAE7;
-  --ink:#151312;         /* negro cálido */
-  --ink-2:#3A3532;
-  --muted:#8D8079;
-  --clay:#8A4F47;        /* rosa tostado para detalles */
-  --line:rgba(21,19,18,.14);
-  --serif:'Bodoni Moda','Didot','Bodoni 72',Georgia,serif;
-  --sans:'Jost','Futura','Avenir Next',system-ui,sans-serif;
-  --wrap:1280px;
+  --rose:#E9CFC9;
+  --bone:#F3EEE8;
+  --ink:#000000;
+  --ink-2:#4A403D;
+  --ink-3:#85776F;
+  --blush:#D7AFA6;
+  --sand:#CDBFB3;
+  --matcha:#7C8A74;
+  --hair:rgba(0,0,0,.16);
+
+  --serif:'Bodoni Moda','Bodoni 72','Didot',Georgia,serif;
+  --sans:'Hanken Grotesk','Helvetica Neue',Arial,sans-serif;
+  --gutter:max(20px,env(safe-area-inset-left,0px));
+  --gutter-r:max(20px,env(safe-area-inset-right,0px));
+  --bg:var(--rose);
   color-scheme:light;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--bone);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bone)}
-h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;line-height:1;text-wrap:balance}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background-color .5s ease}
+body.on-bone{--bg:var(--bone)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:90;background:var(--bg)}
+h1,h2,h3{margin:0;font-family:var(--serif);font-weight:400;line-height:1;letter-spacing:-.02em;text-wrap:balance}
 p{margin:0}
-a{color:inherit}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
 :focus-visible{outline:1.5px solid var(--ink);outline-offset:4px}
-.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.lbl{font:400 11px/1.3 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.wrap{padding-left:var(--gutter);padding-right:var(--gutter-r);max-width:1480px;margin:0 auto}
 .it{font-style:italic}
-section{padding-block:clamp(72px,10vw,140px)}
-.rule{height:1px;background:var(--line);border:0;margin:0}
+.u{background-image:linear-gradient(currentColor,currentColor);background-size:100% 1px;background-repeat:no-repeat;background-position:0 100%;padding-bottom:2px;transition:background-size .4s ease}
+.u:hover{background-size:0 1px;background-position:100% 100%}
+.small{font-size:14px;color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
 
-/* ── Nav ── */
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(246,242,238,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:64px;border-bottom:1px solid var(--line)}
-.wordmark{font:500 15px/1 var(--sans);letter-spacing:.34em;text-decoration:none;white-space:nowrap}
-.nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0}
-.nav ul a{text-decoration:none;font:400 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;position:relative;padding-block:6px}
-.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:right;transition:transform .35s ease}
-.nav ul a:hover::after{transform:scaleX(1);transform-origin:left}
-.brief-btn{font:400 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;text-decoration:none;border:1px solid var(--ink);border-radius:999px;padding:11px 18px;transition:background .25s,color .25s;white-space:nowrap}
-.brief-btn:hover{background:var(--ink);color:var(--bone)}
-.menu-btn{display:none;background:none;border:1px solid var(--line);border-radius:999px;height:40px;padding:0 16px;font:400 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;color:var(--ink)}
+/* ── Cabecera ── */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:var(--bg);transition:background-color .5s ease}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px}
+.logo{font-family:var(--sans);font-weight:500;font-size:15px;letter-spacing:.3em;margin-right:-.3em}
+.menu{display:flex;gap:30px;list-style:none;margin:0;padding:0;font-size:16px;font-weight:400}
+.menu a{position:relative;padding-block:4px}
+.menu a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:right;transition:transform .35s ease}
+.menu a:hover::after,.menu a[aria-current="page"]::after{transform:scaleX(1);transform-origin:left}
+.menu a[aria-current="page"]{font-family:var(--serif);font-style:italic;font-size:18px}
+.burger{display:none;background:none;border:0;cursor:pointer;font-size:16px;padding:10px 0}
+.sheet{display:none}
 @media (max-width:900px){
-  .nav ul{display:none}
-  .nav ul.open{display:flex;flex-direction:column;gap:6px;position:absolute;top:64px;left:0;right:0;background:var(--bone);padding:16px max(16px,env(safe-area-inset-left,0px)) 24px;border-bottom:1px solid var(--line)}
-  .nav ul.open a{font-size:15px;padding-block:12px}
-  .menu-btn{display:block}
-  .brief-btn{display:none}
+  .menu{display:none}
+  .burger{display:block}
+  .sheet{position:fixed;inset:calc(72px + env(safe-area-inset-top,0px)) 0 0;z-index:79;background:var(--bg);padding:16px var(--gutter-r) calc(32px + env(safe-area-inset-bottom,0px)) var(--gutter);flex-direction:column;justify-content:space-between;overflow:auto}
+  .sheet.open{display:flex}
+  .sheet ul{list-style:none;margin:0;padding:0}
+  .sheet a.big{display:block;font-family:var(--serif);font-size:clamp(44px,12vw,64px);line-height:1.12;letter-spacing:-.02em}
+  .sheet a.big[aria-current="page"]{font-style:italic}
 }
 
-/* ── Hero ── */
-.hero{padding-block:clamp(36px,6vw,72px) clamp(48px,7vw,96px)}
-.hero-top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.mega{margin-top:clamp(20px,4vw,48px);font:400 clamp(72px,17vw,260px)/.82 var(--serif);letter-spacing:-.045em}
-.mega .l2{display:block;padding-left:clamp(40px,14vw,220px);font-style:italic}
-.mega .w{display:inline-block;animation:up 1.1s cubic-bezier(.2,.7,.1,1) both}
-.mega .l2 .w{animation-delay:.12s}
-@keyframes up{from{transform:translateY(.25em)}to{transform:none}}
-.hero-foot{margin-top:clamp(28px,5vw,56px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:end}
-.hero-foot p.lead{font:400 clamp(22px,2.4vw,30px)/1.2 var(--serif);font-style:italic;max-width:22ch}
-.hero-foot .what{font-size:15px;color:var(--ink-2);max-width:34ch}
-.hero-foot .cta{justify-self:end}
-.cta-link{display:inline-flex;align-items:center;gap:14px;text-decoration:none;font:400 13px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase}
-.cta-link .circ{width:58px;height:58px;border-radius:50%;background:var(--rose);display:grid;place-items:center;font-size:18px;transition:transform .35s ease,background .35s}
-.cta-link:hover .circ{transform:rotate(-45deg);background:var(--ink);color:var(--bone)}
-@media (max-width:820px){.hero-foot{grid-template-columns:1fr}.hero-foot .cta{justify-self:start}}
+/* ── Páginas ── */
+.page{animation:pageIn .7s cubic-bezier(.2,.7,.1,1)}
+.booting .page{animation:none}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+.head{padding-block:clamp(48px,8vw,128px) clamp(40px,5vw,72px)}
+.head h1{font-size:clamp(56px,10vw,168px);letter-spacing:-.035em;line-height:.9}
+.head .lede{margin-top:32px;font-size:clamp(19px,1.6vw,22px);line-height:1.5;color:var(--ink-2);max-width:40ch}
+.section{padding-block:clamp(72px,10vw,160px)}
+.cols{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px)}
+@media (max-width:820px){.cols > *{grid-column:1/-1!important}.cols{row-gap:24px}}
+.say{font-family:var(--serif);font-size:clamp(34px,4.6vw,72px);line-height:1.06;letter-spacing:-.02em}
+.back{display:inline-block;font-size:15px;margin-bottom:32px;color:var(--ink-2)}
+.back:hover{color:var(--ink)}
 
-/* Tira de imágenes del hero */
-.strip{margin-top:clamp(36px,5vw,64px);display:grid;grid-template-columns:1.25fr .8fr 1fr .7fr;gap:12px;align-items:end}
-@media (max-width:760px){.strip{grid-template-columns:1fr 1fr}.strip .img:nth-child(n+3){display:none}}
-.img{position:relative;overflow:hidden;background:var(--c1,#cfc6bf);max-width:100%}
-.img::before{content:"";position:absolute;inset:0;background:
-  radial-gradient(80% 60% at var(--x,30%) var(--y,25%),rgba(255,255,255,.35),transparent 60%),
-  linear-gradient(160deg,var(--c1,#cfc6bf),var(--c2,#8d8079));transition:transform 1.2s cubic-bezier(.2,.7,.1,1)}
-.img::after{content:"";position:absolute;inset:0;opacity:.18;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-.img figcaption,.img .cap{position:absolute;left:12px;bottom:10px;right:12px;z-index:1;font:400 10.5px/1.35 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.92)}
-.r45{aspect-ratio:4/5}.r34{aspect-ratio:3/4}.r11{aspect-ratio:1}.r169{aspect-ratio:16/10}
-.t1{--c1:#e6dcd3;--c2:#a58c6a}
-.t2{--c1:#EBCDC8;--c2:#8A4F47;--x:70%}
-.t3{--c1:#b5a79c;--c2:#3a3532;--y:70%}
-.t4{--c1:#E9A9B8;--c2:#4d3b28}
-.t5{--c1:#7c8a74;--c2:#2f3a2b}
-.t6{--c1:#cfc6bf;--c2:#26303f;--x:60%}
+/* ── Inicio ── */
+.mast{padding-top:clamp(16px,3vw,40px)}
+.wordmark{font-family:var(--serif);font-weight:400;font-size:min(calc((100vw - 2 * var(--gutter)) / 5.3),272px);line-height:.8;letter-spacing:-.045em;white-space:nowrap;margin-left:-.04em;overflow:hidden}
+.wordmark span{display:inline-block;animation:in 1.4s cubic-bezier(.2,.7,.1,1) both}
+.wordmark span.b{font-style:italic;animation-delay:.1s}
+@keyframes in{from{transform:translateY(.25em);opacity:0}to{transform:none;opacity:1}}
+.mast-row{margin-top:clamp(28px,4vw,56px);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);align-items:end}
+.mast-row .lead{grid-column:1/span 6;font-family:var(--serif);font-size:clamp(26px,2.8vw,42px);line-height:1.1;font-style:italic}
+.mast-row .what{grid-column:8/span 3;font-size:16px;color:var(--ink-2)}
+.mast-row .act{grid-column:11/span 2;justify-self:end;font-size:16px}
+@media (max-width:820px){.mast-row > *{grid-column:1/-1!important;justify-self:start!important;margin-top:16px}}
 
-/* ── Cinta de servicios ── */
-.band{border-block:1px solid var(--line);padding-block:18px;overflow:hidden}
-.band-track{display:flex;gap:48px;width:max-content;animation:slide 40s linear infinite}
-.band-track span{font:400 clamp(26px,3.4vw,44px)/1 var(--serif);font-style:italic;white-space:nowrap;display:inline-flex;align-items:center;gap:48px}
-.band-track span::after{content:"✦";font-style:normal;font-size:.45em;color:var(--clay)}
-@keyframes slide{to{transform:translateX(-50%)}}
+/* Láminas de proyecto: el elemento que manda */
+.plate{position:relative;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;padding:clamp(16px,2vw,28px);color:var(--ink);background:var(--blush);max-width:100%}
+.plate .pn{font-family:var(--serif);font-size:clamp(40px,5.4vw,96px);line-height:.92;letter-spacing:-.03em}
+.plate .pn i{font-style:italic}
+.plate .pm{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.plate::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.plate.k{background:var(--ink);color:var(--rose)}
+.plate.k::after{mix-blend-mode:screen;opacity:.1}
+.plate.m{background:var(--matcha);color:var(--bone)}
+.plate.s{background:var(--sand)}
+.plate.b{background:var(--blush)}
+.plate.r{background:var(--bone)}
+.r45{aspect-ratio:4/5}.r34{aspect-ratio:3/4}.r11{aspect-ratio:1}.r32{aspect-ratio:3/2}.r21{aspect-ratio:21/9}
+a.plate,.card-link .plate{transition:transform .8s cubic-bezier(.2,.7,.1,1)}
+.card-link:hover .plate{transform:scale(.985)}
 
-/* ── Índice de proyectos ── */
-.head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:end;margin-bottom:clamp(32px,5vw,56px)}
-.head h2{font-size:clamp(44px,7vw,104px);letter-spacing:-.03em}
-.head p{font-size:16px;color:var(--ink-2);max-width:40ch;justify-self:end}
-@media (max-width:760px){.head{grid-template-columns:1fr}.head p{justify-self:start}}
-.index{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-.index li{border-bottom:1px solid var(--line)}
-.index a{display:grid;grid-template-columns:56px minmax(0,1.6fr) minmax(0,1fr) 80px;gap:20px;align-items:baseline;padding-block:clamp(18px,2.4vw,30px);text-decoration:none;transition:padding .45s cubic-bezier(.2,.7,.1,1),color .3s}
-.index a:hover{padding-left:18px}
-.index .n{font:400 12px/1 var(--sans);letter-spacing:.14em;color:var(--muted)}
-.index .name{font:400 clamp(30px,4.6vw,64px)/1 var(--serif);letter-spacing:-.025em}
-.index .name i{font-style:italic}
-.index .cat{font-size:14px;color:var(--ink-2)}
-.index .yr{font:400 12px/1 var(--sans);letter-spacing:.14em;color:var(--muted);text-align:right}
-.index li.soon .name{color:var(--muted)}
-@media (max-width:700px){.index a{grid-template-columns:36px minmax(0,1fr);row-gap:8px}.index .cat{grid-column:2}.index .yr{display:none}}
-.peek{position:fixed;left:0;top:0;width:260px;pointer-events:none;z-index:40;opacity:0;transform:translate(-50%,-50%) scale(.9);transition:opacity .25s ease,transform .25s ease}
+.work{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:clamp(48px,6vw,96px)}
+.work .w1{grid-column:1/span 7}
+.work .w2{grid-column:9/span 4;align-self:end}
+.work .w3{grid-column:2/span 4}
+.work .w4{grid-column:7/span 6;margin-top:clamp(0px,8vw,140px)}
+.cap{margin-top:16px;display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+.cap b{font-family:var(--serif);font-weight:400;font-size:clamp(22px,2vw,28px);font-style:italic}
+.cap span{font-size:14px;color:var(--ink-2);text-align:right}
+@media (max-width:820px){.work > *{grid-column:1/-1!important;margin-top:0!important}}
+
+.svc-short{border-top:1px solid var(--hair)}
+.svc-short a{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:24px;align-items:baseline;padding-block:clamp(20px,2.6vw,32px);border-bottom:1px solid var(--hair)}
+.svc-short b{font-family:var(--serif);font-weight:400;font-size:clamp(30px,3.6vw,56px);letter-spacing:-.02em;line-height:1.05;transition:font-style .2s}
+.svc-short a:hover b{font-style:italic}
+.svc-short span{color:var(--ink-2)}
+@media (max-width:700px){.svc-short a{grid-template-columns:1fr;gap:6px}}
+
+.names{list-style:none;margin:0;padding:0}
+.names li{font-family:var(--serif);font-style:italic;font-size:clamp(48px,8vw,136px);line-height:1;letter-spacing:-.03em}
+.names li small{display:block;font-family:var(--sans);font-style:normal;font-size:15px;letter-spacing:0;color:var(--ink-2);margin:10px 0 28px}
+
+/* ── Proyectos (índice) ── */
+.index{list-style:none;margin:0;padding:0;border-top:1px solid var(--hair)}
+.index a{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr) minmax(0,1fr);gap:24px;align-items:baseline;padding-block:clamp(18px,2.4vw,30px);border-bottom:1px solid var(--hair)}
+.index .nm{font-family:var(--serif);font-size:clamp(36px,5.4vw,88px);line-height:1;letter-spacing:-.03em;transition:transform .5s cubic-bezier(.2,.7,.1,1)}
+.index .nm i{font-style:italic}
+.index a:hover .nm{transform:translateX(16px)}
+.index .ds{font-size:15px;color:var(--ink-2)}
+.index .yr{font-size:15px;color:var(--ink-2);text-align:right}
+.index .thumb{display:none}
+@media (max-width:760px){.index a{grid-template-columns:96px minmax(0,1fr);row-gap:6px}.index .thumb{display:flex;grid-row:span 2;aspect-ratio:4/5}.index .thumb .pn{font-size:20px}.index .yr{display:none}}
+.peek{position:fixed;left:0;top:0;width:280px;z-index:70;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.92);transition:opacity .3s ease,transform .3s ease}
 .peek.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.peek .img{border-radius:2px}
 @media (hover:none){.peek{display:none}}
 
-/* ── Proyectos destacados ── */
-.feature{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(24px,5vw,80px);align-items:start;padding-block:clamp(56px,8vw,112px);border-top:1px solid var(--line)}
-.feature.flip{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
-.feature.flip .gallery{order:2}
-@media (max-width:860px){.feature,.feature.flip{grid-template-columns:1fr}.feature.flip .gallery{order:0}}
-.gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.gallery .img:first-child{grid-column:1/-1}
-.feature .txt{position:sticky;top:96px;display:flex;flex-direction:column;gap:22px}
-.feature .num{font:400 12px/1 var(--sans);letter-spacing:.2em;color:var(--muted)}
-.feature h3{font-size:clamp(44px,6vw,88px);letter-spacing:-.03em}
-.feature h3 i{font-style:italic}
-.feature .idea{font:400 clamp(22px,2.2vw,28px)/1.25 var(--serif);font-style:italic}
-.feature .did{font-size:16px;color:var(--ink-2);max-width:42ch}
-.facts{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
-.facts div{padding:16px 0;border-bottom:1px solid var(--line)}
-.facts div:nth-child(odd){padding-right:16px}
-.facts b{display:block;font:400 30px/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.facts span{display:block;font-size:12.5px;color:var(--muted);margin-top:6px;letter-spacing:.02em}
-.credits{font-size:12.5px;color:var(--muted);line-height:1.7}
-.credits b{font-weight:500;color:var(--ink-2)}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.tags span{font:400 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:8px 11px}
-.pend{font:400 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--clay);border:1px dashed var(--clay);padding:4px 6px;border-radius:4px;white-space:nowrap}
+/* ── Proyecto (detalle) ── */
+.p-hero{min-height:min(78vh,760px);aspect-ratio:auto}
+.p-hero .pn{font-size:clamp(64px,12vw,200px)}
+.p-body{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:40px;padding-block:clamp(56px,8vw,120px)}
+.p-body .idea{grid-column:1/span 7;font-family:var(--serif);font-style:italic;font-size:clamp(32px,4vw,60px);line-height:1.08;letter-spacing:-.02em}
+.p-body .did{grid-column:9/span 4;font-size:19px;line-height:1.5}
+.p-body .did p + p{margin-top:16px;color:var(--ink-2);font-size:16px}
+.facts{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair)}
+.facts div{padding:20px 20px 0 0}
+.facts b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(36px,4vw,60px);line-height:1;letter-spacing:-.02em}
+.facts span{display:block;margin-top:8px;font-size:14px;color:var(--ink-2)}
+@media (max-width:820px){.facts{grid-template-columns:1fr 1fr;row-gap:24px}}
+.gallery{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(10px,1.4vw,20px)}
+.gallery .g1{grid-column:1/span 8}
+.gallery .g2{grid-column:9/span 4}
+.gallery .g3{grid-column:1/span 5}
+.gallery .g4{grid-column:6/span 7}
+@media (max-width:700px){.gallery > *{grid-column:1/-1!important}}
+.slot{display:flex;align-items:flex-end;padding:14px;font-size:13px;color:var(--ink-2);background:rgba(0,0,0,.05);max-width:100%}
+.slot.dark{background:rgba(0,0,0,.12)}
+.credits{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);padding-block:clamp(48px,6vw,88px);border-bottom:1px solid var(--hair)}
+.credits h3{grid-column:1/span 3;font-size:24px;font-style:italic}
+.credits dl{grid-column:5/span 8;margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 32px;font-size:16px}
+.credits dt{color:var(--ink-3)}
+.credits dd{margin:0}
+.pend{color:var(--ink-3);font-style:italic}
+.next{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:24px;padding-block:clamp(48px,7vw,104px)}
+.next small{display:block;font-size:15px;color:var(--ink-2);margin-bottom:12px}
+.next b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(48px,7vw,120px);line-height:.95;letter-spacing:-.03em}
+.next b i{font-style:italic}
+.next a:hover b{font-style:italic}
 
 /* ── Servicios ── */
-.services{background:var(--rose)}
-.svc-list{list-style:none;margin:0;padding:0;border-top:1px solid rgba(21,19,18,.2)}
-.svc-item{border-bottom:1px solid rgba(21,19,18,.2)}
-.svc-item button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:20px;align-items:center;padding-block:clamp(20px,2.6vw,32px)}
-.svc-item button:focus-visible{outline:1.5px solid var(--ink);outline-offset:4px}
-.svc-item .n{font:400 12px/1 var(--sans);letter-spacing:.14em;color:var(--ink-2)}
-.svc-item .t{font:400 clamp(30px,4.4vw,60px)/1.02 var(--serif);letter-spacing:-.02em}
-.svc-item .t i{font-style:italic}
-.svc-item .pm{width:44px;height:44px;border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;font-size:20px;transition:transform .35s ease,background .3s}
-.svc-item[data-open="true"] .pm{transform:rotate(45deg);background:var(--ink);color:var(--rose)}
-.svc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.7,.1,1)}
-.svc-item[data-open="true"] .svc-body{grid-template-rows:1fr}
-.svc-body > div{overflow:hidden}
-.svc-inner{display:grid;grid-template-columns:60px minmax(0,1fr) minmax(0,1fr);gap:20px;padding-bottom:28px}
-.svc-inner p{font-size:16px;color:var(--ink-2);max-width:44ch}
-.svc-inner ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
-.svc-inner li{font:400 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(21,19,18,.3);border-radius:999px;padding:9px 12px}
-@media (max-width:700px){.svc-item button{grid-template-columns:36px minmax(0,1fr) auto}.svc-inner{grid-template-columns:1fr}.svc-inner > span{display:none}}
+.svc{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:20px;padding-block:clamp(48px,6vw,96px);border-top:1px solid var(--hair)}
+.svc h2{grid-column:1/span 6;font-size:clamp(44px,5.6vw,92px);letter-spacing:-.03em;line-height:.98}
+.svc h2 i{font-style:italic}
+.svc .txt{grid-column:8/span 5}
+.svc .txt p{font-size:19px;line-height:1.5}
+.svc ul{list-style:none;margin:24px 0 0;padding:0;columns:2;column-gap:24px}
+.svc li{padding:10px 0;border-bottom:1px solid var(--hair);break-inside:avoid;font-size:16px}
+.svc .see{display:inline-block;margin-top:24px;font-size:15px}
+@media (max-width:820px){.svc > *{grid-column:1/-1!important}.svc ul{columns:1}}
 
 /* ── Talento ── */
-.talent{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,5vw,80px);align-items:center}
-@media (max-width:860px){.talent{grid-template-columns:1fr}}
-.talent h2{font-size:clamp(44px,6.4vw,96px);letter-spacing:-.03em}
-.talent .body{margin-top:24px;font-size:17px;color:var(--ink-2);max-width:46ch}
-.talent .names{margin-top:32px;display:grid;gap:0;border-top:1px solid var(--line)}
-.talent .names div{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding-block:16px;border-bottom:1px solid var(--line)}
-.talent .names b{font:400 28px/1.1 var(--serif);font-style:italic}
-.talent .names span{font-size:13px;color:var(--muted);text-align:right}
-.talent-imgs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.talent-imgs .img:nth-child(2){margin-top:64px}
-
-/* ── Proceso ── */
-.process{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
-@media (max-width:900px){.process{grid-template-columns:1fr}}
-.process div{padding:24px 20px 24px 0;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;min-width:0}
-.process div:last-child{border-right:0}
-@media (max-width:900px){.process div{border-right:0;border-bottom:1px solid var(--line);padding-inline:0;display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 16px}.process div p{grid-column:2}}
-.process .n{font:400 12px/1 var(--sans);letter-spacing:.14em;color:var(--muted);padding-top:8px}
-.process h3{font-size:32px;font-style:italic}
-.process p{font-size:14.5px;color:var(--ink-2)}
+.talent{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:32px;padding-block:clamp(56px,7vw,112px);border-top:1px solid var(--hair);align-items:end}
+.talent .plate{grid-column:1/span 5}
+.talent .txt{grid-column:7/span 6}
+.talent h2{font-size:clamp(52px,7vw,120px);font-style:italic;letter-spacing:-.03em;line-height:.95}
+.talent p{margin-top:20px;font-size:19px;line-height:1.5;max-width:40ch}
+.talent .tags{margin-top:20px;font-size:15px;color:var(--ink-2)}
+.talent.flip .plate{grid-column:8/span 5;order:2}
+.talent.flip .txt{grid-column:1/span 6}
+@media (max-width:820px){.talent > *{grid-column:1/-1!important;order:0!important}}
 
 /* ── Estudio ── */
-.studio{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px)}
-@media (max-width:860px){.studio{grid-template-columns:1fr}}
-.studio h2{font-size:clamp(44px,6vw,88px);letter-spacing:-.03em}
-.studio .story{margin-top:28px;display:grid;gap:16px;font-size:17px;color:var(--ink-2);max-width:48ch}
-.studio .sign{margin-top:28px;font:400 32px/1 var(--serif);font-style:italic}
-.people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-@media (max-width:560px){.people{grid-template-columns:1fr 1fr}}
-.people figure{margin:0;display:flex;flex-direction:column;gap:10px}
-.people figure.lead{grid-column:span 2;grid-row:span 2}
-@media (max-width:560px){.people figure.lead{grid-column:1/-1;grid-row:auto}}
-.people b{font:400 22px/1.1 var(--serif)}
-.people span{font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--hair)}
+.steps li{padding:24px 24px 0 0}
+.steps li + li{padding-left:24px;border-left:1px solid var(--hair)}
+.steps em{font-family:var(--serif);font-size:20px;color:var(--ink-3)}
+.steps h3{margin-top:8px;font-size:clamp(28px,2.6vw,40px);font-style:italic}
+.steps p{margin-top:12px;font-size:15.5px;color:var(--ink-2)}
+@media (max-width:900px){.steps{grid-template-columns:1fr}.steps li + li{padding-left:0;border-left:0;border-top:1px solid var(--hair)}.steps li{padding:20px 0}}
+.people{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:32px}
+.people .lead{grid-column:1/span 6}
+.people .p2{grid-column:8/span 2;align-self:end}
+.people .p3{grid-column:10/span 2;align-self:end}
+.people b{display:block;margin-top:14px;font-family:var(--serif);font-weight:400;font-size:26px}
+.people .lead b{font-size:clamp(32px,3.4vw,48px);font-style:italic}
+.people span{font-size:15px;color:var(--ink-2)}
+@media (max-width:820px){.people .lead{grid-column:1/-1}.people .p2{grid-column:1/span 6}.people .p3{grid-column:7/span 6}}
 
 /* ── Brief ── */
-.brief{background:var(--rose-2)}
-.brief-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,80px)}
-@media (max-width:900px){.brief-grid{grid-template-columns:1fr}}
-.brief h2{font-size:clamp(48px,7vw,104px);letter-spacing:-.03em}
-.brief .intro{margin-top:24px;font-size:17px;color:var(--ink-2);max-width:40ch}
-.brief .mail{margin-top:32px;display:grid;gap:6px}
-.brief .mail button{all:unset;cursor:pointer;font:400 26px/1.1 var(--serif);font-style:italic;border-bottom:1px solid var(--ink);justify-self:start}
-.brief .mail button:focus-visible{outline:1.5px solid var(--ink);outline-offset:4px}
-form{display:grid;gap:30px;min-width:0}
-.fs{border:0;margin:0;padding:0;min-width:0;display:grid;gap:14px}
-.fs legend{font:400 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:0;margin-bottom:14px}
-.pills{display:flex;flex-wrap:wrap;gap:8px}
+.brief{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2vw,32px);row-gap:48px;padding-bottom:clamp(72px,10vw,160px)}
+.brief .side{grid-column:1/span 4}
+.brief .side p{font-size:19px;line-height:1.5;color:var(--ink-2);max-width:32ch}
+.brief form,.brief .done{grid-column:6/span 7}
+@media (max-width:900px){.brief > *{grid-column:1/-1!important}}
+form{display:grid;gap:40px;min-width:0}
+.fs{border:0;margin:0;padding:0;min-width:0}
+.fs legend{font-family:var(--serif);font-size:clamp(26px,2.6vw,36px);font-style:italic;padding:0;margin-bottom:18px}
+.pills{display:flex;flex-wrap:wrap;gap:10px}
 .pill input{position:absolute;opacity:0;pointer-events:none}
-.pill label{display:inline-block;cursor:pointer;border:1px solid rgba(21,19,18,.3);border-radius:999px;padding:11px 16px;font-size:14px;transition:background .2s,color .2s,border-color .2s}
+.pill label{display:inline-block;cursor:pointer;border:1px solid rgba(0,0,0,.35);border-radius:999px;padding:12px 18px;font-size:16px;font-weight:400;transition:background .2s,color .2s,border-color .2s}
 .pill label:hover{border-color:var(--ink)}
 .pill input:checked + label{background:var(--ink);color:var(--bone);border-color:var(--ink)}
 .pill input:focus-visible + label{outline:1.5px solid var(--ink);outline-offset:3px}
-.line-field{display:grid;gap:4px}
-.line-field label{font:400 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.line-field input,.line-field textarea{font:400 22px/1.3 var(--serif);color:var(--ink);background:transparent;border:0;border-bottom:1px solid rgba(21,19,18,.3);padding:10px 0;border-radius:0;width:100%}
-.line-field textarea{min-height:96px;resize:vertical;font-size:19px}
-.line-field input:focus,.line-field textarea:focus{outline:none;border-bottom-color:var(--ink)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-@media (max-width:560px){.two{grid-template-columns:1fr}}
-.send{justify-self:start;display:inline-flex;align-items:center;gap:16px;background:var(--ink);color:var(--bone);border:0;border-radius:999px;padding:18px 26px;cursor:pointer;font:400 13px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;transition:background .25s}
-.send:hover{background:var(--clay)}
-.ferr{font-size:14px;color:var(--clay);min-height:1em}
-.done{display:none;gap:16px}
-.done.show{display:grid}
-.done h3{font-size:clamp(40px,5vw,64px);font-style:italic}
-.done p{font-size:17px;color:var(--ink-2);max-width:44ch}
+.line{display:grid;gap:2px}
+.line label{font-size:14px;color:var(--ink-2)}
+.line input,.line textarea{width:100%;background:transparent;border:0;border-bottom:1px solid rgba(0,0,0,.35);border-radius:0;padding:10px 0 12px;font-family:var(--serif);font-size:clamp(22px,2vw,28px);color:var(--ink)}
+.line textarea{min-height:110px;resize:vertical;font-size:22px;line-height:1.35}
+.line input::placeholder,.line textarea::placeholder{color:rgba(0,0,0,.3)}
+.line input:focus,.line textarea:focus{outline:none;border-bottom-color:var(--ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+@media (max-width:600px){.two{grid-template-columns:1fr}}
+.send{justify-self:start;background:var(--ink);color:var(--bone);border:0;border-radius:999px;padding:20px 34px;font-size:17px;font-weight:400;cursor:pointer;transition:background .3s,color .3s}
+.send:hover{background:var(--blush);color:var(--ink)}
+.ferr{font-size:15px;color:#8E2C1C;min-height:1.4em;margin-top:-20px}
+.done{display:none}
+.done.on{display:block}
+.done h2{font-size:clamp(48px,6vw,96px);font-style:italic;letter-spacing:-.03em}
+.done p{margin-top:24px;font-size:19px;max-width:40ch;color:var(--ink-2)}
 
-footer{padding-block:48px}
-.foot{display:grid;gap:40px}
-.foot-mega{font:400 clamp(56px,13vw,200px)/.85 var(--serif);letter-spacing:-.045em;font-style:italic;text-align:center}
-.foot-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding-top:20px;font-size:13px;color:var(--muted);letter-spacing:.06em}
-.foot-row a{text-decoration:none}
+/* ── Pie ── */
+footer{border-top:1px solid var(--hair)}
+.foot{padding-block:clamp(56px,8vw,120px) calc(32px + env(safe-area-inset-bottom,0px))}
+.foot h2{font-size:clamp(52px,9vw,160px);font-style:italic;letter-spacing:-.035em;line-height:.92}
+.foot-row{margin-top:clamp(40px,6vw,80px);display:flex;flex-wrap:wrap;gap:20px 48px;justify-content:space-between;align-items:baseline;font-size:15px}
+.foot-row nav{display:flex;flex-wrap:wrap;gap:8px 24px}
+.copy{background:none;border:0;padding:0;cursor:pointer;font-family:var(--serif);font-size:clamp(24px,2.4vw,34px);font-style:italic;text-align:left;overflow-wrap:anywhere}
+.copy-msg{display:block;font-size:14px;color:var(--ink-2);margin-top:4px;min-height:1.4em}
 
-.reveal{transition:transform 1s cubic-bezier(.2,.7,.1,1)}
-.reveal.pre{transform:translateY(40px)}
-.zoom:hover::before{transform:scale(1.04)}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
-<header class="nav">
-  <div class="wrap">
-    <a class="wordmark" href="#top">OUTOFLAMODE</a>
-    <ul id="menu">
-      <li><a href="#proyectos">Proyectos</a></li>
-      <li><a href="#servicios">Servicios</a></li>
-      <li><a href="#talento">Talento</a></li>
-      <li><a href="#estudio">Estudio</a></li>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="logo" href="#inicio" aria-label="Outoflamode, inicio">OUTOFLAMODE</a>
+    <ul class="menu">
+      <li><a href="#proyectos" data-nav="proyectos">Proyectos</a></li>
+      <li><a href="#servicios" data-nav="servicios">Servicios</a></li>
+      <li><a href="#talento" data-nav="talento">Talento</a></li>
+      <li><a href="#estudio" data-nav="estudio">Estudio</a></li>
+      <li><a href="#brief" data-nav="brief">Brief</a></li>
     </ul>
-    <a class="brief-btn" href="#brief">Cuéntanos tu proyecto</a>
-    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu">Menú</button>
+    <button class="burger" id="burger" aria-expanded="false" aria-controls="sheet">Menú</button>
+  </div>
+  <div class="sheet" id="sheet">
+    <ul>
+      <li><a class="big" href="#inicio" data-nav="inicio">Inicio</a></li>
+      <li><a class="big" href="#proyectos" data-nav="proyectos">Proyectos</a></li>
+      <li><a class="big" href="#servicios" data-nav="servicios">Servicios</a></li>
+      <li><a class="big" href="#talento" data-nav="talento">Talento</a></li>
+      <li><a class="big" href="#estudio" data-nav="estudio">Estudio</a></li>
+      <li><a class="big" href="#brief" data-nav="brief">Brief</a></li>
+    </ul>
+    <p class="small">Barcelona y Mataró</p>
   </div>
 </header>
 
-<main id="top">
-  <!-- HERO -->
-  <section class="hero">
-    <div class="wrap">
-      <div class="hero-top">
-        <p class="lbl">Creative studio</p>
-        <p class="lbl">Barcelona · Mataró</p>
-      </div>
-      <h1 class="mega" aria-label="Out of la mode"><span class="w">out of</span><span class="l2"><span class="w">la mode</span></span></h1>
-      <div class="hero-foot">
-        <p class="lead">Proyectos que se compran con los ojos.</p>
-        <p class="what">Branding, identidad corporativa, diseño web, packaging, eventos e identidad para talento. Para marcas que lanzan o se reinventan.</p>
-        <a class="cta-link cta" href="#brief"><span class="circ" aria-hidden="true">→</span>Cuéntanos tu proyecto</a>
-      </div>
-      <div class="strip" aria-hidden="true">
-        <div class="img r45 t3 zoom"><span class="cap">Cucurella × F1 · dirección creativa</span></div>
-        <div class="img r34 t2 zoom"><span class="cap">Violeta Magriñán × Sprinter</span></div>
-        <div class="img r11 t5 zoom"><span class="cap">MOSS · packaging</span></div>
-        <div class="img r34 t1 zoom"><span class="cap">DKSIDE · OFF SEASON</span></div>
-      </div>
+<main>
+
+<!-- ════════ INICIO ════════ -->
+<div class="page" data-page="inicio">
+  <section class="wrap mast">
+    <h1 class="wordmark" aria-label="Outoflamode"><span>Outof</span><span class="b">lamode</span></h1>
+    <div class="mast-row">
+      <p class="lead">Estudio creativo. Proyectos que se compran con los ojos.</p>
+      <p class="what">Branding, identidad corporativa, diseño web, packaging, eventos e identidad para talento.</p>
+      <a class="act u" href="#brief">Cuéntanos tu proyecto</a>
     </div>
   </section>
 
-  <div class="band" aria-hidden="true"><div class="band-track" id="band"></div></div>
+  <section class="wrap section">
+    <div class="work" id="homeWork"></div>
+  </section>
 
-  <!-- ÍNDICE DE PROYECTOS -->
-  <section id="proyectos">
-    <div class="wrap">
-      <div class="head">
-        <h2>Proyectos <i>seleccionados</i></h2>
-        <p>Cada proyecto empieza con una idea en una frase y termina con los créditos de todos los que lo han hecho posible.</p>
-      </div>
-      <ol class="index" id="index"></ol>
+  <section class="wrap section" style="padding-top:0">
+    <div class="cols">
+      <p class="say" style="grid-column:1/span 9">Una marca no es un logo. Es cómo te reconocen antes de leer tu nombre.</p>
     </div>
   </section>
-  <div class="peek" id="peek" aria-hidden="true"><div class="img r45" id="peekImg"></div></div>
 
-  <!-- DESTACADOS -->
-  <div class="wrap" id="destacados">
-    <article class="feature" id="p-cucurella">
-      <div class="gallery reveal">
-        <div class="img r169 t3 zoom"><span class="cap">Foto principal · paddock F1</span></div>
-        <div class="img r45 t6 zoom"><span class="cap">Estilismo · detalle</span></div>
-        <div class="img r45 t1 zoom"><span class="cap">Backstage del rodaje</span></div>
-      </div>
+  <section class="wrap section" style="padding-top:0">
+    <div class="cols" style="margin-bottom:40px;align-items:end">
+      <h2 style="grid-column:1/span 6;font-size:clamp(40px,4.4vw,64px)">Lo que <i>hacemos</i></h2>
+      <p class="small" style="grid-column:9/span 4">Proyectos cerrados, con inicio y entrega. <a class="u" href="#servicios">Ver servicios</a></p>
+    </div>
+    <div class="svc-short">
+      <a href="#servicios"><b>Branding e identidad</b><span>Nombre, logotipo, sistema visual y manual de marca.</span></a>
+      <a href="#servicios"><b>Diseño web</b><span>Webs de marca que se entienden en un vistazo.</span></a>
+      <a href="#servicios"><b>Packaging y cartelería</b><span>Envases, etiquetas, vinilos y señalética.</span></a>
+      <a href="#servicios"><b>Eventos</b><span>Aperturas, lanzamientos y presentaciones.</span></a>
+      <a href="#servicios"><b>Identidad de talento</b><span>Imagen y colaboraciones para influencers y celebrities.</span></a>
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="cols" style="align-items:end">
+      <ul class="names" style="grid-column:1/span 8">
+        <li>Marc Cucurella<small>Dirección creativa y estilismo en la Fórmula 1</small></li>
+        <li>Violeta Magriñán<small>Branding de su colaboración con Sprinter</small></li>
+      </ul>
+      <p class="small" style="grid-column:9/span 4">Trabajamos con personas que ya son marca. <a class="u" href="#talento">Ver talento</a></p>
+    </div>
+  </section>
+</div>
+
+<!-- ════════ PROYECTOS ════════ -->
+<div class="page" data-page="proyectos" hidden>
+  <div class="wrap head">
+    <h1>Proyectos</h1>
+    <p class="lede">Cada proyecto empieza con una idea en una frase y termina con los créditos de todos los que lo han hecho posible.</p>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <ol class="index" id="index"></ol>
+  </section>
+  <div class="peek" id="peek" aria-hidden="true"></div>
+</div>
+
+<!-- ════════ PROYECTO (plantilla) ════════ -->
+<div class="page" data-page="proyecto" hidden>
+  <div class="wrap" style="padding-top:clamp(24px,4vw,48px)">
+    <a class="back u" href="#proyectos">Todos los proyectos</a>
+    <div class="plate p-hero" id="pHero"></div>
+    <div class="p-body">
+      <p class="idea" id="pIdea"></p>
+      <div class="did" id="pDid"></div>
+      <div class="facts" id="pFacts"></div>
+    </div>
+    <div class="gallery" id="pGallery"></div>
+    <div class="credits"><h3>Créditos</h3><dl id="pCredits"></dl></div>
+    <div class="next" id="pNext"></div>
+  </div>
+</div>
+
+<!-- ════════ SERVICIOS ════════ -->
+<div class="page" data-page="servicios" hidden>
+  <div class="wrap head">
+    <h1>Servicios</h1>
+    <p class="lede">Cinco disciplinas y un mismo criterio de principio a fin. Trabajamos por proyecto, con fecha de entrega cerrada.</p>
+  </div>
+  <div class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <article class="svc">
+      <h2>Branding e <i>identidad corporativa</i></h2>
+      <div class="txt"><p>Todo lo que hace que tu marca se reconozca: del nombre y el logotipo a las reglas para que se vea igual en el local, en redes y en la web.</p>
+        <ul><li>Naming</li><li>Logotipo</li><li>Tipografía y color</li><li>Sistema visual</li><li>Manual de marca</li><li>Papelería</li></ul></div>
+    </article>
+    <article class="svc">
+      <h2>Diseño <i>web</i></h2>
+      <div class="txt"><p>Webs de marca que se entienden en un vistazo y convierten. Dirección de arte, diseño, desarrollo y fotografía de producto.</p>
+        <ul><li>Dirección de arte</li><li>Diseño de interfaz</li><li>Desarrollo</li><li>Fotografía de producto</li><li>Textos</li><li>Puesta en marcha</li></ul></div>
+    </article>
+    <article class="svc">
+      <h2><i>Packaging</i> y cartelería</h2>
+      <div class="txt"><p>Envases, etiquetas, vinilos y señalética que hacen que tu producto se compre con los ojos.</p>
+        <ul><li>Packaging</li><li>Etiquetas</li><li>Vinilos de escaparate</li><li>Cartelería</li><li>Merchandising</li><li>Pegatinas</li></ul>
+        <a class="see u" href="#proyecto-moss">Ver MOSS</a></div>
+    </article>
+    <article class="svc">
+      <h2><i>Eventos</i></h2>
+      <div class="txt"><p>Aperturas, lanzamientos y presentaciones: la idea, la producción y el contenido del día.</p>
+        <ul><li>Concepto</li><li>Producción</li><li>Escenografía</li><li>Invitados</li><li>Fotografía y vídeo</li><li>Contenido del día</li></ul>
+        <a class="see u" href="#proyecto-moss">Ver la apertura de MOSS</a></div>
+    </article>
+    <article class="svc">
+      <h2>Identidad de <i>talento</i></h2>
+      <div class="txt"><p>Para influencers, futbolistas y caras conocidas: estilismo, imagen y colaboraciones con marcas que encajan con quien son.</p>
+        <ul><li>Estilismo</li><li>Imagen personal</li><li>Colaboraciones con marcas</li><li>Representación</li><li>Rodajes</li><li>Contenido</li></ul>
+        <a class="see u" href="#talento">Ver talento</a></div>
+    </article>
+  </div>
+</div>
+
+<!-- ════════ TALENTO ════════ -->
+<div class="page" data-page="talento" hidden>
+  <div class="wrap head">
+    <h1>Personas que ya son <i>marca</i></h1>
+    <p class="lede">Construimos la imagen de futbolistas, creadores y caras conocidas: cómo visten, cómo se ven en redes y con qué marcas colaboran.</p>
+  </div>
+  <div class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <article class="talent">
+      <a class="plate k r45" href="#proyecto-cucurella"><span class="pm"><span>Talento</span><span>2026</span></span><span class="pn">Marc<br><i>Cucurella</i></span></a>
       <div class="txt">
-        <p class="num">01 — Talento · 2026</p>
-        <h3>Marc <i>Cucurella</i> × F1</h3>
-        <p class="idea">Un futbolista de élite en el paddock, con un estilo que se reconoce sin ver la cara.</p>
-        <p class="did">Dirección creativa y estilismo de Marc Cucurella en la Fórmula 1, con rodaje incluido.</p>
-        <div class="facts">
-          <div><b>107,7K</b><span>reproducciones del backstage en TikTok</span></div>
-          <div><b>699</b><span>me gusta en la pieza del estilismo</span></div>
-        </div>
-        <div class="tags"><span>Dirección creativa</span><span>Estilismo</span><span>Rodaje</span></div>
-        <p class="credits"><b>Créditos</b> · Dirección creativa: Aina Viciano · Fotografía: <span class="pend">pendiente</span> · Marcas: <span class="pend">pendiente</span></p>
+        <h2>Cucurella × F1</h2>
+        <p>Dirección creativa y estilismo de Marc Cucurella en la Fórmula 1, con rodaje incluido. El backstage superó las 107.000 reproducciones en TikTok.</p>
+        <p class="tags">Dirección creativa, estilismo y rodaje</p>
+        <p style="margin-top:24px"><a class="u" href="#proyecto-cucurella">Ver el proyecto</a></p>
       </div>
     </article>
-
-    <article class="feature flip" id="p-violeta">
-      <div class="gallery reveal">
-        <div class="img r169 t2 zoom"><span class="cap">Identidad aplicada · Sprinter</span></div>
-        <div class="img r45 t4 zoom"><span class="cap">Sistema tipográfico</span></div>
-        <div class="img r45 t1 zoom"><span class="cap">Piezas para redes</span></div>
-      </div>
+    <article class="talent flip">
+      <a class="plate b r45" href="#proyecto-violeta"><span class="pm"><span>Identidad</span><span>2026</span></span><span class="pn">Violeta<br><i>Magriñán</i></span></a>
       <div class="txt">
-        <p class="num">02 — Identidad de talento · 2026</p>
-        <h3>Violeta <i>Magriñán</i> × Sprinter</h3>
-        <p class="idea">Una marca no es un logo: es cómo te reconocen antes de leer tu nombre.</p>
-        <p class="did">Branding para la colaboración de Violeta Magriñán con Sprinter. <span class="pend">detalle pendiente</span></p>
-        <div class="facts">
-          <div><b>—</b><span>cifra pendiente de confirmar</span></div>
-          <div><b>—</b><span>cifra pendiente de confirmar</span></div>
-        </div>
-        <div class="tags"><span>Branding</span><span>Identidad</span><span>Influencer marketing</span></div>
-        <p class="credits"><b>Créditos</b> · Dirección creativa: Aina Viciano · Fotografía: <span class="pend">pendiente</span></p>
+        <h2>Violeta × Sprinter</h2>
+        <p>Branding para la colaboración de Violeta Magriñán con Sprinter.</p>
+        <p class="tags">Branding, identidad e influencer marketing</p>
+        <p style="margin-top:24px"><a class="u" href="#proyecto-violeta">Ver el proyecto</a></p>
       </div>
     </article>
   </div>
+</div>
 
-  <!-- SERVICIOS -->
-  <section class="services" id="servicios">
-    <div class="wrap">
-      <div class="head">
-        <h2>Lo que <i>hacemos</i></h2>
-        <p>Proyectos cerrados, con inicio y entrega. Un mismo criterio de principio a fin.</p>
+<!-- ════════ ESTUDIO ════════ -->
+<div class="page" data-page="estudio" hidden>
+  <div class="wrap head">
+    <h1>Nuestro primer cliente fuimos <i>nosotros</i></h1>
+  </div>
+  <section class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <div class="cols">
+      <div style="grid-column:1/span 6;display:grid;gap:20px;font-size:19px;line-height:1.55">
+        <p>Outoflamode nace de DKSIDE, la marca de ropa que construimos desde cero: campañas rodadas con productora, casting y dirección de fotografía, y colecciones que se agotaron en días.</p>
+        <p style="color:var(--ink-2)">Ahora hacemos lo mismo para otras marcas. Estar fuera de la moda del momento es la idea: proyectos que no caducan con la tendencia.</p>
       </div>
-      <ul class="svc-list" id="svcList"></ul>
     </div>
   </section>
+  <section class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <div class="people">
+      <figure class="lead" style="margin:0"><div class="slot r45">Retrato de Aina en el estudio</div><b>Aina Viciano</b><span>Fundadora y directora creativa, <a class="u" href="https://www.instagram.com/ainaviga/" target="_blank" rel="noopener">@ainaviga</a></span></figure>
+      <figure class="p2" style="margin:0"><div class="slot r34">Retrato</div><b>Nombre pendiente</b><span>Diseño</span></figure>
+      <figure class="p3" style="margin:0"><div class="slot r34">Retrato</div><b>Nombre pendiente</b><span>Producción</span></figure>
+    </div>
+  </section>
+  <section class="wrap" style="padding-bottom:clamp(72px,10vw,160px)">
+    <h2 style="font-size:clamp(40px,4.4vw,64px);margin-bottom:40px">Cómo <i>trabajamos</i></h2>
+    <ol class="steps">
+      <li><em>1</em><h3>Brief</h3><p>Nos cuentas la marca, el objetivo, el presupuesto y la fecha.</p></li>
+      <li><em>2</em><h3>Concepto</h3><p>Una idea en una frase y el moodboard que la sostiene.</p></li>
+      <li><em>3</em><h3>Sistema</h3><p>Logo, tipografía, color y reglas para que todo se vea igual.</p></li>
+      <li><em>4</em><h3>Producción</h3><p>Packaging, web, evento o rodaje, con el equipo y los colaboradores.</p></li>
+      <li><em>5</em><h3>Entrega</h3><p>Todos los archivos, la guía de uso y el proyecto fotografiado.</p></li>
+    </ol>
+  </section>
+</div>
 
-  <!-- TALENTO -->
-  <section id="talento">
-    <div class="wrap talent">
-      <div>
-        <p class="lbl">Influencers y celebrities</p>
-        <h2 style="margin-top:18px">Personas que ya son <i>marca.</i></h2>
-        <p class="body">Construimos la identidad de futbolistas, creadores y caras conocidas: cómo visten, cómo se ven en redes y con qué marcas colaboran. Del estilismo de un evento a la identidad de una colaboración.</p>
-        <div class="names">
-          <div><b>Marc Cucurella</b><span>Dirección creativa · estilismo</span></div>
-          <div><b>Violeta Magriñán</b><span>Branding · colaboración con Sprinter</span></div>
-          <div><b style="color:var(--muted)">Próximo nombre</b><span><span class="pend">pendiente</span></span></div>
+<!-- ════════ BRIEF ════════ -->
+<div class="page" data-page="brief" hidden>
+  <div class="wrap head">
+    <h1>Cuéntanos tu <i>proyecto</i></h1>
+  </div>
+  <div class="wrap brief">
+    <div class="side">
+      <p>Cuanto mejor lo entendamos, mejor será la propuesta. Respondemos todos los briefs en 48 horas laborables.</p>
+    </div>
+    <form id="briefForm" novalidate>
+      <fieldset class="fs">
+        <legend>¿Qué necesitas?</legend>
+        <div class="pills">
+          <span class="pill"><input type="checkbox" name="tipo" id="t1" value="Branding e identidad"><label for="t1">Branding e identidad</label></span>
+          <span class="pill"><input type="checkbox" name="tipo" id="t2" value="Diseño web"><label for="t2">Diseño web</label></span>
+          <span class="pill"><input type="checkbox" name="tipo" id="t3" value="Packaging"><label for="t3">Packaging</label></span>
+          <span class="pill"><input type="checkbox" name="tipo" id="t4" value="Evento"><label for="t4">Evento</label></span>
+          <span class="pill"><input type="checkbox" name="tipo" id="t5" value="Identidad de talento"><label for="t5">Identidad de talento</label></span>
+          <span class="pill"><input type="checkbox" name="tipo" id="t6" value="Otro"><label for="t6">Otra cosa</label></span>
         </div>
+      </fieldset>
+      <div class="two">
+        <div class="line"><label for="marca">Marca o persona</label><input id="marca" name="marca" autocomplete="organization"></div>
+        <div class="line"><label for="sector">Sector</label><input id="sector" name="sector" placeholder="Moda, beauty, restauración"></div>
       </div>
-      <div class="talent-imgs reveal" aria-hidden="true">
-        <div class="img r34 t3 zoom"><span class="cap">Retrato · talento</span></div>
-        <div class="img r34 t4 zoom"><span class="cap">Evento · backstage</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PROCESO -->
-  <section style="padding-top:0">
-    <div class="wrap">
-      <div class="head">
-        <h2>Cómo <i>trabajamos</i></h2>
-        <p>Cinco pasos, siempre en este orden. Sabes qué recibes y cuándo antes de empezar.</p>
-      </div>
-      <div class="process">
-        <div><span class="n">01</span><h3>Brief</h3><p>Nos cuentas la marca, el objetivo, el presupuesto y la fecha.</p></div>
-        <div><span class="n">02</span><h3>Concepto</h3><p>Una idea en una frase y el moodboard que la sostiene.</p></div>
-        <div><span class="n">03</span><h3>Sistema</h3><p>Logo, tipografía, color y reglas para que todo se vea igual.</p></div>
-        <div><span class="n">04</span><h3>Producción</h3><p>Packaging, web, evento o rodaje, con nuestro equipo y colaboradores.</p></div>
-        <div><span class="n">05</span><h3>Entrega</h3><p>Todos los archivos, la guía de uso y el proyecto fotografiado.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ESTUDIO -->
-  <section id="estudio" style="padding-top:0">
-    <div class="wrap studio">
-      <div>
-        <p class="lbl">El estudio</p>
-        <h2 style="margin-top:18px">Nuestro primer cliente fuimos <i>nosotros.</i></h2>
-        <div class="story">
-          <p>Outoflamode nace de DKSIDE, la marca de ropa que construimos desde cero: campañas rodadas con productora, casting y dirección de fotografía, y colecciones que se agotaron en días.</p>
-          <p>Ahora hacemos lo mismo para otras marcas. Estar fuera de la moda del momento es la idea: proyectos que no caducan con la tendencia.</p>
+      <fieldset class="fs">
+        <legend>Presupuesto orientativo</legend>
+        <div class="pills">
+          <span class="pill"><input type="radio" name="presupuesto" id="b1" value="Menos de 3.000 €"><label for="b1">Menos de 3.000 €</label></span>
+          <span class="pill"><input type="radio" name="presupuesto" id="b2" value="3.000 – 8.000 €"><label for="b2">De 3.000 a 8.000 €</label></span>
+          <span class="pill"><input type="radio" name="presupuesto" id="b3" value="8.000 – 20.000 €"><label for="b3">De 8.000 a 20.000 €</label></span>
+          <span class="pill"><input type="radio" name="presupuesto" id="b4" value="Más de 20.000 €"><label for="b4">Más de 20.000 €</label></span>
         </div>
-        <p class="sign">Aina Viciano</p>
-        <p class="lbl" style="margin-top:8px">Dirección creativa</p>
-      </div>
-      <div class="people">
-        <figure class="lead reveal"><div class="img r45 t1"><span class="cap">Retrato · Aina en el estudio</span></div><b>Aina Viciano</b><span>Fundadora · Dirección creativa · @ainaviga</span></figure>
-        <figure><div class="img r45 t6"><span class="cap">Retrato</span></div><b>Nombre</b><span>Diseño <span class="pend">pendiente</span></span></figure>
-        <figure><div class="img r45 t5"><span class="cap">Retrato</span></div><b>Nombre</b><span>Producción <span class="pend">pendiente</span></span></figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- BRIEF -->
-  <section class="brief" id="brief">
-    <div class="wrap brief-grid">
-      <div>
-        <p class="lbl">Brief</p>
-        <h2 style="margin-top:18px">Cuéntanos tu <i>proyecto.</i></h2>
-        <p class="intro">Cuanto mejor lo entendamos, mejor será la propuesta. Respondemos todos los briefs en 48 h laborables.</p>
-        <div class="mail"><span class="lbl">O escríbenos</span><button type="button" id="copyMail">hola@outoflamode.com</button><span class="lbl" id="copyMsg" aria-live="polite"></span></div>
-      </div>
-      <div>
-        <form id="briefForm" novalidate>
-          <fieldset class="fs">
-            <legend>¿Qué necesitas?</legend>
-            <div class="pills">
-              <span class="pill"><input type="checkbox" name="tipo" id="t1" value="Branding e identidad"><label for="t1">Branding e identidad</label></span>
-              <span class="pill"><input type="checkbox" name="tipo" id="t2" value="Diseño web"><label for="t2">Diseño web</label></span>
-              <span class="pill"><input type="checkbox" name="tipo" id="t3" value="Packaging"><label for="t3">Packaging</label></span>
-              <span class="pill"><input type="checkbox" name="tipo" id="t4" value="Evento"><label for="t4">Evento</label></span>
-              <span class="pill"><input type="checkbox" name="tipo" id="t5" value="Identidad de talento"><label for="t5">Identidad de talento</label></span>
-              <span class="pill"><input type="checkbox" name="tipo" id="t6" value="Otro"><label for="t6">Otro</label></span>
-            </div>
-          </fieldset>
-          <div class="two">
-            <div class="line-field"><label for="marca">Marca o persona</label><input id="marca" name="marca" autocomplete="organization"></div>
-            <div class="line-field"><label for="sector">Sector</label><input id="sector" name="sector" placeholder="Moda, beauty, restauración…"></div>
-          </div>
-          <fieldset class="fs">
-            <legend>Presupuesto orientativo</legend>
-            <div class="pills">
-              <span class="pill"><input type="radio" name="presupuesto" id="b1" value="Menos de 3.000 €"><label for="b1">Menos de 3.000 €</label></span>
-              <span class="pill"><input type="radio" name="presupuesto" id="b2" value="3.000 – 8.000 €"><label for="b2">3.000 – 8.000 €</label></span>
-              <span class="pill"><input type="radio" name="presupuesto" id="b3" value="8.000 – 20.000 €"><label for="b3">8.000 – 20.000 €</label></span>
-              <span class="pill"><input type="radio" name="presupuesto" id="b4" value="Más de 20.000 €"><label for="b4">Más de 20.000 €</label></span>
-            </div>
-          </fieldset>
-          <fieldset class="fs">
-            <legend>¿Para cuándo?</legend>
-            <div class="pills">
-              <span class="pill"><input type="radio" name="fecha" id="d1" value="Menos de 1 mes"><label for="d1">Menos de 1 mes</label></span>
-              <span class="pill"><input type="radio" name="fecha" id="d2" value="1 – 3 meses"><label for="d2">1 – 3 meses</label></span>
-              <span class="pill"><input type="radio" name="fecha" id="d3" value="Más de 3 meses"><label for="d3">Más de 3 meses</label></span>
-              <span class="pill"><input type="radio" name="fecha" id="d4" value="Fecha cerrada"><label for="d4">Tengo fecha cerrada</label></span>
-            </div>
-          </fieldset>
-          <div class="line-field"><label for="idea">La idea</label><textarea id="idea" name="idea" placeholder="Qué quieres lanzar o cambiar, y por qué ahora."></textarea></div>
-          <div class="line-field"><label for="refs">Referencias</label><input id="refs" name="refs" placeholder="Enlaces a marcas, cuentas o proyectos que te gusten"></div>
-          <div class="two">
-            <div class="line-field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name"></div>
-            <div class="line-field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email"></div>
-          </div>
-          <p class="ferr" id="ferr" role="alert"></p>
-          <button class="send" type="submit">Enviar brief <span aria-hidden="true">→</span></button>
-        </form>
-        <div class="done" id="done">
-          <p class="lbl">Brief recibido</p>
-          <h3>Gracias. Lo leemos con calma.</h3>
-          <p>Te respondemos en menos de 48 h laborables con las primeras preguntas o una propuesta.</p>
+      </fieldset>
+      <fieldset class="fs">
+        <legend>¿Para cuándo?</legend>
+        <div class="pills">
+          <span class="pill"><input type="radio" name="fecha" id="d1" value="Menos de 1 mes"><label for="d1">En menos de un mes</label></span>
+          <span class="pill"><input type="radio" name="fecha" id="d2" value="1 – 3 meses"><label for="d2">En 1 a 3 meses</label></span>
+          <span class="pill"><input type="radio" name="fecha" id="d3" value="Más de 3 meses"><label for="d3">En más de 3 meses</label></span>
+          <span class="pill"><input type="radio" name="fecha" id="d4" value="Fecha cerrada"><label for="d4">Tengo una fecha cerrada</label></span>
         </div>
+      </fieldset>
+      <div class="line"><label for="idea">La idea</label><textarea id="idea" name="idea" placeholder="Qué quieres lanzar o cambiar, y por qué ahora."></textarea></div>
+      <div class="line"><label for="refs">Referencias</label><input id="refs" name="refs" placeholder="Marcas o cuentas que te gusten"></div>
+      <div class="two">
+        <div class="line"><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name"></div>
+        <div class="line"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email"></div>
       </div>
+      <p class="ferr" id="ferr" role="alert"></p>
+      <button class="send" type="submit">Enviar brief</button>
+    </form>
+    <div class="done" id="done">
+      <h2>Gracias. Lo leemos con calma.</h2>
+      <p>Te respondemos en menos de 48 horas laborables con las primeras preguntas o una propuesta.</p>
     </div>
-  </section>
+  </div>
+</div>
+
 </main>
 
 <footer>
   <div class="wrap foot">
-    <p class="foot-mega" aria-hidden="true">out of la mode</p>
+    <h2>Cuéntanos tu proyecto.</h2>
     <div class="foot-row">
-      <span>OUTOFLAMODE · Creative studio</span>
-      <a href="https://www.instagram.com/outoflamode/" target="_blank" rel="noopener">Instagram @outoflamode ↗</a>
-      <span>Barcelona · Mataró · © 2026</span>
+      <div><button class="copy" id="copy" type="button">hola@outoflamode.com</button><span class="copy-msg" id="copyMsg" aria-live="polite">Pulsa para copiar el email</span></div>
+      <nav aria-label="Pie"><a class="u" href="#proyectos">Proyectos</a><a class="u" href="#servicios">Servicios</a><a class="u" href="#talento">Talento</a><a class="u" href="#estudio">Estudio</a><a class="u" href="https://www.instagram.com/outoflamode/" target="_blank" rel="noopener">Instagram</a></nav>
+      <span class="small">Barcelona y Mataró, 2026</span>
     </div>
   </div>
 </footer>
 
 <script>
-/* ─────────── Contenido editable ─────────── */
+document.documentElement.classList.add('booting');
+
+/* ═══════════ Proyectos (datos editables) ═══════════ */
+// tono de lámina: k negro, b rosa, m matcha, s arena, r hueso
 const PROYECTOS = [
-  {n:"01", name:"Marc <i>Cucurella</i> × F1", cat:"Dirección creativa · estilismo", yr:"2026", href:"#p-cucurella", t:"t3"},
-  {n:"02", name:"Violeta <i>Magriñán</i> × Sprinter", cat:"Branding · identidad de talento", yr:"2026", href:"#p-violeta", t:"t2"},
-  {n:"03", name:"MOSS <i>matcha room</i>", cat:"Packaging · cartelería · evento de apertura", yr:"2026", href:"#proyectos", t:"t5"},
-  {n:"04", name:"DKSIDE <i>Capítulo 1</i>", cat:"Dirección creativa · campaña OFF SEASON", yr:"2025", href:"#proyectos", t:"t1"},
-  {n:"05", name:"<i>Tu proyecto</i>", cat:"Cuéntanos qué quieres lanzar", yr:"2027", href:"#brief", t:"t4", soon:true}
+ {slug:"cucurella", nombre:"Marc <i>Cucurella</i> × F1", corto:"Cucurella × F1", tono:"k", disciplina:"Dirección creativa y estilismo", ano:"2026",
+  idea:"Un futbolista de élite en el paddock, con un estilo que se reconoce sin ver la cara.",
+  hicimos:["Dirección creativa y estilismo de Marc Cucurella en la Fórmula 1, con rodaje incluido.","El backstage del rodaje, publicado en TikTok, superó las 107.000 reproducciones."],
+  datos:[["107,7 K","reproducciones del backstage en TikTok"],["699","me gusta en la pieza del estilismo"]],
+  fotos:["Cucurella en el paddock, plano general","Detalle del estilismo","Backstage del rodaje","Retrato final"],
+  creditos:[["Cliente","Marc Cucurella"],["Dirección creativa","Aina Viciano"],["Estilismo","Outoflamode"],["Fotografía","pendiente"],["Marcas","pendiente"]]},
+ {slug:"violeta", nombre:"Violeta <i>Magriñán</i> × Sprinter", corto:"Violeta × Sprinter", tono:"b", disciplina:"Branding de talento", ano:"2026",
+  idea:"Pendiente: la idea del proyecto en una frase.",
+  hicimos:["Branding para la colaboración de Violeta Magriñán con Sprinter.","Pendiente: qué piezas incluyó el proyecto."],
+  datos:[],
+  fotos:["Identidad aplicada en Sprinter","Sistema tipográfico","Piezas para redes","Violeta con la colección"],
+  creditos:[["Cliente","Violeta Magriñán y Sprinter"],["Dirección creativa","Aina Viciano"],["Fotografía","pendiente"]]},
+ {slug:"moss", nombre:"MOSS <i>matcha room</i>", corto:"MOSS", tono:"m", disciplina:"Packaging, cartelería y apertura", ano:"2026",
+  idea:"Un matcha bar que se entiende antes de entrar.",
+  hicimos:["Packaging, cartelería y evento de apertura para MOSS.","El sistema llega a todo: carteles, vinilos del escaparate, sudaderas, pegatinas y las piezas para Tiny Tattoo."],
+  datos:[],
+  fotos:["Escaparate con los vinilos","Packaging de producto","La apertura","Sudaderas y pegatinas"],
+  creditos:[["Cliente","MOSS matcha room"],["Dirección creativa","Aina Viciano"],["Fotografía","@marcoriol20"]]},
+ {slug:"dkside", nombre:"DKSIDE <i>Capítulo 1</i>", corto:"DKSIDE", tono:"s", disciplina:"Dirección creativa de marca propia", ano:"2025",
+  idea:"Una marca de ropa construida desde cero, con campañas rodadas como un estudio.",
+  hicimos:["Dirección creativa de DKSIDE y de la colección OFF SEASON: dos drops y dos sold out.","Campañas con productora, director, dirección de fotografía y casting."],
+  datos:[["27.635","seguidores en Instagram"],["115.930","reproducciones del reel más visto"],["2 de 2","drops agotados"]],
+  fotos:["Campaña OFF SEASON","Lookbook","Rodaje de Black Friday","Archivo de estilismos con artistas"],
+  creditos:[["Marca","DKSIDE"],["Dirección creativa","Aina Viciano y Adrià Dorca"],["Producción","productora externa"]]}
 ];
-const SERVICIOS = [
-  {t:"Branding e <i>identidad corporativa</i>", p:"Logo, tipografía, color y las reglas para que tu marca se vea igual en el local, en redes y en la web.", li:["Naming","Logotipo","Sistema visual","Manual de marca"]},
-  {t:"Diseño <i>web</i>", p:"Webs de marca que se entienden en un vistazo y convierten. Diseño, maquetación y puesta en marcha.", li:["Dirección de arte","Diseño UI","Desarrollo","Fotografía de producto"]},
-  {t:"<i>Packaging</i> y cartelería", p:"Envases, etiquetas, vinilos y señalética que hacen que tu producto se compre con los ojos.", li:["Packaging","Etiquetas","Vinilos","Merchandising"]},
-  {t:"<i>Eventos</i>", p:"Aperturas, lanzamientos y presentaciones: concepto, producción y contenido del día.", li:["Concepto","Producción","Escenografía","Cobertura"]},
-  {t:"Identidad de <i>influencers y celebrities</i>", p:"Estilismo, imagen y colaboraciones con marcas para personas que ya son marca.", li:["Estilismo","Imagen personal","Colaboraciones","Representación"]}
-];
-// URL del Apps Script que guarda los briefs en Google Sheets. Vacía en el prototipo.
 const SHEETS_URL = "";
 
-/* ─────────── Render ─────────── */
-const $=s=>document.querySelector(s);
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ═══════════ Utilidades ═══════════ */
+const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const plate=(p,ratio,extra='')=>`<div class="plate ${p.tono} ${ratio}" ${extra}><span class="pm"><span>${esc(p.disciplina)}</span><span class="num">${p.ano}</span></span><span class="pn">${p.nombre}</span></div>`;
 
-$('#band').innerHTML=(w=>w+w)(["Branding","Identidad corporativa","Diseño web","Packaging","Eventos","Talento"].map(x=>`<span>${x}</span>`).join(''));
-
-$('#index').innerHTML=PROYECTOS.map(p=>`<li class="${p.soon?'soon':''}"><a href="${p.href}" data-t="${p.t}"><span class="n">${p.n}</span><span class="name">${p.name}</span><span class="cat">${p.cat}</span><span class="yr">${p.yr}</span></a></li>`).join('');
-
-$('#svcList').innerHTML=SERVICIOS.map((s,i)=>`<li class="svc-item" data-open="${i===0}"><button type="button" aria-expanded="${i===0}" aria-controls="svc-${i}"><span class="n">0${i+1}</span><span class="t">${s.t}</span><span class="pm" aria-hidden="true">+</span></button><div class="svc-body" id="svc-${i}"><div><div class="svc-inner"><span></span><p>${s.p}</p><ul>${s.li.map(l=>`<li>${l}</li>`).join('')}</ul></div></div></div></li>`).join('');
-$('#svcList').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  const it=b.parentElement,open=it.dataset.open!=='true';
-  document.querySelectorAll('.svc-item').forEach(x=>{x.dataset.open='false';x.querySelector('button').setAttribute('aria-expanded','false')});
-  it.dataset.open=open;b.setAttribute('aria-expanded',open);
-});
-
-// Vista previa que sigue al cursor sobre el índice
+/* ═══════════ Inicio e índice ═══════════ */
 (function(){
-  const peek=$('#peek'),img=$('#peekImg');let tx=0,ty=0,x=0,y=0,raf=null;
-  const loop=()=>{x+=(tx-x)*.18;y+=(ty-y)*.18;peek.style.left=x+'px';peek.style.top=y+'px';raf=requestAnimationFrame(loop)};
-  $('#index').addEventListener('mousemove',e=>{tx=e.clientX+150;ty=e.clientY;if(!raf){x=tx;y=ty;loop()}});
-  $('#index').addEventListener('mouseover',e=>{const a=e.target.closest('a');if(!a)return;img.className='img r45 '+a.dataset.t;peek.classList.add('on')});
-  $('#index').addEventListener('mouseleave',()=>{peek.classList.remove('on');cancelAnimationFrame(raf);raf=null});
+  const pos=[['w1','r32'],['w2','r45'],['w3','r34'],['w4','r32']];
+  $('#homeWork').innerHTML=PROYECTOS.map((p,i)=>`<a class="card-link ${pos[i][0]}" href="#proyecto-${p.slug}">${plate(p,pos[i][1])}<div class="cap"><b>${esc(p.corto)}</b><span>${esc(p.disciplina)}</span></div></a>`).join('');
+  $('#index').innerHTML=PROYECTOS.map(p=>`<li><a href="#proyecto-${p.slug}" data-slug="${p.slug}">${plate(p,'thumb')}<span class="nm">${p.nombre}</span><span class="ds">${esc(p.disciplina)}</span><span class="yr num">${p.ano}</span></a></li>`).join('')
+    +`<li><a href="#brief"><span class="nm" style="color:var(--ink-3)"><i>Tu proyecto</i></span><span class="ds">Cuéntanos qué quieres lanzar</span><span class="yr num">2027</span></a></li>`;
+  // Lámina que sigue al cursor sobre el índice
+  const peek=$('#peek');let tx=0,ty=0,x=0,y=0,raf=0;
+  const loop=()=>{x+=(tx-x)*.16;y+=(ty-y)*.16;peek.style.left=x+'px';peek.style.top=y+'px';raf=requestAnimationFrame(loop)};
+  const idx=$('#index');
+  idx.addEventListener('mousemove',e=>{tx=e.clientX+170;ty=e.clientY;if(!raf){x=tx;y=ty;loop()}});
+  idx.addEventListener('mouseover',e=>{const a=e.target.closest('a[data-slug]');if(!a){peek.classList.remove('on');return}const p=PROYECTOS.find(q=>q.slug===a.dataset.slug);peek.innerHTML=plate(p,'r45');peek.classList.add('on')});
+  idx.addEventListener('mouseleave',()=>{peek.classList.remove('on');cancelAnimationFrame(raf);raf=0});
 })();
 
-// Menú móvil
-$('#menuBtn').addEventListener('click',()=>{const o=$('#menu').classList.toggle('open');$('#menuBtn').setAttribute('aria-expanded',o)});
-$('#menu').addEventListener('click',e=>{if(e.target.tagName==='A'){$('#menu').classList.remove('open');$('#menuBtn').setAttribute('aria-expanded','false')}});
-
-// Entradas suaves solo para lo que está por debajo de la pantalla
-if(!reduce&&'IntersectionObserver' in window){
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px'});
-  document.querySelectorAll('.reveal').forEach(el=>{if(el.getBoundingClientRect().top>innerHeight){el.classList.add('pre');io.observe(el)}});
+/* ═══════════ Página de proyecto ═══════════ */
+function renderProject(p){
+  const hero=$('#pHero');hero.className=`plate p-hero ${p.tono}`;
+  hero.innerHTML=`<span class="pm"><span>${esc(p.disciplina)}</span><span class="num">${p.ano}</span></span><h1 class="pn">${p.nombre}</h1>`;
+  $('#pIdea').textContent=p.idea;
+  $('#pDid').innerHTML=p.hicimos.map(t=>`<p>${esc(t)}</p>`).join('');
+  $('#pFacts').innerHTML=p.datos.map(([b,s])=>`<div><b class="num">${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
+  $('#pFacts').hidden=!p.datos.length;
+  const cls=[['g1','r32'],['g2','r34'],['g3','r45'],['g4','r32']];
+  $('#pGallery').innerHTML=p.fotos.map((f,i)=>`<div class="slot ${cls[i][0]} ${cls[i][1]} ${i%2?'':'dark'}">Foto: ${esc(f)}</div>`).join('');
+  $('#pCredits').innerHTML=p.creditos.map(([a,b])=>`<dt>${a}</dt><dd${b==='pendiente'?' class="pend"':''}>${esc(b)}</dd>`).join('');
+  const n=PROYECTOS[(PROYECTOS.indexOf(p)+1)%PROYECTOS.length];
+  $('#pNext').innerHTML=`<a href="#proyecto-${n.slug}"><small>Siguiente proyecto</small><b>${n.nombre}</b></a><a class="u" href="#proyectos">Todos los proyectos</a>`;
 }
 
-// Brief
+/* ═══════════ Rutas ═══════════ */
+const TITLES={inicio:"Outoflamode Creative Studio",proyectos:"Proyectos · Outoflamode",servicios:"Servicios · Outoflamode",talento:"Talento · Outoflamode",estudio:"Estudio · Outoflamode",brief:"Brief · Outoflamode"};
+const BONE=['proyecto','servicios','estudio','brief'];
+const burger=$('#burger'),sheet=$('#sheet');
+function closeSheet(){sheet.classList.remove('open');burger.setAttribute('aria-expanded','false');burger.textContent='Menú';document.body.style.overflow=''}
+burger.addEventListener('click',()=>{const o=!sheet.classList.contains('open');sheet.classList.toggle('open',o);burger.setAttribute('aria-expanded',o);burger.textContent=o?'Cerrar':'Menú';document.body.style.overflow=o?'hidden':''});
+sheet.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.getAttribute('href')===location.hash)closeSheet()});
+function route(){
+  const key=(location.hash||'#inicio').slice(1)||'inicio';
+  let page=key,nav=key,title=TITLES[key];
+  if(key.startsWith('proyecto-')){
+    const p=PROYECTOS.find(x=>'proyecto-'+x.slug===key);
+    page=p?'proyecto':'proyectos';nav='proyectos';
+    if(p){renderProject(p);title=p.corto+' · Outoflamode'}
+  }
+  if(!$(`[data-page="${page}"]`)){page='inicio';nav='inicio'}
+  $$('.page').forEach(el=>{const on=el.dataset.page===page;if(on){el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation=''}else el.hidden=true});
+  $$('[data-nav]').forEach(a=>a.dataset.nav===nav?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  document.body.classList.toggle('on-bone',BONE.includes(page));
+  document.title=title||TITLES[page];
+  closeSheet();
+  window.scrollTo(0,0);
+}
+addEventListener('hashchange',route);
+
+/* ═══════════ Brief ═══════════ */
 $('#briefForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const f=e.target,err=$('#ferr');
-  const tipos=[...f.querySelectorAll('[name="tipo"]:checked')].map(x=>x.value);
+  const tipos=$$('[name="tipo"]:checked',f).map(x=>x.value);
   const v=n=>(f.querySelector(`[name="${n}"]:checked`)||{}).value||'';
-  if(!tipos.length){err.textContent='Elige al menos un tipo de proyecto.';return}
-  if(!$('#marca').value.trim()){err.textContent='Dinos el nombre de la marca o la persona.';return}
-  if(!v('presupuesto')){err.textContent='Elige un presupuesto orientativo.';return}
-  if(!$('#nombre').value.trim()){err.textContent='Escribe tu nombre.';return}
-  if(!/^\S+@\S+\.\S+$/.test($('#email').value.trim())){err.textContent='Escribe un email válido para poder responderte.';return}
+  const fail=m=>{err.textContent=m};
+  if(!tipos.length)return fail('Elige al menos un tipo de proyecto.');
+  if(!$('#marca').value.trim())return fail('Escribe el nombre de la marca o la persona.');
+  if(!v('presupuesto'))return fail('Elige un presupuesto orientativo.');
+  if(!$('#nombre').value.trim())return fail('Escribe tu nombre.');
+  if(!/^\S+@\S+\.\S+$/.test($('#email').value.trim()))return fail('Escribe un email válido para poder responderte.');
   err.textContent='';
   const data={fecha_envio:new Date().toISOString(),tipo:tipos.join(', '),marca:$('#marca').value.trim(),sector:$('#sector').value.trim(),presupuesto:v('presupuesto'),plazo:v('fecha'),idea:$('#idea').value.trim(),referencias:$('#refs').value.trim(),nombre:$('#nombre').value.trim(),email:$('#email').value.trim(),origen:'outoflamode'};
   if(SHEETS_URL){try{await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})}catch(_){}}
-  f.hidden=true;$('#done').classList.add('show');
+  f.hidden=true;$('#done').classList.add('on');
 });
 
-$('#copyMail').addEventListener('click',async()=>{
-  const msg=$('#copyMsg');
-  try{await navigator.clipboard.writeText('hola@outoflamode.com');msg.textContent='Copiado'}
-  catch(_){const r=document.createRange();r.selectNodeContents($('#copyMail'));const s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Selecciónalo y cópialo'}
-  setTimeout(()=>msg.textContent='',2500);
+$('#copy').addEventListener('click',async()=>{
+  const m=$('#copyMsg');
+  try{await navigator.clipboard.writeText('hola@outoflamode.com');m.textContent='Email copiado'}
+  catch(_){const r=document.createRange();r.selectNodeContents($('#copy'));const s=getSelection();s.removeAllRanges();s.addRange(r);m.textContent='Selecciónalo y cópialo'}
 });
+
+route();
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('booting')));
 </script>

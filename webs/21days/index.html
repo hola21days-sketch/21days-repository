@@ -403,11 +403,11 @@ footer{padding-block:28px 48px}
         <div class="phone">
           <div class="screen">
             <div class="reel-top"><span>Reels</span><span>◉</span></div>
-            <div class="reel-cap">De 3.000 a<br><span>casi 1 millón</span><br>de visitas</div>
+            <div class="reel-cap">De 3.000 a<br><span>3,3 millones</span><br>de visitas</div>
             <div class="reel-bottom"><div class="who">@latremenda_eatingclub</div><div class="what">Gancho, persona en cámara y ritmo.</div></div>
           </div>
         </div>
-        <div class="views"><small>Visualizaciones</small><b id="heroViews">962.418</b><em>×300 vs. antes</em></div>
+        <div class="views"><small>Visualizaciones</small><b id="heroViews">3.357.037</b><em>un solo reel</em></div>
         <div class="dm">«21» 💬</div>
       </div>
     </div>
@@ -436,7 +436,7 @@ footer{padding-block:28px 48px}
           <div class="big-stats">
             <div><b data-count="20" data-prefix="+">+20</b><span>negocios trabajando con nosotros cada mes</span></div>
             <div><b>0 €</b><span>en anuncios detrás de esas visitas</span></div>
-            <div><b>×300</b><span>más visitas por vídeo en La Tremenda</span></div>
+            <div><b>3,3M</b><span>visitas en un solo reel de La Tremenda</span></div>
             <div><b>4</b><span>servicios con un mismo equipo detrás</span></div>
           </div>
         </div>
@@ -771,14 +771,14 @@ const CLIENTES = ["MOSS","La Tremenda","Clínica Dermaesthetics","GMS Futcamp","
 // Los 6 casos de éxito. Cifras de Metricool desde el alta de cada cliente.
 // serie = visualizaciones por mes (para la mini gráfica); null = sin gráfica.
 const CASOS = [
-  {cliente:"La Tremenda", sector:"Restaurante · Barcelona", tag:"Caso", hero:"×300", heroTxt:"más visitas por vídeo", que:"Los vídeos de antes no pasaban de 3.000 visitas. Cambiamos tres cosas: el gancho, una persona en cámara y el ritmo. El siguiente rozó el millón.", m:[["3.000","visitas por vídeo antes"],["~1M","visitas en un solo reel"]], servicios:["Redes","Guiones","Grabación","Edición"], serie:null},
-  {cliente:"MOSS", sector:"Matcha bar · Mataró", tag:"Caso", hero:"0 €", heroTxt:"en anuncios para abrir con cola", que:"Creamos comunidad antes de abrir, con contenido diario y el día de la apertura en directo. Abrió con cola en la puerta.", m:[["18.300","visualizaciones en un TikTok"],["222","guardados en ese vídeo"]], servicios:["Redes","Preapertura","TikTok"], serie:null},
-  {cliente:"Cliente 3", sector:"Pendiente de Metricool", tag:"Caso", hero:"—", heroTxt:"cifra pendiente", que:"Se completa con los datos reales de Metricool.", m:[["—","seguidores"],["—","visualizaciones"]], servicios:["Redes"], serie:null, pendiente:true},
-  {cliente:"Cliente 4", sector:"Pendiente de Metricool", tag:"Caso", hero:"—", heroTxt:"cifra pendiente", que:"Se completa con los datos reales de Metricool.", m:[["—","seguidores"],["—","visualizaciones"]], servicios:["Redes"], serie:null, pendiente:true},
-  {cliente:"Cliente 5", sector:"Pendiente de Metricool", tag:"Caso", hero:"—", heroTxt:"cifra pendiente", que:"Se completa con los datos reales de Metricool.", m:[["—","seguidores"],["—","visualizaciones"]], servicios:["Redes"], serie:null, pendiente:true},
-  {cliente:"Cliente 6", sector:"Pendiente de Metricool", tag:"Caso", hero:"—", heroTxt:"cifra pendiente", que:"Se completa con los datos reales de Metricool.", m:[["—","seguidores"],["—","visualizaciones"]], servicios:["Redes"], serie:null, pendiente:true}
+  {cliente:"MOSS", desde:"Con nosotros desde sept. 2025", hero:"×168", heroTxt:"seguidores en Instagram: de 21 a 3.538", que:"Abrió con cola en la puerta sin pagar un euro en anuncios. En abril, una tanda de reels virales la llevó de 569 a 2.324 seguidores en un solo mes.", m:[["1,2M","visualizaciones entre Instagram y TikTok"],["140K","visualizaciones en su mejor reel"]], servicios:["Redes","Preapertura","TikTok"], serie:[21,30,58,82,458,569,2324,2715,3024,3180,3369,3493,3538]},
+  {cliente:"Mim's Café Costura", desde:"Con nosotros desde feb. 2026", hero:"×6,5", heroTxt:"seguidores en Instagram: de 1.133 a 7.392", que:"Ha crecido todos los meses desde que empezamos, con reels de entre 39.000 y 64.000 visualizaciones. En TikTok empezó de cero.", m:[["814K","visualizaciones de su contenido"],["1.803","seguidores en TikTok, desde 2"]], servicios:["Redes","Guiones","TikTok"], serie:[1133,2732,3237,3566,5297,5928,6840,7274,7362,7392]},
+  {cliente:"La Tremenda", desde:"Con nosotros desde oct. 2025", hero:"8,3M", heroTxt:"visualizaciones en sus reels", que:"Sus vídeos no pasaban de 3.000 visitas. Cambiamos el gancho, pusimos a una persona en cámara y le dimos ritmo. Un solo reel llegó a 3,3 millones.", m:[["3,36M","visualizaciones en un solo reel"],["×5,3","seguidores: de 617 a 3.241"]], servicios:["Redes","Guiones","Grabación","Edición"], serie:[617,624,692,766,1078,1804,2127,2601,3113,3244,3253,3242,3241]},
+  {cliente:"Krepsinnova", desde:"Con nosotros desde ene. 2026", hero:"×7,9", heroTxt:"seguidores en Instagram: de 273 a 2.145", que:"Cada mes sus vídeos llegan a más gente: la media pasó de 8.700 a 21.500 visualizaciones por reel. Uno de 90.000 le sumó 670 seguidores en septiembre.", m:[["×2,5","visualizaciones medias por reel"],["1.327","seguidores en TikTok, desde 455"]], servicios:["Redes","Instagram","TikTok"], serie:[273,352,786,840,1050,1217,1228,1256,1413,2083,2145]},
+  {cliente:"Pilates & Co", desde:"Con nosotros desde sept. 2026", hero:"+152%", heroTxt:"seguidores en 7 semanas: de 1.331 a 3.353", que:"En el primer mes y medio, la media por reel se multiplicó por 3,5 y un reel llegó a 107.000 visualizaciones con más de 6.000 interacciones.", m:[["107K","visualizaciones en un solo reel"],["×3,5","visualizaciones medias por reel"]], servicios:["Redes","Grabación","Edición"], serie:[1331,1529,3353]},
+  {cliente:"Jaume Rey", desde:"Con nosotros desde dic. 2025", hero:"×56", heroTxt:"seguidores en Instagram: de 10 a 562", que:"Una marca personal que empezó de cero en las dos redes. Un vídeo de 56.700 visualizaciones en TikTok le dio el salto en agosto.", m:[["56,7K","visualizaciones en su mejor TikTok"],["476","seguidores en TikTok, desde 2"]], servicios:["Marca personal","TikTok"], serie:[10,136,155,162,170,178,182,198,214,520,553,562]}
 ];
-const CASOS_NOTA = "Cifras de Metricool y de las cuentas de cada cliente, publicadas con su permiso.";
+const CASOS_NOTA = "Datos de Metricool, desde el alta de cada cliente hasta octubre de 2026. La gráfica muestra sus seguidores de Instagram mes a mes.";
 
 const SERVICIOS = [
   {id:"redes", t:"Gestión integral de redes", s:"Estrategia digital, contenido y programación", ico:"▶",
@@ -828,7 +828,7 @@ function spark(serie){
 }
 $('#cases').innerHTML = CASOS.map(c=>`
   <article class="case rise">
-    <div class="case-top"><span class="case-tag">${c.tag}</span><span class="case-sector">${c.sector}</span></div>
+    <div class="case-top"><span class="case-tag">Caso</span><span class="case-sector">${c.desde}</span></div>
     <h3>${c.cliente}</h3>
     <div class="case-hero"><b>${c.hero}</b><span>${c.heroTxt}</span></div>
     ${spark(c.serie)}
@@ -869,7 +869,7 @@ $('#menu').addEventListener('click',e=>{if(e.target.tagName==='A'){$('#menu').cl
 // Contador del móvil del hero: sube como un reel que se está haciendo viral
 (function(){
   const el=$('#heroViews'); if(reduce) return;
-  let v=962418;
+  let v=3357037;
   setInterval(()=>{v+=Math.floor(Math.random()*37)+3;el.textContent=fmt(v)},900);
 })();
 

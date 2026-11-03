@@ -230,20 +230,20 @@ export default function Workspace({ initial }: { initial: InitialData }) {
   const novedadesDe = useCallback(
     (clientId: string) => {
       if (clientId === activeId && vista === "cliente") {
-        return { nuevas: 0, chat: false, tarea: false };
+        return { nuevas: 0, mensajes: 0, chat: false, tarea: false };
       }
       const read = reads[clientId] ? new Date(reads[clientId]).getTime() : 0;
       let nuevas = 0;
-      let chat = false;
+      let mensajes = 0;
       let tarea = false;
       for (const c of cosasDeOtros) {
         if (c.client_id !== clientId) continue;
         if (new Date(c.created_at).getTime() <= read) continue;
         nuevas += 1;
-        if (c.tipo === "chat") chat = true;
+        if (c.tipo === "chat") mensajes += 1;
         else tarea = true;
       }
-      return { nuevas, chat, tarea };
+      return { nuevas, mensajes, chat: mensajes > 0, tarea };
     },
     [activeId, vista, reads, cosasDeOtros],
   );

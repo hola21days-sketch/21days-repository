@@ -16,13 +16,11 @@ usuario y datos persistentes.
 
 ## Qué hace
 
-- **Índice de clientes** — el número de la derecha es **lo que te has perdido** desde la última vez
-  que abriste ese canal, no un total: al entrar se queda a cero y desaparece. El canal sale **en
-  negrita** cuando
-  **otra persona** ha hecho algo desde la última vez que se abrió —lo propio no cuenta, que si no
-  el canal del equipo estaría siempre en negrita—, y con un icono que dice de qué se trata: 💬 si
-  han escrito, ✎ si han tocado las tareas, los dos si las dos cosas. Abrirlo lo da por visto y la
-  negrita se quita.
+- **Índice de clientes** — un canal sale **en negrita** solo cuando **otra persona** ha hecho algo
+  desde la última vez que lo abriste; lo propio no cuenta. Vale igual para el canal del equipo
+  (*21DAYS · General*), que antes iba siempre en negrita, y el canal abierto se distingue por el
+  fondo, no por la negrita. A la derecha, un **aviso rojo con el número de mensajes sin leer** y un
+  ✎ si han tocado las tareas. Al abrir el canal se da por visto: la negrita y los avisos se quitan.
 - **Avance del mes** — en el panel de clientes, una rejilla con una fila por cliente y una casilla
   por fase (*Idear · Grabar · Editar · Programar · Report*). Una casilla marcada se ve marcada y
   nada más: quién la marcó no se muestra. Sustituye al tablero de tarjetas, que ya no existe.

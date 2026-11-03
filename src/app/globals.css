@@ -188,7 +188,9 @@ a { color: var(--accent-ink); }
 }
 .client-item:hover { background: var(--surface-alt); }
 .client-item.is-active { background: var(--accent-soft); }
-.client-item.is-active .client-item__name { color: var(--accent-ink); font-weight: 700; }
+/* El canal abierto se distingue por el fondo y el color, no por la negrita:
+   la negrita es solo para lo que tiene algo sin leer. */
+.client-item.is-active .client-item__name { color: var(--accent-ink); }
 
 .stamp {
   position: relative;
@@ -1992,7 +1994,6 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   background: var(--accent-soft);
   border-radius: 8px;
 }
-.client-item--equipo .client-item__name { font-weight: 700; }
 .client-item--equipo .client-item__kind { color: var(--accent); }
 
 /* Canal con algo nuevo: un mensaje o una tarea. En negrita y con el nombre a
@@ -3311,3 +3312,20 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   color: var(--ink-muted); font-size: 0.95rem; font-family: Georgia, serif;
 }
 .composer__formato:hover { background: var(--surface-alt); color: var(--ink); }
+
+/* Mensajes sin leer en un canal: un aviso rojo con el número, a la derecha. */
+.aviso-rojo {
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--surface);
+}

@@ -19,6 +19,8 @@ export type RailClient = {
   internal: boolean;
   /** Cuántas cosas te has perdido desde la última vez que lo abriste. */
   nuevas: number;
+  /** De esas, cuántas son mensajes. */
+  mensajes: number;
   /** Ha escrito alguien desde la última vez que se abrió. */
   chat: boolean;
   /** Alguien ha puesto una tarea desde la última vez. */
@@ -111,19 +113,19 @@ export default function Rail({
             </div>
           </div>
           <div className="client-item__meta">
-            {/* El número es lo que te has perdido, no un total: al entrar se
-                queda a cero y desaparece. Un número que no se vacía nunca no
-                dice nada. */}
-            {c.nuevas > 0 && (
-              <span className="count-chip count-chip--nuevo">{c.nuevas}</span>
-            )}
-            {/* El icono dice qué es lo nuevo, que es lo que uno quiere saber
-                antes de entrar: si le han escrito o si le han puesto trabajo. */}
-            {c.chat && (
-              <span className="aviso aviso--chat" title="Hay mensajes nuevos">
-                💬
+            {/* Mensajes sin leer: un aviso rojo con cuántos son, a la derecha,
+                que es lo primero que se ve bajando por el listado. Al entrar
+                se queda a cero y desaparece. */}
+            {c.mensajes > 0 && (
+              <span
+                className="aviso-rojo"
+                title={c.mensajes === 1 ? "1 mensaje sin leer" : `${c.mensajes} mensajes sin leer`}
+              >
+                {c.mensajes > 99 ? "99+" : c.mensajes}
               </span>
             )}
+            {/* Una tarea nueva lleva su propio icono: se distingue de un
+                mensaje sin tener que entrar. */}
             {c.tarea && (
               <span
                 className="aviso aviso--tarea"

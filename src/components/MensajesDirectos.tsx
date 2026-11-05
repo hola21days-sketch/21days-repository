@@ -157,16 +157,13 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
           : m,
       ),
     );
-    // Ojo: una consulta de Supabase no sale hasta que se espera su respuesta.
-    // Antes se descartaba con `void` y no llegaba nunca a la base de datos,
-    // así que nada quedaba leído y la negrita volvía al recargar.
+    // Lo marca la base de datos (marcar_dm_leidos): solo lo que te ha enviado
+    // esa persona a ti, con su hora. Se espera la respuesta, que si no la
+    // consulta no llega a salir: eso es lo que dejó los mensajes directos sin
+    // marcar desde finales de septiembre.
     void (async () => {
-      await supabase
-        .from("dm_messages")
-        .update({ read_at: ahora })
-        .eq("sender_id", conId)
-        .eq("recipient_id", me.id)
-        .is("read_at", null);
+      const { error } = await supabase.rpc("marcar_dm_leidos", { p_de: conId });
+      if (error) console.error("No se han podido marcar como leídos:", error.message);
     })();
   }, [supabase, conId, me.id, hayNuevosDeEste, aLaVista]);
 

@@ -1497,3 +1497,31 @@ grant execute on function public.activos_recientes(int) to authenticated;
 -- ============================================================================
 alter table public.personal_notes
   add column if not exists trabajo boolean not null default false;
+
+-- ============================================================================
+-- 35. Marcar como leído un mensaje directo
+-- ----------------------------------------------------------------------------
+-- Al abrir una conversación se dan por leídos los mensajes que te ha enviado
+-- esa persona. Lo hace la base de datos con su hora y solo con lo que te han
+-- enviado a ti (recipient_id = auth.uid()), así no depende de cómo lo pida
+-- cada pantalla. Devuelve cuántos ha marcado.
+-- ============================================================================
+create or replace function public.marcar_dm_leidos(p_de uuid)
+returns integer
+language sql
+security invoker
+set search_path = public
+as $$
+  with u as (
+    update public.dm_messages
+       set read_at = now()
+     where recipient_id = auth.uid()
+       and sender_id = p_de
+       and read_at is null
+    returning 1
+  )
+  select count(*)::int from u;
+$$;
+
+revoke execute on function public.marcar_dm_leidos(uuid) from anon, public;
+grant execute on function public.marcar_dm_leidos(uuid) to authenticated;

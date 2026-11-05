@@ -1138,7 +1138,10 @@ export default function Workspace({ initial }: { initial: InitialData }) {
             }}
             onPrioridadCliente={(id, priority) => {
               setClients((prev) => prev.map((c) => (c.id === id ? { ...c, priority } : c)));
-              void supabase.from("clients").update({ priority }).eq("id", id);
+              // Hay que esperar la consulta: sin eso no llega a enviarse.
+              void (async () => {
+                await supabase.from("clients").update({ priority }).eq("id", id);
+              })();
             }}
             onNuevoCliente={() => setNewClientOpen("panel")}
             onQuitarDelPanel={(id) => void quitarDe(id, "en_panel")}

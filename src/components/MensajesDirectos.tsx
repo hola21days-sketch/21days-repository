@@ -157,12 +157,17 @@ export default function MensajesDirectos({ me, profiles, inicial, onUnread }: Pr
           : m,
       ),
     );
-    void supabase
-      .from("dm_messages")
-      .update({ read_at: ahora })
-      .eq("sender_id", conId)
-      .eq("recipient_id", me.id)
-      .is("read_at", null);
+    // Ojo: una consulta de Supabase no sale hasta que se espera su respuesta.
+    // Antes se descartaba con `void` y no llegaba nunca a la base de datos,
+    // así que nada quedaba leído y la negrita volvía al recargar.
+    void (async () => {
+      await supabase
+        .from("dm_messages")
+        .update({ read_at: ahora })
+        .eq("sender_id", conId)
+        .eq("recipient_id", me.id)
+        .is("read_at", null);
+    })();
   }, [supabase, conId, me.id, hayNuevosDeEste, aLaVista]);
 
   useEffect(() => {

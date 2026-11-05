@@ -95,7 +95,11 @@ usuario y datos persistentes.
   abierta todo el día en una pestaña sin tocarla no cuenta. Al pasar por encima de una cara dice
   hace cuánto. Seguir un cliente, que es lo que hace que te lleguen sus avisos, va en su botón
   **+ Seguir / Siguiendo**, al lado.
-- **Aviso al llegar algo** — la campana de la cabecera enciende o apaga el aviso. Suena **alto**,
+- **Aviso al llegar algo** — la campana de la cabecera **silencia toda la aplicación**, no un canal:
+  todos los canales, los mensajes directos y las tareas, en todas las pestañas abiertas de ese
+  aparato. Al pulsarla se elige cuánto: 30 minutos, 1 hora, hasta mañana a las 9:00 o hasta volver a
+  activarla, y mientras dura se lee *🔕 Silenciado* en la cabecera. Silenciar quita el sonido y el
+  aviso del ordenador; la negrita y los números rojos del listado siguen saliendo. Suena **alto**,
   con compresión para que se oiga por encima de la música o del ruido de la oficina, y **cada cosa
   suena distinto**: un **mensaje** (en un canal o directo) es un *ding-ding-ding* agudo de tres notas
   que suben; una **tarea** (nueva o que te la repartan) es un *bom-bom* grave y seco de dos notas que

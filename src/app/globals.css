@@ -3329,3 +3329,63 @@ button.chip[aria-pressed="false"] { background: transparent; color: var(--ink-fa
   font-variant-numeric: tabular-nums;
   box-shadow: 0 0 0 2px var(--surface);
 }
+
+/* ==========================================================================
+   Silenciar los avisos de toda la aplicación (la campana de la cabecera)
+   ========================================================================== */
+.silencio { position: relative; }
+.silencio__boton.is-silenciado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.6rem;
+  border-color: var(--rule);
+  background: var(--surface-alt);
+  color: var(--ink-muted);
+}
+.silencio__etiqueta { font-size: 0.76rem; font-weight: 600; }
+.silencio__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 90;
+  width: 270px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+}
+.silencio__titulo {
+  margin: 0.2rem 0.4rem 0.45rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.silencio__menu button {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.silencio__menu button:hover { background: var(--surface-alt); }
+.silencio__nota {
+  margin: 0.4rem 0.4rem 0.15rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ink-faint);
+}
+@media (max-width: 780px) {
+  .silencio__menu { position: fixed; top: auto; bottom: 1rem; left: 1rem; right: 1rem; width: auto; }
+  .silencio__boton.is-silenciado { height: 38px; }
+}

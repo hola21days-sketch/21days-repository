@@ -20,23 +20,67 @@
  */
 
 const CLAVE = "bitacora-aviso-sonido";
+/** Hasta cuándo están silenciados los avisos (milisegundos), si lo están. */
+const CLAVE_HASTA = "bitacora-silencio-hasta";
+/** Lo que se avisa a las demás partes de la página al cambiar el silencio. */
+export const EVENTO_SILENCIO = "bitacora-silencio";
 
-/** ¿Está puesto el aviso? Por defecto sí. */
-export function avisoActivo(): boolean {
+/** Silenciado sin fecha de fin: hasta que se vuelva a activar a mano. */
+export const SIEMPRE = Number.MAX_SAFE_INTEGER;
+
+/**
+ * Hasta cuándo está silenciada la aplicación, o null si no lo está.
+ * ---------------------------------------------------------------------------
+ * El silencio es de toda la aplicación, no de un canal: mensajes de los
+ * canales, mensajes directos y tareas. Se guarda en el navegador, así que vale
+ * para todas las pestañas abiertas en este aparato a la vez.
+ */
+export function silenciadoHasta(): number | null {
   try {
-    return localStorage.getItem(CLAVE) !== "no";
+    // Lo de antes, cuando solo se podía apagar: cuenta como silencio sin fin.
+    if (localStorage.getItem(CLAVE) === "no") return SIEMPRE;
+    const hasta = Number(localStorage.getItem(CLAVE_HASTA) ?? 0);
+    return hasta > Date.now() ? hasta : null;
   } catch {
-    return true;
+    return null;
   }
 }
 
-export function ponerAviso(activo: boolean) {
+/** ¿Está puesto el aviso? Por defecto sí. */
+export function avisoActivo(): boolean {
+  return silenciadoHasta() === null;
+}
+
+function avisarCambio() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENTO_SILENCIO));
+}
+
+/** Silencia toda la aplicación hasta esa hora (o SIEMPRE). */
+export function silenciar(hasta: number) {
   try {
-    localStorage.setItem(CLAVE, activo ? "si" : "no");
+    localStorage.setItem(CLAVE, "si");
+    localStorage.setItem(CLAVE_HASTA, String(hasta));
   } catch {
-    // Ventana privada o almacenamiento bloqueado: no pasa nada, se queda
-    // encendido durante esta visita.
+    // Ventana privada o almacenamiento bloqueado: no se puede guardar.
   }
+  avisarCambio();
+}
+
+/** Vuelve a dejar los avisos encendidos. */
+export function reactivar() {
+  try {
+    localStorage.setItem(CLAVE, "si");
+    localStorage.removeItem(CLAVE_HASTA);
+  } catch {
+    // Igual que arriba.
+  }
+  avisarCambio();
+}
+
+/** Compatibilidad: encender o apagar del todo. */
+export function ponerAviso(activo: boolean) {
+  if (activo) reactivar();
+  else silenciar(SIEMPRE);
 }
 
 type Ventana = Window & { webkitAudioContext?: typeof AudioContext };

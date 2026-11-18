@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BRAND } from "@/lib/brand";
@@ -40,6 +40,14 @@ export default function LoginForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // Llegar aquí porque se cerró la sesión: que se entienda por qué.
+  useEffect(() => {
+    const motivo = new URLSearchParams(window.location.search).get("motivo");
+    if (motivo === "sesion") {
+      setNotice("Tu sesión se ha cerrado (por ejemplo, al pulsar Salir en otro aparato). Vuelve a entrar.");
+    }
+  }, []);
 
   /** Cambia de pestaña dejando limpios los avisos de la anterior. */
   function go(next: Mode) {

@@ -25,8 +25,18 @@ export function createClient(): SupabaseClient {
     void cliente.auth.getSession().then(({ data }) => {
       if (data.session?.access_token) cliente?.realtime.setAuth(data.session.access_token);
     });
-    cliente.auth.onAuthStateChange((_evento, sesion) => {
+    cliente.auth.onAuthStateChange((evento, sesion) => {
       if (sesion?.access_token) cliente?.realtime.setAuth(sesion.access_token);
+      // Si la sesión se pierde (se pulsó Salir en otro aparato, que cierra
+      // todas, o caducó y ya no se puede renovar), a la pantalla de entrar.
+      // Antes la página se quedaba abierta pero vacía: todo lo que pedía le
+      // llegaba rechazado y parecía que la aplicación no iba.
+      if (evento === "SIGNED_OUT" && typeof window !== "undefined") {
+        const ruta = window.location.pathname;
+        if (!ruta.startsWith("/entrar") && !ruta.startsWith("/auth")) {
+          window.location.assign("/entrar?motivo=sesion");
+        }
+      }
     });
   }
   return cliente;

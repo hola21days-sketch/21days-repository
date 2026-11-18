@@ -39,8 +39,21 @@ export default function QuienEsta({ profileById }: Props) {
   const ultimaMarca = useRef(0);
 
   const mirar = useCallback(async () => {
-    const { data, error } = await supabase.rpc("activos_recientes", { p_minutos: MINUTOS });
-    if (!error && data) setActivos(data as Activo[]);
+    const { data, error, status } = await supabase.rpc("activos_recientes", { p_minutos: MINUTOS });
+    if (!error && data) {
+      setActivos(data as Activo[]);
+      return;
+    }
+    // De paso hace de vigilante de la sesión: si la base de datos dice que no
+    // sabe quién eres y la sesión ya no se puede recuperar, a entrar otra vez,
+    // en vez de dejar una página que no carga nada.
+    if (status === 401) {
+      const { data: quien, error: fallo } = await supabase.auth.getUser();
+      // Solo si el fallo es de sesión: un corte de internet no te saca.
+      const sinSesion =
+        fallo?.name === "AuthSessionMissingError" || fallo?.status === 401 || fallo?.status === 403;
+      if (!quien.user && sinSesion) window.location.assign("/entrar?motivo=sesion");
+    }
   }, [supabase]);
 
   // Apuntar lo propio: al entrar y, después, cuando se hace algo.
